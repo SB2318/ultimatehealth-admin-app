@@ -26,7 +26,7 @@ const StackNavigation = () => {
         options={{headerShown: false}}
       />
       <Stack.Screen
-        name="SignUpScreenFirst"
+        name="SignUpScreen"
         component={SignUpScreen}
         options={{headerShown: false}}
       />

@@ -1,12 +1,25 @@
 import React, { useState } from "react";
-import { View, StatusBar, Image, Text, TextInput, TouchableOpacity, Alert, useColorScheme } from "react-native";
+import { View, StatusBar, Image, Text, TextInput, TouchableOpacity, Alert, useColorScheme, StyleSheet } from "react-native";
 import { Colors } from "react-native/Libraries/NewAppScreen";
-import { PRIMARY_COLOR } from "../../helper/Theme";
+import { ON_PRIMARY_COLOR, PRIMARY_COLOR } from "../../helper/Theme";
 import messaging from '@react-native-firebase/messaging';
+import {useSafeAreaInsets} from 'react-native-safe-area-context';
+import Icon from 'react-native-vector-icons/Ionicons';
+import EmailInputModal from "../../components/EmailInputModal";
+import { useMutation } from "@tanstack/react-query";
+import axios, { AxiosError } from "axios";
+import { LOGIN_API } from "../../helper/APIUtils";
+import { Admin, AuthData } from "../../type";
+import { storeItem, KEYS } from "../../helper/Utils";
+import { setUserId, setUserToken, setUserHandle } from "../../stores/UserSlice";
+import { useDispatch } from "react-redux";
+import { wp, hp, fp } from "../../helper/Metric";
 
 
-export default function LoginScreen(){
+export default function LoginScreen({navigation}){
 
+    const inset = useSafeAreaInsets();
+    const dispatch = useDispatch();
     const isDarkMode = useColorScheme() === 'dark';
     const [emailInputVisible, setEmailInputVisible] = useState(false);
     const [password, setPassword] = useState('');
@@ -95,6 +108,83 @@ export default function LoginScreen(){
         }
       };
 
+      const handleEmailInputBack = () => {
+        setEmailInputVisible(false);
+      };
+
+      const loginMutation = useMutation({
+        mutationKey: ['login'],
+        mutationFn: async () => {
+          const res = await axios.post(LOGIN_API, {
+            email: email,
+            password: password,
+            fcmToken: fcmToken,
+          });
+    
+          return res.data.user as Admin;
+        },
+    
+        onSuccess: async data => {
+          const auth: AuthData = {
+            userId: data._id,
+            token: data?.refreshToken,
+            user_handle: data?.user_handle
+          };
+          try {
+            await storeItem(KEYS.USER_ID, auth.userId.toString());
+            await storeItem(KEYS.USER_HANDLE, data?.user_handle);
+            if (auth.token) {
+              await storeItem(KEYS.USER_TOKEN, auth.token.toString());
+              await storeItem(
+                KEYS.USER_TOKEN_EXPIRY_DATE,
+                new Date().toISOString(),
+              );
+              dispatch(setUserId(auth.userId));
+              dispatch(setUserToken(auth.token));
+              dispatch(setUserHandle(auth.user_handle));
+              setTimeout(() => {
+                navigation?.reset({
+                  index: 0,
+                  routes: [{name: 'TabNavigation'}], // Send user to LoginScreen after logout
+                });
+                //navigation.navigate('TabNavigation');
+              }, 1000);
+            } else {
+              Alert.alert('Token not found');
+            }
+          } catch (e) {
+            console.log('Async Storage ERROR', e);
+          }
+        },
+    
+        onError: (error: AxiosError) => {
+          console.log('Error', error);
+          if (error.response) {
+            const errorCode = error.response.status;
+            switch (errorCode) {
+              case 400:
+                Alert.alert('Error', 'Please provide email and password');
+                break;
+              case 401:
+                Alert.alert('Error', 'Invalid password');
+                break;
+              case 403:
+                Alert.alert(
+                  'Error',
+                  'Email not verified. Please check your email.',
+                );
+                break;
+              case 404:
+                Alert.alert('Error', 'User not found');
+                break;
+              default:
+                Alert.alert('Error', 'Internal server error');
+            }
+          } else {
+            Alert.alert('Error', 'User not found');
+          }
+        },
+      });
     return (
         <View style={styles.container}>
           <StatusBar
@@ -105,12 +195,12 @@ export default function LoginScreen(){
             <View style={styles.logoContainer}>
               {/* image */}
               <Image
-                source={require('../../assets/icon.png')}
+                source={require('../../../assets/icon.png')}
                 style={styles.logo}
               />
               {/* brand text container */}
               <View style={{marginTop: wp(2)}}>
-                <Text style={styles.brandText}>Ultimate Health</Text>
+                <Text style={styles.brandText}>Ultimate Health Admin</Text>
               </View>
             </View>
             {/* login form */}
@@ -210,13 +300,14 @@ export default function LoginScreen(){
                 </TouchableOpacity>
               </View>
     
+            
               <EmailInputModal
                 // eslint-disable-next-line @typescript-eslint/no-shadow
                 callback={(email: string) => {
                   setOtpMail(email);
-                  sendOtpMutation.mutate({
-                    email: email,
-                  });
+                 // sendOtpMutation.mutate({
+                //    email: email,
+                //  });
                 }}
                 visible={emailInputVisible}
                 backButtonClick={handleEmailInputBack}
@@ -244,7 +335,7 @@ export default function LoginScreen(){
                       },
                     ]}
                     onPress={() => {
-                      navigation.navigate('SignUpScreenFirst');
+                      navigation.navigate('SignUpScreen');
                     }}>
                     Create new account
                   </Text>
@@ -260,7 +351,7 @@ export default function LoginScreen(){
                       Alert.alert('Please enter your mail id');
                       return;
                     }
-                    requestVerification.mutate();
+                   // requestVerification.mutate();
                   }}>
                   <Text style={styles.loginText}>Request Verification</Text>
                 </TouchableOpacity>

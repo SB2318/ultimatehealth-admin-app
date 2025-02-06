@@ -1,19 +1,19 @@
-import React, { useState } from "react";
-import { View, StatusBar, Image, Text, TextInput, TouchableOpacity, Alert, useColorScheme, StyleSheet } from "react-native";
-import { Colors } from "react-native/Libraries/NewAppScreen";
-import { ON_PRIMARY_COLOR, PRIMARY_COLOR } from "../../helper/Theme";
+import React, { useState } from 'react';
+import { View, StatusBar, Image, Text, TextInput, TouchableOpacity, Alert, useColorScheme, StyleSheet } from 'react-native';
+import { Colors } from 'react-native/Libraries/NewAppScreen';
+import { ON_PRIMARY_COLOR, PRIMARY_COLOR } from '../../helper/Theme';
 import messaging from '@react-native-firebase/messaging';
 import {useSafeAreaInsets} from 'react-native-safe-area-context';
 import Icon from 'react-native-vector-icons/Ionicons';
-import EmailInputModal from "../../components/EmailInputModal";
-import { useMutation } from "@tanstack/react-query";
-import axios, { AxiosError } from "axios";
-import { LOGIN_API } from "../../helper/APIUtils";
-import { Admin, AuthData } from "../../type";
-import { storeItem, KEYS } from "../../helper/Utils";
-import { setUserId, setUserToken, setUserHandle } from "../../stores/UserSlice";
-import { useDispatch } from "react-redux";
-import { wp, hp, fp } from "../../helper/Metric";
+import EmailInputModal from '../../components/EmailInputModal';
+import { useMutation } from '@tanstack/react-query';
+import axios, { AxiosError } from 'axios';
+import { LOGIN_API } from '../../helper/APIUtils';
+import { Admin, AuthData } from '../../type';
+import { storeItem, KEYS } from '../../helper/Utils';
+import { setUserId, setUserToken, setUserHandle } from '../../stores/UserSlice';
+import { useDispatch } from 'react-redux';
+import { wp, hp, fp } from '../../helper/Metric';
 
 
 export default function LoginScreen({navigation}){

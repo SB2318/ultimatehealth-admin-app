@@ -7,14 +7,16 @@ import App from './App';
 import {name as appName} from './app.json';
 import {Provider} from 'react-redux';
 import store from './src/stores/ReduxStore.ts';
+//import {GestureHandlerRootView} from 'react-native-gesture-handler';
 
 
 const AppWrapper = () => {
     return (
-   
+    //  <GestureHandlerRootView>
           <Provider store={store}>
             <App />
           </Provider>
+     // </GestureHandlerRootView>
      
     );
   };

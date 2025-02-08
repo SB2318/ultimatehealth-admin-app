@@ -1,14 +1,17 @@
 import React, { useState } from 'react';
+import { Platform } from 'react-native';
 import { View, StatusBar, Image, Text, TextInput, TouchableOpacity, Alert, useColorScheme, StyleSheet } from 'react-native';
 import { Colors } from 'react-native/Libraries/NewAppScreen';
 import { ON_PRIMARY_COLOR, PRIMARY_COLOR } from '../../helper/Theme';
+import { getMessaging, getToken } from 'firebase/messaging';
 import messaging from '@react-native-firebase/messaging';
+import { getApp } from 'firebase/app';
 import {useSafeAreaInsets} from 'react-native-safe-area-context';
 import Icon from 'react-native-vector-icons/Ionicons';
 import EmailInputModal from '../../components/EmailInputModal';
 import { useMutation } from '@tanstack/react-query';
 import axios, { AxiosError } from 'axios';
-import { LOGIN_API } from '../../helper/APIUtils';
+import { LOGIN_API, RESEND_VERIFICATION } from '../../helper/APIUtils';
 import { Admin, AuthData } from '../../type';
 import { storeItem, KEYS } from '../../helper/Utils';
 import { setUserId, setUserToken, setUserHandle } from '../../stores/UserSlice';
@@ -50,14 +53,26 @@ export default function LoginScreen({navigation}){
       }
     
       async function getFCMToken() {
-        await requestUserPermission(); // Ask for permission (iOS only)
-        const fcmToken = await messaging().getToken();
-        if (fcmToken) {
-          console.log('FCM Token:', fcmToken);
-          setFcmToken(fcmToken);
-        } else {
-          console.log('Failed to get FCM Token');
-          return null;
+        if (Platform.OS === 'ios') {
+          await requestUserPermission();  // Ask for permission on iOS only
+        }
+      
+        const app = getApp(); // Get the default Firebase app
+        const messaging = getMessaging(app); // Initialize messaging using the app instance
+      console.log('click1');
+        try {
+          const fcmToken = await getToken(messaging, {
+            vapidKey: 'BP2F_uaBIaxPO7IdZ18uyGxZOyBUV3sx4aKodz2m_IBSUwPibUYOSmEyK31Vdniqj4cRcGk-D3N3w8mr-bOYQGw' // Add your VAPID key here if needed
+          });
+      
+          if (fcmToken) {
+            console.log('FCM Token:', fcmToken);
+            setFcmToken(fcmToken);
+          } else {
+            console.log('Failed to get FCM Token');
+          }
+        } catch (error) {
+          console.error('Error getting FCM token:', error);
         }
       }
     
@@ -66,6 +81,7 @@ export default function LoginScreen({navigation}){
           await getFCMToken();
           setPasswordMessage(false);
           setEmailMessage(false);
+          console.log('enter')
           loginMutation.mutate();
         } else {
           setOutput(true);
@@ -115,6 +131,7 @@ export default function LoginScreen({navigation}){
       const loginMutation = useMutation({
         mutationKey: ['login'],
         mutationFn: async () => {
+          console.log("Login Mutation Enter");
           const res = await axios.post(LOGIN_API, {
             email: email,
             password: password,
@@ -182,6 +199,56 @@ export default function LoginScreen({navigation}){
             }
           } else {
             Alert.alert('Error', 'User not found');
+          }
+        },
+      });
+
+      const requestVerification = useMutation({
+        mutationKey: ['resend-verification-mail'],
+        mutationFn: async () => {
+          const res = await axios.post(RESEND_VERIFICATION, {
+            email: email,
+            isAdmin: true,
+          });
+    
+          return res.data.message as string;
+        },
+    
+        onSuccess: () => {
+          /** Check Status */
+          Alert.alert('Verification Email Sent');
+          setEmail('');
+          setPassword('');
+        },
+        onError: (error: AxiosError) => {
+          console.log('Email Verification error', error);
+    
+          if (error.response) {
+            const statusCode = error.response.status;
+            switch (statusCode) {
+              case 400:
+                Alert.alert('Error', 'User not found or already verified');
+                break;
+              case 429:
+                Alert.alert(
+                  'Error',
+                  'Verification email already sent. Please try again after 1 hour.',
+                );
+                break;
+              case 500:
+                Alert.alert(
+                  'Error',
+                  'Internal server error. Please try again later.',
+                );
+                break;
+              default:
+                Alert.alert(
+                  'Error',
+                  'Something went wrong. Please try again later.',
+                );
+            }
+          } else {
+            console.log('Email Verification error', error);
           }
         },
       });
@@ -346,12 +413,12 @@ export default function LoginScreen({navigation}){
                 <TouchableOpacity
                   style={{...styles.loginButton, backgroundColor: '#DE3163'}}
                   onPress={() => {
-                    //validateAndSubmit();
+                   // validateAndSubmit();
                     if (email === '') {
                       Alert.alert('Please enter your mail id');
                       return;
                     }
-                   // requestVerification.mutate();
+                    requestVerification.mutate();
                   }}>
                   <Text style={styles.loginText}>Request Verification</Text>
                 </TouchableOpacity>

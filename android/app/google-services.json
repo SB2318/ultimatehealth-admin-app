@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "790450439872",
+    "project_id": "ultimatehealth-41b71",
+    "storage_bucket": "ultimatehealth-41b71.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:790450439872:android:2fd92793c19cc8f904cf25",
+        "android_client_info": {
+          "package_name": "com.uth_admin"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyADaPTzKVdAqaiB6SBDB8ecDga4Z3ZumZE"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

@@ -5,6 +5,8 @@ const GET_PROFILE_API = `${EC2_BASE_URL}/admin/getprofile`;
 const UPLOAD_STORAGE = `${EC2_BASE_URL}/upload-storage`;
 const CHECK_USER_HANDLE = `${EC2_BASE_URL}/user/check-user-handle`;
 const VERIFICATION_MAIL_API = `${EC2_BASE_URL}/user/verifyEmail`;
+const RESEND_VERIFICATION = `${EC2_BASE_URL}/user/resend-verification-mail`;
+// For verification related POST and GET request, send isAdmin in request body and query.
 export {
     LOGIN_API,
     REGISTRATION_API,
@@ -12,5 +14,6 @@ export {
     EC2_BASE_URL,
     UPLOAD_STORAGE,
     CHECK_USER_HANDLE,
-    VERIFICATION_MAIL_API
+    VERIFICATION_MAIL_API,
+    RESEND_VERIFICATION
 }

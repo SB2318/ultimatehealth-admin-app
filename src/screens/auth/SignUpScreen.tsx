@@ -21,7 +21,7 @@ import EmailVerifiedModal from "../../components/EmailVerifiedModal";
 var validator = require('email-validator');
 
 export default function SignUpScreen({navigation}){
-    const {uploadImage, loading} = useUploadImage();
+  const {uploadImage, loading} = useUploadImage();
   const [user_profile_image, setUserProfileImage] = useState('');
   const [name, setName] = useState('');
   const [username, setUsername] = useState('');
@@ -29,7 +29,7 @@ export default function SignUpScreen({navigation}){
   const [password, setPassword] = useState('');
   const [verifyBtntext, setVerifyBtntxt] = useState('Request Verification');
   const [verifiedModalVisible, setVerifiedModalVisible] = useState(false);
-  const [isHandleAvailable, setIsHandleAvailable] = useState(true);
+  const [isHandleAvailable, setIsHandleAvailable] = useState(false);
   const [token, setToken] = useState('');
   const [isSecureEntry, setIsSecureEntry] = useState(true);
   const [error, setError] = useState('');  
@@ -104,6 +104,7 @@ export default function SignUpScreen({navigation}){
       const res = await axios.post(VERIFICATION_MAIL_API, {
         email: email,
         token: token,
+        isAdmin: true
       });
 
       return res.data.message as string;
@@ -171,7 +172,7 @@ export default function SignUpScreen({navigation}){
     }
   };
   const handleSubmit = () => {
-    if (!isHandleAvailable) {
+    if (isHandleAvailable) {
       return;
     }
     if (!name || !username || !email || !password) {
@@ -185,7 +186,6 @@ export default function SignUpScreen({navigation}){
       return;
     }
     registerAdmin();
-     
   };
 
   const adminRegisterMutation = useMutation({
@@ -196,8 +196,8 @@ export default function SignUpScreen({navigation}){
         user_handle: username,
         email: email,
         password: password,
-        isDoctor: false,
-        Profile_image: profile_url,
+       // isDoctor: false,
+        Profile_avtar: profile_url,
       });
       return res.data.token as string;
     },
@@ -266,7 +266,9 @@ export default function SignUpScreen({navigation}){
           onPress: async () => {
             try {
               // Upload the resized image
-              const result = await uploadImage(user_profile_image);
+          let result;
+              if(user_profile_image && user_profile_image.length > 0) 
+                 {result = await uploadImage(user_profile_image);}
              
               adminRegisterMutation.mutate({
                 profile_url: result ? result : '',
@@ -333,7 +335,7 @@ export default function SignUpScreen({navigation}){
               </View>
             </View>
 
-            {!isHandleAvailable && (
+            {isHandleAvailable && (
               <Text style={styles.error}>User handle is already in use.</Text>
             )}
             <View style={styles.field}>

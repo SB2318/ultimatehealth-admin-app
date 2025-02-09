@@ -5,15 +5,15 @@
  * @format
  */
 
-import React, {useEffect, useRef} from 'react';
-import {Platform, StatusBar, useColorScheme, View} from 'react-native';
+import React, {useEffect} from 'react';
+import {StatusBar, useColorScheme, View} from 'react-native';
 import {Colors} from 'react-native/Libraries/NewAppScreen';
-import {PRIMARY_COLOR} from './src/helper/Theme';
+//import {PRIMARY_COLOR} from './src/helper/Theme';
 import {NavigationContainer} from '@react-navigation/native';
 import StackNavigation from './src/navigations/StackNavigation';
 import {SafeAreaProvider} from 'react-native-safe-area-context';
 import {QueryClient, QueryClientProvider} from '@tanstack/react-query';
-import messaging from '@react-native-firebase/messaging';
+import { FirebaseProvider } from './src/hooks/FirebaseContext';
 
 
 
@@ -24,8 +24,8 @@ function App(): React.JSX.Element {
     backgroundColor: isDarkMode ? Colors.darker : Colors.lighter,
   };
 
-  const BarStyle = Platform.OS === 'ios' ? 'dark-content' : 'light-content';
-  const navigationContainerRef = useRef();
+  //const BarStyle = Platform.OS === 'ios' ? 'dark-content' : 'light-content';
+  //const navigationContainerRef = useRef();
 
   useEffect(() => {
 
@@ -38,23 +38,23 @@ function App(): React.JSX.Element {
 
   return (
     <QueryClientProvider client={queryClient}>
-        <SafeAreaProvider>
-          <View
-            style={{flex: 1, backgroundColor: backgroundStyle.backgroundColor}}>
-            <StatusBar
-              barStyle={isDarkMode ? 'light-content' : BarStyle}
-              backgroundColor={
-                isDarkMode ? backgroundStyle.backgroundColor : PRIMARY_COLOR
-              }
-            />
-            <NavigationContainer ref={navigationContainerRef}>
-              <StackNavigation />
-            </NavigationContainer>
-          </View>
-        </SafeAreaProvider>
-  
+       
+       <FirebaseProvider>
+      <SafeAreaProvider>
+        <View style={{ flex: 1, backgroundColor: backgroundStyle.backgroundColor }}>
+          <StatusBar
+            barStyle="dark-content"
+            backgroundColor={backgroundStyle.backgroundColor}
+          />
+          <NavigationContainer>
+            <StackNavigation />
+          </NavigationContainer>
+        </View>
+      </SafeAreaProvider>
 
-    </QueryClientProvider>
+      </FirebaseProvider>
+   
+  </QueryClientProvider>
   );
 }
 

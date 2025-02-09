@@ -1,11 +1,10 @@
 import React, { useState } from 'react';
-import { Platform } from 'react-native';
 import { View, StatusBar, Image, Text, TextInput, TouchableOpacity, Alert, useColorScheme, StyleSheet } from 'react-native';
 import { Colors } from 'react-native/Libraries/NewAppScreen';
 import { ON_PRIMARY_COLOR, PRIMARY_COLOR } from '../../helper/Theme';
-import { getMessaging, getToken } from 'firebase/messaging';
+//import { getMessaging, getToken } from 'firebase/messaging';
+
 import messaging from '@react-native-firebase/messaging';
-import { getApp } from 'firebase/app';
 import {useSafeAreaInsets} from 'react-native-safe-area-context';
 import Icon from 'react-native-vector-icons/Ionicons';
 import EmailInputModal from '../../components/EmailInputModal';
@@ -17,11 +16,19 @@ import { storeItem, KEYS } from '../../helper/Utils';
 import { setUserId, setUserToken, setUserHandle } from '../../stores/UserSlice';
 import { useDispatch } from 'react-redux';
 import { wp, hp, fp } from '../../helper/Metric';
+import { getApp } from '@react-native-firebase/app';
+import { useFirebaseMessaging } from '../../hooks/FirebaseContext';
+//import { getApp } from '@react-native-firebase/app';
+
+//import { useFirebaseMessaging } from '../../hooks/FirebaseContext';
+//import { getToken } from 'firebase/messaging';
 
 
 export default function LoginScreen({navigation}){
 
+  //const messaging1 = useFirebaseMessaging();
     const inset = useSafeAreaInsets();
+    const { fcmToken } = useFirebaseMessaging();
     const dispatch = useDispatch();
     const isDarkMode = useColorScheme() === 'dark';
     const [emailInputVisible, setEmailInputVisible] = useState(false);
@@ -29,7 +36,7 @@ export default function LoginScreen({navigation}){
     const [passwordVerify, setPasswordVerify] = useState(false);
     const [email, setEmail] = useState('');
     const [otpMail, setOtpMail] = useState('');
-    const [fcmToken, setFcmToken] = useState<string | null>(null);
+  //  const [fcmToken, setFcmToken] = useState<string | null>(null);
     const [emailVerify, setEmailVerify] = useState(false);
     const [output, setOutput] = useState(true);
     const [passwordMessage, setPasswordMessage] = useState(false);
@@ -42,43 +49,53 @@ export default function LoginScreen({navigation}){
     };
 
     async function requestUserPermission() {
+      try {
+        // Request user permission to receive notifications
         const authStatus = await messaging().requestPermission();
+    
+        // Check if the authorization status is either AUTHORIZED or PROVISIONAL
         const enabled =
           authStatus === messaging.AuthorizationStatus.AUTHORIZED ||
           authStatus === messaging.AuthorizationStatus.PROVISIONAL;
     
         if (enabled) {
           console.log('Authorization status:', authStatus);
+        } else {
+          console.log('Notification permission denied');
         }
+      } catch (error) {
+        console.error('Error requesting permission:', error);
       }
+    }
     
-      async function getFCMToken() {
-        if (Platform.OS === 'ios') {
-          await requestUserPermission();  // Ask for permission on iOS only
-        }
+    /*
+    async function getFCMToken() {
+      await requestUserPermission(); // Ask for permission (iOS only)
       
-        const app = getApp(); // Get the default Firebase app
-        const messaging = getMessaging(app); // Initialize messaging using the app instance
-      console.log('click1');
-        try {
-          const fcmToken = await getToken(messaging, {
-            vapidKey: 'BP2F_uaBIaxPO7IdZ18uyGxZOyBUV3sx4aKodz2m_IBSUwPibUYOSmEyK31Vdniqj4cRcGk-D3N3w8mr-bOYQGw' // Add your VAPID key here if needed
-          });
-      
-          if (fcmToken) {
-            console.log('FCM Token:', fcmToken);
-            setFcmToken(fcmToken);
-          } else {
-            console.log('Failed to get FCM Token');
-          }
-        } catch (error) {
-          console.error('Error getting FCM token:', error);
+      try {
+      //  const app = getApp('UTH_Admin'); // Initialize the app (ensure Firebase is configured correctly)
+       // const messaging2 = getMessaging(app);
+    
+        // Get the FCM Token
+        const  fcmToken = await getApp().messaging().getToken();
+        //const fcmToken = await getToken(messaging1);
+    
+        if (fcmToken) {
+          console.log('FCM Token:', fcmToken);
+          setFcmToken(fcmToken); // Update state with the FCM token
+        } else {
+          console.log('Failed to get FCM Token');
+          return null;
         }
+      } catch (error) {
+        console.error('Error getting FCM Token:', error);
       }
+    }
+      */
     
       const validateAndSubmit = async () => {
         if (validate()) {
-          await getFCMToken();
+         // await getFCMToken();
           setPasswordMessage(false);
           setEmailMessage(false);
           console.log('enter')
@@ -162,7 +179,7 @@ export default function LoginScreen({navigation}){
               setTimeout(() => {
                 navigation?.reset({
                   index: 0,
-                  routes: [{name: 'TabNavigation'}], // Send user to LoginScreen after logout
+                  routes: [{name: 'HomeScreen'}], // Send user to LoginScreen after logout
                 });
                 //navigation.navigate('TabNavigation');
               }, 1000);
@@ -472,7 +489,7 @@ const styles = StyleSheet.create({
       flexDirection: 'column',
     },
     input: {
-      flexDirection: 'row',
+      flexDirection: 'column',
       marginBottom: hp(2),
       justifyContent: 'flex-start',
     },

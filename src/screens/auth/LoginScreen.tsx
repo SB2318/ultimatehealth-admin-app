@@ -10,7 +10,7 @@ import Icon from 'react-native-vector-icons/Ionicons';
 import EmailInputModal from '../../components/EmailInputModal';
 import { useMutation } from '@tanstack/react-query';
 import axios, { AxiosError } from 'axios';
-import { LOGIN_API, RESEND_VERIFICATION } from '../../helper/APIUtils';
+import { LOGIN_API, RESEND_VERIFICATION, SEND_OTP } from '../../helper/APIUtils';
 import { Admin, AuthData } from '../../type';
 import { storeItem, KEYS } from '../../helper/Utils';
 import { setUserId, setUserToken, setUserHandle } from '../../stores/UserSlice';
@@ -269,6 +269,47 @@ export default function LoginScreen({navigation}){
           }
         },
       });
+
+      const sendOtpMutation = useMutation({
+        mutationKey: ['forgot-password-otp'],
+        mutationFn: async ({email}: {email: string}) => {
+          const res = await axios.post(SEND_OTP, {
+            email: email,
+          });
+          return res.data.otp as string;
+        },
+    
+        onSuccess: () => {
+          Alert.alert('OTP has sent to your mail');
+          navigateToOtpScreen();
+        },
+        onError: error => {
+
+          setEmailInputVisible(false);
+          if (axios.isAxiosError(error)) {
+            if (error.response) {
+              if (error.response.status === 400) {
+                Alert.alert('Error', 'User with this email does not exist.' + error.message);
+              } else if (error.response.status === 500) {
+                Alert.alert('Error', 'Error sending email.' +  error.message);
+              } else {
+                Alert.alert('Error', 'Something went wrong.' + error.message);
+              }
+            } else {
+              Alert.alert('Error', 'Network error.');
+            }
+          } else {
+            Alert.alert('Error', 'Network error.');
+          }
+        },
+      });
+    
+      const navigateToOtpScreen = () => {
+        setEmailInputVisible(false);
+        navigation.navigate('OtpScreen', {
+          email: otpMail,
+        });
+      };
     return (
         <View style={styles.container}>
           <StatusBar
@@ -389,9 +430,9 @@ export default function LoginScreen({navigation}){
                 // eslint-disable-next-line @typescript-eslint/no-shadow
                 callback={(email: string) => {
                   setOtpMail(email);
-                 // sendOtpMutation.mutate({
-                //    email: email,
-                //  });
+                  sendOtpMutation.mutate({
+                     email: email,
+                  });
                 }}
                 visible={emailInputVisible}
                 backButtonClick={handleEmailInputBack}

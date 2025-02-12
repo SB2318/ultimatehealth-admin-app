@@ -19,6 +19,7 @@ import {useMutation} from '@tanstack/react-query';
 import axios, {AxiosError} from 'axios';
 import {CHECK_OTP, SEND_OTP} from '../../helper/APIUtils';
 import Loader from '../../components/Loader';
+import { ScrollView } from 'react-native-gesture-handler';
 
 export default function OtpScreen({navigation, route}) {
   const [codes, setCodes] = useState<string[] | undefined>(Array(4).fill(''));
@@ -129,7 +130,8 @@ export default function OtpScreen({navigation, route}) {
     return <Loader />;
   }
   return (
-    <SafeAreaView style={styles.container}>
+    <ScrollView style={styles.container}>
+    <SafeAreaView>
       <KeyboardAvoidingView>
         <TouchableOpacity
           style={{marginHorizontal: 16, marginTop: 6}}
@@ -170,6 +172,7 @@ export default function OtpScreen({navigation, route}) {
         </View>
       </KeyboardAvoidingView>
     </SafeAreaView>
+    </ScrollView>
   );
 }
 

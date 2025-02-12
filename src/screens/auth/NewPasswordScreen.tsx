@@ -18,6 +18,7 @@ import axios, {AxiosError} from 'axios';
 import {CHANGE_PASSWORD_API} from '../../helper/APIUtils';
 import Loader from '../../components/Loader';
 import { useSelector } from 'react-redux';
+import { ScrollView } from 'react-native-gesture-handler';
 
 export default function NewPasswordScreen({
   navigation,
@@ -126,7 +127,8 @@ export default function NewPasswordScreen({
     return <Loader />;
   }
   return (
-    <SafeAreaView style={styles.container}>
+    <ScrollView style={styles.container}>
+    <SafeAreaView >
       <TouchableOpacity
         style={{marginHorizontal: 16, marginTop: 6}}
         onPress={() => {
@@ -207,6 +209,7 @@ export default function NewPasswordScreen({
         </TouchableOpacity>
       </View>
     </SafeAreaView>
+    </ScrollView>
   );
 }
 

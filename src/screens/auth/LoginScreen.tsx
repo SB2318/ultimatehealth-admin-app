@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, StatusBar, Image, Text, TextInput, TouchableOpacity, Alert, useColorScheme, StyleSheet } from 'react-native';
+import { View, ScrollView, StatusBar, Image, Text, TextInput, TouchableOpacity, Alert, useColorScheme, StyleSheet } from 'react-native';
 import { Colors } from 'react-native/Libraries/NewAppScreen';
 import { ON_PRIMARY_COLOR, PRIMARY_COLOR } from '../../helper/Theme';
 //import { getMessaging, getToken } from 'firebase/messaging';
@@ -311,7 +311,7 @@ export default function LoginScreen({navigation}){
         });
       };
     return (
-        <View style={styles.container}>
+        <ScrollView style={styles.container}>
           <StatusBar
             barStyle={isDarkMode ? 'dark-content' : 'light-content'}
             backgroundColor={PRIMARY_COLOR}
@@ -483,7 +483,7 @@ export default function LoginScreen({navigation}){
               </View>
             </View>
           </View>
-        </View>
+        </ScrollView>
         // <DropDownComponent data={Categories} />
       );
 }
@@ -491,6 +491,7 @@ export default function LoginScreen({navigation}){
 const styles = StyleSheet.create({
     container: {
       flex: 1,
+      backgroundColor: '#ffffff',
     },
     innercontainer: {
       flex: 1,

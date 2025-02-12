@@ -291,7 +291,8 @@ export default function SignUpScreen({navigation}){
   }
 
   return (
-    <SafeAreaView style={styles.container}>
+    <ScrollView style={styles.container}>
+    <SafeAreaView>
       <TouchableOpacity
         style={{flex: 0, backgroundColor: PRIMARY_COLOR}}
         onPress={() => {
@@ -403,6 +404,7 @@ export default function SignUpScreen({navigation}){
         </ScrollView>
       </View>
     </SafeAreaView>
+    </ScrollView>
   );
 }
 

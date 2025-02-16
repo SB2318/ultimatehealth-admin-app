@@ -310,7 +310,6 @@ export default function SignUpScreen({navigation}){
       
 }
 
-   
         <ScrollView>
           <TouchableOpacity onPress={selectImage} style={styles.iconContainer}>
             {user_profile_image === '' ? (
@@ -420,7 +419,7 @@ const styles = StyleSheet.create({
   header: {
     width: '100%',
     height: hp(10),
-    paddingTop: 1,
+    paddingTop: 5,
     alignItems: 'center',
    // backgroundColor: PRIMARY_COLOR,
   },

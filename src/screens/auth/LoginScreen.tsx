@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { View, ScrollView, StatusBar, Image, Text, TextInput, TouchableOpacity, Alert, useColorScheme, StyleSheet } from 'react-native';
 import { Colors } from 'react-native/Libraries/NewAppScreen';
-import { ON_PRIMARY_COLOR, PRIMARY_COLOR } from '../../helper/Theme';
+import { BUTTON_COLOR, ON_PRIMARY_COLOR, PRIMARY_COLOR } from '../../helper/Theme';
 //import { getMessaging, getToken } from 'firebase/messaging';
 
 import messaging from '@react-native-firebase/messaging';
@@ -314,7 +314,7 @@ export default function LoginScreen({navigation}){
         <ScrollView style={styles.container}>
           <StatusBar
             barStyle={isDarkMode ? 'dark-content' : 'light-content'}
-            backgroundColor={PRIMARY_COLOR}
+            backgroundColor={BUTTON_COLOR}
           />
           <View style={[styles.innercontainer, {paddingTop: inset.top}]}>
             <View style={styles.logoContainer}>
@@ -433,11 +433,17 @@ export default function LoginScreen({navigation}){
                 visible={emailInputVisible}
                 backButtonClick={handleEmailInputBack}
                 onDismiss={() => setEmailInputVisible(false)}
+                isRequestVerification={false}
+                onRequestVerification={()=>{}}
               />
     
              
-              <View style={styles.createAccountContainer}>
-                <TouchableOpacity
+              <TouchableOpacity 
+              style={styles.createAccountContainer}
+              onPress={() => {
+                navigation.navigate('SignUpScreen');
+              }}>
+                <View
                   style={{...styles.loginButton, backgroundColor: '#F5f5f5'}}>
                   <Text
                     style={[
@@ -447,13 +453,11 @@ export default function LoginScreen({navigation}){
                         color: 'black',
                       },
                     ]}
-                    onPress={() => {
-                      navigation.navigate('SignUpScreen');
-                    }}>
+                  >
                     Sign up
                   </Text>
-                </TouchableOpacity>
-              </View>
+                </View>
+              </TouchableOpacity>
 
               <TouchableOpacity
                 style={styles.forgotPasswordContainer}

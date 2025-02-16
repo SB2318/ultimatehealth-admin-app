@@ -1,18 +1,8 @@
 import React, { createContext, useContext, useEffect, ReactNode, useState } from 'react';
-import { initializeApp } from '@react-native-firebase/app'; // Correct initialization for Firebase
-import messaging from '@react-native-firebase/messaging'; // Correct import for messaging
-import { firebase } from '@react-native-firebase/messaging';
 
-// Your Firebase config
-const firebaseConfig = {
-  apiKey: "AIzaSyBd2U6tv_g0NLI1lGIJDZcxBuVRQOk7Jeo",
-  authDomain: "ultimatehealth-41b71.firebaseapp.com",
-  projectId: "ultimatehealth-41b71",
-  storageBucket: "ultimatehealth-41b71.firebasestorage.app",
-  messagingSenderId: "790450439872",
-  appId: "1:790450439872:web:4d4b43199a7ab4b204cf25",
-  measurementId: "G-WLVL3D8JPV"
-};
+import messaging from '@react-native-firebase/messaging'; // Correct import for messaging
+import { firebase } from '@react-native-firebase/messaging'; // Correct import for firebase
+
 
 const androidConfig = {
   clientId: '118169707984303342226',
@@ -42,11 +32,13 @@ export const FirebaseProvider: React.FC<FirebaseProviderProps> = ({ children }) 
   useEffect(() => {
     const initializeFirebase = async () => {
       // Initialize Firebase
-    
-
-      // Get the messaging token
       try {
-        await firebase.initializeApp(androidConfig);
+        if (!firebase.apps.length) {
+         await firebase.initializeApp(androidConfig);
+       }else {
+         firebase.app(); // if already initialized, use that one
+       }
+        //await firebase.initializeApp(androidConfig);
         const token = await messaging().getToken();
         console.log('Firebase Token:', token);
         setFcmToken(token); // Store the token in state

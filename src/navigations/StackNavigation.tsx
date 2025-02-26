@@ -50,3 +50,7 @@ const StackNavigation = () => {
 };
 
 export default StackNavigation;
+function createMaterialTopTabNavigator(arg0: { screens: { Home: () => React.JSX.Element; Profile: any; }; }) {
+  throw new Error('Function not implemented.');
+}
+

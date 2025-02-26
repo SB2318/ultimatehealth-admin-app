@@ -1,27 +1,280 @@
-import { View, Text, StyleSheet } from "react-native";
-import { PRIMARY_COLOR } from "../helper/Theme";
+import {View, Text, StyleSheet, Image} from 'react-native';
+import {ON_PRIMARY_COLOR, PRIMARY_COLOR} from '../helper/Theme';
+import {Tabs, MaterialTabBar} from 'react-native-collapsible-tab-view';
+import ArticleCard from '../components/ArticleCard';
+import {useSelector} from 'react-redux';
+import axios from 'axios';
+import {useQuery} from '@tanstack/react-query';
+import {ArticleData} from '../type';
+import {
+  GET_AVILABLE_ARTICLES_API,
+  GET_COMPLETED_TASK_API,
+  GET_INPROGRESS_ARTICLES_API,
+} from '../helper/APIUtils';
+import {useCallback, useState} from 'react';
+import {useFocusEffect} from '@react-navigation/native';
+import {useSafeAreaInsets} from 'react-native-safe-area-context';
 
-export default function HomeScreen(){
+export default function HomeScreen({navigation}) {
+  const {user_token, user_id} = useSelector((state: any) => state.user);
+  const [refreshing, setRefreshing] = useState<boolean>(false);
 
-    return(
-        <View style={styles.container}>
-            <Text style={styles.title}>Home Screen</Text>
-        </View>
+  //const bottomBarHeight = useBottomTabBarHeight();
+  const insets = useSafeAreaInsets();
+
+  const {
+    data: availableArticles,
+    refetch: availableAticleRefetch,
+    isLoading: isAvailableArticleLoading,
+  } = useQuery({
+    queryKey: ['get-available-articles'],
+    queryFn: async () => {
+      const response = await axios.get(`${GET_AVILABLE_ARTICLES_API}`, {
+        headers: {
+          Authorization: `Bearer ${user_token}`,
+        },
+      });
+      return response.data as ArticleData[];
+    },
+  });
+
+  const {
+    data: progressArticles,
+    refetch: refetchProgressArticles,
+    isLoading: isProgressArticleLoading,
+  } = useQuery({
+    queryKey: ['get-progress-articles'],
+    queryFn: async () => {
+      const response = await axios.get(
+        `${GET_INPROGRESS_ARTICLES_API}/${user_id}`,
+        {
+          headers: {
+            Authorization: `Bearer ${user_token}`,
+          },
+        },
+      );
+      return response.data as ArticleData[];
+    },
+  });
+
+  const {
+    data: completedArticles,
+    refetch: refetchCompletedArticles,
+    isLoading: isCompletedArticleLoading,
+  } = useQuery({
+    queryKey: ['get-progress-articles'],
+    queryFn: async () => {
+      const response = await axios.get(`${GET_COMPLETED_TASK_API}/${user_id}`, {
+        headers: {
+          Authorization: `Bearer ${user_token}`,
+        },
+      });
+      return response.data as ArticleData[];
+    },
+  });
+
+  const renderItem = useCallback(
+    ({item}: {item: ArticleData}) => {
+      return (
+        <ArticleCard
+          item={item}
+          // isSelected={selectedCardId === item._id}
+          //  setSelectedCardId={setSelectedCardId}
+          //navigation={navigation}
+          success={onRefresh}
+          //  handleRepostAction={handleRepostAction}
+          // handleReportAction={handleReportAction}
+        />
+      );
+    },
+    [navigation, onRefresh],
+  );
+
+  const onRefresh = () => {
+    setRefreshing(true);
+    availableAticleRefetch();
+    refetchProgressArticles();
+    refetchCompletedArticles();
+    setRefreshing(false);
+  };
+
+  useFocusEffect(
+    useCallback(() => {
+      availableAticleRefetch();
+      refetchProgressArticles();
+      refetchCompletedArticles();
+    }, [
+      availableAticleRefetch,
+      refetchCompletedArticles,
+      refetchProgressArticles,
+    ]),
+  );
+
+  const renderTabBar = props => {
+    return (
+      <MaterialTabBar
+        {...props}
+        indicatorStyle={styles.indicatorStyle}
+        style={styles.tabBarStyle}
+        activeColor={PRIMARY_COLOR}
+        inactiveColor="#9098A3"
+        labelStyle={styles.labelStyle}
+        contentContainerStyle={styles.contentContainerStyle}
+      />
     );
+  };
+
+  return (
+    <View style={styles.container}>
+      <View style={[styles.innerContainer, {paddingTop: insets.top}]}>
+        <Tabs.Container
+          // renderHeader={renderHeader}
+          renderTabBar={renderTabBar}
+          containerStyle={styles.tabsContainer}>
+          {/* Tab 1 */}
+          <Tabs.Tab name="Articles">
+            <Tabs.FlatList
+              data={availableArticles !== undefined ? availableArticles : []}
+              renderItem={renderItem}
+              showsVerticalScrollIndicator={false}
+              contentContainerStyle={[
+                styles.flatListContentContainer,
+                {paddingBottom: 15},
+              ]}
+              keyExtractor={item => item?._id}
+              refreshing={refreshing}
+              ListEmptyComponent={
+                <View style={styles.emptyContainer}>
+                  <Image
+                    source={require('../../assets/article_default.jpg')}
+                    style={styles.image}
+                  />
+                  <Text style={styles.message}>No Article Found</Text>
+                </View>
+              }
+            />
+          </Tabs.Tab>
+
+          <Tabs.Tab name="In Progress">
+            <Tabs.FlatList
+              data={progressArticles !== undefined ? progressArticles : []}
+              renderItem={renderItem}
+              showsVerticalScrollIndicator={false}
+              contentContainerStyle={[
+                styles.flatListContentContainer,
+                {paddingBottom: 15},
+              ]}
+              keyExtractor={item => item?._id}
+              refreshing={refreshing}
+              ListEmptyComponent={
+                <View style={styles.emptyContainer}>
+                   <Image
+                    source={require('../../assets/article_default.jpg')}
+                    style={styles.image}
+                  />
+                  <Text style={styles.message}>No Article Found</Text>
+                </View>
+              }
+            />
+          </Tabs.Tab>
+          {/* Tab 3 */}
+          <Tabs.Tab name="Completed">
+            <Tabs.FlatList
+              data={completedArticles !== undefined ? completedArticles : []}
+              renderItem={renderItem}
+              showsVerticalScrollIndicator={false}
+              contentContainerStyle={[
+                styles.flatListContentContainer,
+                {paddingBottom: 15},
+              ]}
+              keyExtractor={item => item?._id}
+              refreshing={refreshing}
+              ListEmptyComponent={
+                <View style={styles.emptyContainer}>
+                   <Image
+                    source={require('../../assets/article_default.jpg')}
+                    style={styles.image}
+                  />
+                  <Text style={styles.message}>No Article Found</Text>
+                </View>
+              }
+            />
+          </Tabs.Tab>
+        </Tabs.Container>
+      </View>
+    </View>
+  );
 }
 
 const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: '#0CAFFF',
+  },
+  innerContainer: {
+    flex: 1,
+  },
+  tabsContainer: {
+    backgroundColor: 'white',
+    overflow: 'hidden',
+  },
+  image: {
+    height:"60%",
+    width:"90%",
+    resizeMode: 'cover',
+  },
+  scrollViewContentContainer: {
+    paddingHorizontal: 16,
+    marginTop: 16,
+    backgroundColor: ON_PRIMARY_COLOR,
+  },
+  flatListContentContainer: {
+    paddingHorizontal: 16,
+    backgroundColor: ON_PRIMARY_COLOR,
+  },
 
-    container:{
-        flex:1,
-        justifyContent:'center',
-        alignItems:'center',
-        backgroundColor: PRIMARY_COLOR
-    },
-
-    title:{
-        fontSize:24,
-        color:'#fff',
-        fontWeight: '600',
-    }
+  profileImage: {
+    height: 130,
+    width: 130,
+    borderRadius: 100,
+    objectFit: 'cover',
+    resizeMode: 'contain',
+  },
+  indicatorStyle: {
+    backgroundColor: 'white',
+  },
+  tabBarStyle: {
+    backgroundColor: 'white',
+  },
+  labelStyle: {
+    fontWeight: '600',
+    fontSize: 14,
+    color: 'black',
+    textTransform: 'capitalize',
+  },
+  contentContainerStyle: {
+    width: '100%',
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    shadowOpacity: 0,
+    shadowOffset: {width: 0, height: 0},
+    shadowColor: 'white',
+  },
+  message: {
+    fontSize: 16,
+    color: '#555',
+    textAlign: 'center',
+  },
+  emptyContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 10,
+  },
+  loadingContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
 });

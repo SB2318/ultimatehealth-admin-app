@@ -9,6 +9,10 @@ const RESEND_VERIFICATION = `${EC2_BASE_URL}/user/resend-verification-mail`;
 const SEND_OTP = `${EC2_BASE_URL}/user/forgotpassword`;
 const CHECK_OTP = `${EC2_BASE_URL}/user/verifyOtp`;
 const CHANGE_PASSWORD_API = `${EC2_BASE_URL}/admin/update-password`;
+const GET_IMAGE = `${EC2_BASE_URL}/getfile`;
+const GET_AVILABLE_ARTICLES_API = `${EC2_BASE_URL}/admin/articles-for-review`;
+const GET_INPROGRESS_ARTICLES_API = `${EC2_BASE_URL}/admin/review-progress`;
+const GET_COMPLETED_TASK_API = `${EC2_BASE_URL}/admin/review-completed`;
 // For verification related POST and GET request, send isAdmin in request body and query.
 export {
     LOGIN_API,
@@ -21,5 +25,9 @@ export {
     RESEND_VERIFICATION,
     SEND_OTP,
     CHECK_OTP,
-    CHANGE_PASSWORD_API
+    CHANGE_PASSWORD_API,
+    GET_IMAGE,
+    GET_AVILABLE_ARTICLES_API,
+    GET_INPROGRESS_ARTICLES_API,
+    GET_COMPLETED_TASK_API
 }

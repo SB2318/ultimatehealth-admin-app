@@ -21,4 +21,41 @@ export type AuthData = {
     token: string | null;
     user_handle: string | null;
   };
+  export type ArticleCardProps = {
+   item: ArticleData;
+   // navigation:
+   //   | HomeScreenProps['navigation']
+   //   | ProfileScreenProps['navigation']
+   //   | UserProfileScreenProp['navigation'];
+   success: () => void;
+   isSelected: Boolean;
+   setSelectedCardId: (id: string) => void;
+   //handleRepostAction: (item: ArticleData) => void;
+   //handleReportAction: (item: ArticleData) => void;
+ };
 
+ export type ArticleData = {
+   _id: string;
+   title: string;
+   authorName: string;
+   authorId: string;
+   content: string;
+   summary: string;
+   tags: Category[];
+   lastUpdated: string;
+   imageUtils: string[];
+   viewCount: number;
+   viewUsers: [];
+   repostUsers: string[];
+   likeCount: number;
+   likedUsers: [];
+   savedUsers: string[];
+   mentionedUsers: [];
+ };
+
+ export type Category = {
+   __v: number;
+   _id: string;
+   id: number;
+   name: string;
+ };

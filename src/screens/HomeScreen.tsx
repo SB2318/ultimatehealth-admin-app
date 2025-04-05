@@ -1,23 +1,26 @@
-import {View, Text, StyleSheet, Image} from 'react-native';
+import {View, Text, StyleSheet, Image, Alert} from 'react-native';
 import {ON_PRIMARY_COLOR, PRIMARY_COLOR} from '../helper/Theme';
 import {Tabs, MaterialTabBar} from 'react-native-collapsible-tab-view';
 import ArticleCard from '../components/ArticleCard';
 import {useSelector} from 'react-redux';
 import axios from 'axios';
-import {useQuery} from '@tanstack/react-query';
+import {useMutation, useQuery} from '@tanstack/react-query';
 import {ArticleData} from '../type';
 import {
   GET_AVILABLE_ARTICLES_API,
   GET_COMPLETED_TASK_API,
   GET_INPROGRESS_ARTICLES_API,
+  PICK_ARTICLE,
 } from '../helper/APIUtils';
 import {useCallback, useState} from 'react';
 import {useFocusEffect} from '@react-navigation/native';
 import {useSafeAreaInsets} from 'react-native-safe-area-context';
+import ReviewCard from '../components/ReviewCard';
 
 export default function HomeScreen({navigation}) {
   const {user_token, user_id} = useSelector((state: any) => state.user);
   const [refreshing, setRefreshing] = useState<boolean>(false);
+  const [selectedCardId, setSelectedCardId] = useState<string>('');
 
   //const bottomBarHeight = useBottomTabBarHeight();
   const insets = useSafeAreaInsets();
@@ -73,21 +76,49 @@ export default function HomeScreen({navigation}) {
     },
   });
 
+  const pickArticleMutation = useMutation({
+    mutationKey: ['pick-article'],
+    mutationFn: async (articleId: string) => {
+      const res = await axios.post(`${PICK_ARTICLE}`, {
+        articleId: articleId,
+        moderatorId: user_id,
+      });
+
+      return res.data as any;
+    },
+    onSuccess: data => {
+      Alert.alert(data.message);
+    },
+    onError: error => {
+      console.log('Error', error);
+      Alert.alert(error.message);
+    },
+  });
+
   const renderItem = useCallback(
     ({item}: {item: ArticleData}) => {
       return (
-        <ArticleCard
+        // eslint-disable-next-line react/react-in-jsx-scope
+        <ReviewCard
           item={item}
-          // isSelected={selectedCardId === item._id}
-          //  setSelectedCardId={setSelectedCardId}
+          isSelected={selectedCardId === item._id}
+          setSelectedCardId={setSelectedCardId}
           //navigation={navigation}
-          success={onRefresh}
+          onclick={(item, index) => {
+            if (index === 0) {
+              // Pick article
+              pickArticleMutation.mutate(item._id);
+            } else {
+              // Display discard reason or screen
+            }
+          }}
+
           //  handleRepostAction={handleRepostAction}
           // handleReportAction={handleReportAction}
         />
       );
     },
-    [navigation, onRefresh],
+    [selectedCardId],
   );
 
   const onRefresh = () => {
@@ -168,7 +199,7 @@ export default function HomeScreen({navigation}) {
               refreshing={refreshing}
               ListEmptyComponent={
                 <View style={styles.emptyContainer}>
-                   <Image
+                  <Image
                     source={require('../../assets/article_default.jpg')}
                     style={styles.image}
                   />
@@ -191,7 +222,7 @@ export default function HomeScreen({navigation}) {
               refreshing={refreshing}
               ListEmptyComponent={
                 <View style={styles.emptyContainer}>
-                   <Image
+                  <Image
                     source={require('../../assets/article_default.jpg')}
                     style={styles.image}
                   />
@@ -219,8 +250,8 @@ const styles = StyleSheet.create({
     overflow: 'hidden',
   },
   image: {
-    height:"60%",
-    width:"90%",
+    height: '60%',
+    width: '90%',
     resizeMode: 'cover',
   },
   scrollViewContentContainer: {

@@ -59,3 +59,13 @@ export type AuthData = {
    id: number;
    name: string;
  };
+
+ export type ReviewCardProps = {
+  item: ArticleData;
+  onclick: (item: ArticleData, index: number) => void;
+  isSelected: Boolean;
+  setSelectedCardId: (id: string) => void;
+};
+export type ReviewScreenProps = {
+  
+}

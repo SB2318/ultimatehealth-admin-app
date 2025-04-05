@@ -48,3 +48,20 @@ export const retrieveItem = async (key: string) => {
     VULTR_COLLECTION: 'care_companion',
     USER_HANDLE: 'USER_HANDLE'
   };
+  export const StatusEnum = {
+    UNASSIGNED: 'unassigned', // can't change
+    IN_PROGRESS: 'in-progress', // can't change
+    REVIEW_PENDING: 'review-pending', // can't change
+    PUBLISHED: 'published',
+    DISCARDED: 'discarded', // can't change
+    AWAITING_USER: 'awaiting-user',
+  };
+  export function formatCount(count: number) {
+    if (count < 1000) {
+      return count.toString();
+    } else if (count < 1000000) {
+      return Math.floor(count / 1000) + 'k';
+    } else {
+      return Math.floor(count / 1000000) + 'M';
+    }
+  }

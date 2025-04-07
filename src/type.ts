@@ -62,7 +62,7 @@ export type AuthData = {
 
  export type ReviewCardProps = {
   item: ArticleData;
-  onclick: (item: ArticleData, index: number) => void;
+  onclick: (item: ArticleData, index: number, reason: string) => void;
   isSelected: Boolean;
   setSelectedCardId: (id: string) => void;
 };

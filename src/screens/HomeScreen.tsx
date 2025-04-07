@@ -7,6 +7,7 @@ import axios from 'axios';
 import {useMutation, useQuery} from '@tanstack/react-query';
 import {ArticleData} from '../type';
 import {
+  DISCARD_ARTICLE,
   GET_AVILABLE_ARTICLES_API,
   GET_COMPLETED_TASK_API,
   GET_INPROGRESS_ARTICLES_API,
@@ -21,6 +22,7 @@ export default function HomeScreen({navigation}) {
   const {user_token, user_id} = useSelector((state: any) => state.user);
   const [refreshing, setRefreshing] = useState<boolean>(false);
   const [selectedCardId, setSelectedCardId] = useState<string>('');
+
 
   //const bottomBarHeight = useBottomTabBarHeight();
   const insets = useSafeAreaInsets();
@@ -104,12 +106,16 @@ export default function HomeScreen({navigation}) {
           isSelected={selectedCardId === item._id}
           setSelectedCardId={setSelectedCardId}
           //navigation={navigation}
-          onclick={(item, index) => {
+          onclick={(item, index, reason) => {
             if (index === 0) {
               // Pick article
               pickArticleMutation.mutate(item._id);
             } else {
               // Display discard reason or screen
+              discardArticleMutation.mutate({
+                articleId: item._id,
+                reason: reason
+              });
             }
           }}
 
@@ -118,9 +124,29 @@ export default function HomeScreen({navigation}) {
         />
       );
     },
-    [selectedCardId],
+    [pickArticleMutation, selectedCardId],
   );
 
+  const discardArticleMutation = useMutation({
+    mutationKey: ['discard-article'],
+    mutationFn: async ({articleId,reason}:{articleId: string, reason: string}) => {
+
+      const res = await axios.post(DISCARD_ARTICLE, {
+        articleId: articleId,
+        discardReason: reason,
+      });
+
+      return res.data as any;
+    },
+
+    onSuccess:(d)=>{
+      onRefresh();
+    },
+    onError:(err)=>{
+      console.log('Error', err);
+      Alert.alert(err.message);
+    }
+  })
   const onRefresh = () => {
     setRefreshing(true);
     availableAticleRefetch();

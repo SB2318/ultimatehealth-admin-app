@@ -5,7 +5,7 @@ import {
     Pressable,
     TouchableOpacity,
   } from 'react-native';
-  import React from 'react';
+  import React, { useState } from 'react';
   import {fp, hp} from '../helper/Metric';
   import {ReviewCardProps} from '../type';
   import moment from 'moment';
@@ -20,6 +20,7 @@ import {
   //import io from 'socket.io-client';
   import Entypo from 'react-native-vector-icons/Entypo';
   import AntDesign from 'react-native-vector-icons/AntDesign';
+import DiscardReasonModal from './DiscardReasonModal';
 
   
   const ReviewCard = ({
@@ -39,6 +40,8 @@ import {
         : item?.status === StatusEnum.DISCARDED
         ? 'red'
         : BUTTON_COLOR;
+    
+    const [discardModalVisible, setDiscardModalVisible] = useState<boolean>(false);
   
     const menuStyle = useAnimatedStyle(() => {
       return {
@@ -72,7 +75,7 @@ import {
             authorId: item.authorId,
           });
           */
-          onclick(item);
+         
         }}>
         <View style={styles.cardContainer}>
           {/* Image Section */}
@@ -86,7 +89,7 @@ import {
                     {
                       name: 'Pick Article',
                       action: () => {
-                        onclick(item, 0);
+                        onclick(item, 0, "");
                         handleAnimation();
                       },
                       icon: 'hand-point-right',
@@ -95,7 +98,8 @@ import {
                     {
                         name: 'Discard Article',
                         action: () => {
-                          onclick(item, 1);
+                          setDiscardModalVisible(true)
+                          //onclick(item, 1);
                           handleAnimation();
                         },
                         icon: 'times-circle',
@@ -150,7 +154,7 @@ import {
               <TouchableOpacity
                 style={styles.viewInnnerContainer}
                 onPress={() => {
-                  onclick(item);
+                 // onclick(item);
                 }}>
                 <Text style={styles.viewText}>View</Text>
                 <AntDesign
@@ -160,6 +164,17 @@ import {
                   style={{marginTop: 2}}
                 />
               </TouchableOpacity>
+
+              <DiscardReasonModal
+                visible={discardModalVisible}
+                callback={(reason: string)=>{
+                   onclick(item, 1, reason);
+                }}
+                dismiss={()=>{
+                  setDiscardModalVisible(false)
+                }}
+
+               />
             </View>
   
             {/* Like, Save, and Comment Actions */}

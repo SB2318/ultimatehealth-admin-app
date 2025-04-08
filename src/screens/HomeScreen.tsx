@@ -1,7 +1,6 @@
 import {View, Text, StyleSheet, Image, Alert} from 'react-native';
 import {ON_PRIMARY_COLOR, PRIMARY_COLOR} from '../helper/Theme';
 import {Tabs, MaterialTabBar} from 'react-native-collapsible-tab-view';
-import ArticleCard from '../components/ArticleCard';
 import {useSelector} from 'react-redux';
 import axios from 'axios';
 import {useMutation, useQuery} from '@tanstack/react-query';
@@ -17,6 +16,7 @@ import {useCallback, useState} from 'react';
 import {useFocusEffect} from '@react-navigation/native';
 import {useSafeAreaInsets} from 'react-native-safe-area-context';
 import ReviewCard from '../components/ReviewCard';
+import { hp } from '../helper/Metric';
 
 export default function HomeScreen({navigation}) {
   const {user_token, user_id} = useSelector((state: any) => state.user);
@@ -97,6 +97,27 @@ export default function HomeScreen({navigation}) {
     },
   });
 
+  const discardArticleMutation = useMutation({
+    mutationKey: ['discard-article'],
+    mutationFn: async ({articleId,reason}:{articleId: string, reason: string}) => {
+
+      const res = await axios.post(DISCARD_ARTICLE, {
+        articleId: articleId,
+        discardReason: reason,
+      });
+
+      return res.data as any;
+    },
+
+    onSuccess:(d)=>{
+      onRefresh();
+    },
+    onError:(err)=>{
+      console.log('Error', err);
+      Alert.alert(err.message);
+    }
+  })
+
   const renderItem = useCallback(
     ({item}: {item: ArticleData}) => {
       return (
@@ -118,35 +139,13 @@ export default function HomeScreen({navigation}) {
               });
             }
           }}
-
-          //  handleRepostAction={handleRepostAction}
-          // handleReportAction={handleReportAction}
         />
       );
     },
-    [pickArticleMutation, selectedCardId],
+    [discardArticleMutation, pickArticleMutation, selectedCardId],
   );
 
-  const discardArticleMutation = useMutation({
-    mutationKey: ['discard-article'],
-    mutationFn: async ({articleId,reason}:{articleId: string, reason: string}) => {
 
-      const res = await axios.post(DISCARD_ARTICLE, {
-        articleId: articleId,
-        discardReason: reason,
-      });
-
-      return res.data as any;
-    },
-
-    onSuccess:(d)=>{
-      onRefresh();
-    },
-    onError:(err)=>{
-      console.log('Error', err);
-      Alert.alert(err.message);
-    }
-  })
   const onRefresh = () => {
     setRefreshing(true);
     availableAticleRefetch();
@@ -252,6 +251,7 @@ export default function HomeScreen({navigation}) {
                     source={require('../../assets/article_default.jpg')}
                     style={styles.image}
                   />
+
                   <Text style={styles.message}>No Article Found</Text>
                 </View>
               }
@@ -276,9 +276,11 @@ const styles = StyleSheet.create({
     overflow: 'hidden',
   },
   image: {
-    height: '60%',
-    width: '90%',
+    height: 160,
+    width: 160,
+    borderRadius: 80,
     resizeMode: 'cover',
+    marginBottom: hp(4)
   },
   scrollViewContentContainer: {
     paddingHorizontal: 16,
@@ -319,8 +321,9 @@ const styles = StyleSheet.create({
     shadowColor: 'white',
   },
   message: {
-    fontSize: 16,
+    fontSize: 17,
     color: '#555',
+    fontWeight:"500",
     textAlign: 'center',
   },
   emptyContainer: {

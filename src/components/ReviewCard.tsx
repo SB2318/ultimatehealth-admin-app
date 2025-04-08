@@ -169,6 +169,7 @@ import DiscardReasonModal from './DiscardReasonModal';
                 visible={discardModalVisible}
                 callback={(reason: string)=>{
                    onclick(item, 1, reason);
+                   setDiscardModalVisible(false);
                 }}
                 dismiss={()=>{
                   setDiscardModalVisible(false)

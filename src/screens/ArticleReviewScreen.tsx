@@ -1,4 +1,4 @@
-/* eslint-disable react-native/no-inline-styles */
+/* eslint-disable react-native/no-inline-styles 
 import {
     Image,
     Platform,
@@ -25,12 +25,12 @@ import {
   import FontAwesome from 'react-native-vector-icons/FontAwesome';
   import {useDispatch, useSelector} from 'react-redux';
   import WebView from 'react-native-webview';
-  import {hp, wp} from '../../helper/Metric';
+  import {hp, wp} from '../helper/Metric';
   import {
     GET_ARTICLE_BY_ID,
     GET_PROFILE_API,
     GET_STORAGE_DATA,
-  } from '../../helper/APIUtils';
+  } from '../helper/APIUtils';
   import axios from 'axios';
   
   //import io from 'socket.io-client';
@@ -763,4 +763,4 @@ import {
       marginBottom: hp(0.8),
     },
   });
-  
+  */

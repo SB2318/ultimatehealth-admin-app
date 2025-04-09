@@ -1,9 +1,9 @@
-import {View, Text, StyleSheet, Modal, TouchableOpacity, TextInput} from 'react-native';
+import {View, Text, StyleSheet, Modal, TouchableOpacity} from 'react-native';
 import {ON_PRIMARY_COLOR, PRIMARY_COLOR} from '../helper/Theme';
-import {hp} from '../helper/Metric';
+import {hp, wp} from '../helper/Metric';
 import Ionicon from 'react-native-vector-icons/Ionicons';
 import { useState } from 'react';
-import Button from './Button';
+import Editor from './Editor';
 
 export default function DiscardReasonModal({
   visible,
@@ -29,28 +29,17 @@ export default function DiscardReasonModal({
 
           <Text style={styles.modalTitle}>Discard Reason</Text>
           <TouchableOpacity onPress={dismiss}>
-          <Ionicon name="close" size={30} color="red" />
+          <Ionicon name="close" size={30} color="white" />
           </TouchableOpacity>
           </View>
 
-          <TextInput
-                     autoCapitalize="none"
-                     autoCorrect={false}
-                     multiline
-                     placeholder="Please provide discard reason"
-                     placeholderTextColor="#000000"
-                     value={reason}
-                     onChangeText={text => {
 
-                        setDiscardReason(text);
-                     }}
-                     style={styles.modalInput }
-                   />
-
-                 
-                  <Button title="submit" callback={()=>{
-                    callback(reason)
-                  }}/>
+             <Editor
+               callback = {(reason: string)=>{
+                callback(reason);
+               }}
+               />
+           
         </View>
       </View>
     </Modal>
@@ -67,9 +56,9 @@ const styles = StyleSheet.create({
   },
   modalContainer: {
     backgroundColor: 'white',
-    padding: 14,
+   // padding: 14,
     borderRadius: 10,
-    marginHorizontal: 14,
+    marginHorizontal: 4,
     width: '95%',
     height: hp(50),
     justifyContent: 'flex-start',
@@ -78,6 +67,8 @@ const styles = StyleSheet.create({
   header:{
     flexDirection: 'row',
     justifyContent: 'space-between',
+    backgroundColor:"red",
+   padding: wp(3)
 
   },
   container: {
@@ -95,7 +86,7 @@ const styles = StyleSheet.create({
     //fontWeight: 'bold',
     fontWeight:"500",
     marginVertical: 3,
-    color: 'red',
+    color: 'white',
   },
     modalInput: {
       minHeight: hp(27),

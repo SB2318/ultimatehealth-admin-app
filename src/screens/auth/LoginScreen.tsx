@@ -179,9 +179,9 @@ export default function LoginScreen({navigation}){
               setTimeout(() => {
                 navigation?.reset({
                   index: 0,
-                  routes: [{name: 'HomeScreen'}], // Send user to LoginScreen after logout
+                  routes: [{name: 'TabScreen'}], 
                 });
-                //navigation.navigate('TabNavigation');
+                
               }, 1000);
             } else {
               Alert.alert('Token not found');

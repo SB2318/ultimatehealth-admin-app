@@ -88,7 +88,7 @@ export default function SplashScreen({navigation}){
 
         navigation.reset({
           index: 0,
-          routes: [{name: 'HomeScreen'}], // Send user to LoginScreen after logout
+          routes: [{name: 'TabScreen'}], // Send user to LoginScreen after logout
         });
       } else {
         await clearStorage();

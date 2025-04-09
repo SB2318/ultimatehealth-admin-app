@@ -4,7 +4,7 @@ import {Tabs, MaterialTabBar} from 'react-native-collapsible-tab-view';
 import {useSelector} from 'react-redux';
 import axios from 'axios';
 import {useMutation, useQuery} from '@tanstack/react-query';
-import {ArticleData} from '../type';
+import {ArticleData, ArticleProps} from '../type';
 import {
   DISCARD_ARTICLE,
   GET_AVILABLE_ARTICLES_API,
@@ -18,7 +18,7 @@ import {useSafeAreaInsets} from 'react-native-safe-area-context';
 import ReviewCard from '../components/ReviewCard';
 import { hp } from '../helper/Metric';
 
-export default function HomeScreen({navigation}) {
+export default function HomeScreen({navigation}:ArticleProps) {
   const {user_token, user_id} = useSelector((state: any) => state.user);
   const [refreshing, setRefreshing] = useState<boolean>(false);
   const [selectedCardId, setSelectedCardId] = useState<string>('');

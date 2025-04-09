@@ -3,11 +3,12 @@ import {createStackNavigator} from '@react-navigation/stack';
 import SplashScreen from '../screens/SplashScreen';
 import LoginScreen from '../screens/auth/LoginScreen';
 import SignUpScreen from '../screens/auth/SignUpScreen';
-import HomeScreen from '../screens/HomeScreen';
 import OtpScreen from '../screens/auth/OtpScreen';
 import NewPasswordScreen from '../screens/auth/NewPasswordScreen';
+import { RootStackParamList } from '../type';
+import TabNavigation from './TabNavigation';
 
-const Stack = createStackNavigator();
+const Stack = createStackNavigator<RootStackParamList>();
 
 const StackNavigation = () => {
   return (
@@ -17,9 +18,9 @@ const StackNavigation = () => {
         component={SplashScreen}
         options={{headerShown: false}}
       />
-      <Stack.Screen
-        name="HomeScreen"
-        component={HomeScreen}
+       <Stack.Screen
+        name="TabScreen"
+        component={TabNavigation}
         options={{headerShown: false}}
       />
       <Stack.Screen
@@ -50,7 +51,5 @@ const StackNavigation = () => {
 };
 
 export default StackNavigation;
-function createMaterialTopTabNavigator(arg0: { screens: { Home: () => React.JSX.Element; Profile: any; }; }) {
-  throw new Error('Function not implemented.');
-}
+
 

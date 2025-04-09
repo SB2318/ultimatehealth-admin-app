@@ -1,4 +1,4 @@
-/* eslint-disable react-native/no-inline-styles 
+
 import {
     Image,
     Platform,
@@ -763,4 +763,4 @@ import {
       marginBottom: hp(0.8),
     },
   });
-  */
+  

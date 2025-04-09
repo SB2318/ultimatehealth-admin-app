@@ -1,3 +1,21 @@
+import type {CompositeScreenProps} from '@react-navigation/native';
+import type {BottomTabScreenProps} from '@react-navigation/bottom-tabs';
+import type {StackScreenProps} from '@react-navigation/stack';
+import {Dispatch, RefObject, SetStateAction} from 'react';
+
+
+export type RootStackParamList = {
+  SplashScreen: undefined;
+  LoginScreen: undefined;
+  SignUpScreen: undefined;
+  NewPasswordScreen: undefined;
+  OtpScreen: undefined;
+  TabScreen: undefined;
+  ArticleReviewScreen: {
+    articleId: number;
+    authorId: string;
+  }
+}
 
 export type Admin={
    _id: string;
@@ -20,19 +38,7 @@ export type AuthData = {
     userId: string;
     token: string | null;
     user_handle: string | null;
-  };
-  export type ArticleCardProps = {
-   item: ArticleData;
-   // navigation:
-   //   | HomeScreenProps['navigation']
-   //   | ProfileScreenProps['navigation']
-   //   | UserProfileScreenProp['navigation'];
-   success: () => void;
-   isSelected: Boolean;
-   setSelectedCardId: (id: string) => void;
-   //handleRepostAction: (item: ArticleData) => void;
-   //handleReportAction: (item: ArticleData) => void;
- };
+};
 
  export type ArticleData = {
    _id: string;
@@ -66,6 +72,57 @@ export type AuthData = {
   isSelected: Boolean;
   setSelectedCardId: (id: string) => void;
 };
-export type ReviewScreenProps = {
+
+export type ArticleProps = CompositeScreenProps<
+  BottomTabScreenProps<TabParamList, 'Article'>,
+  | StackScreenProps<RootStackParamList, 'ArticleReviewScreen'>
   
-}
+>;
+
+export type NotificationProps = 
+  BottomTabScreenProps<TabParamList, 'Notification'>;
+
+export type PodcastProps = 
+  BottomTabScreenProps<TabParamList, 'Podcast'>;
+
+export type ReportScreenProps = 
+  BottomTabScreenProps<TabParamList, 'Report'>;
+
+export type ProfileScreenProps = 
+  BottomTabScreenProps<TabParamList, 'Profile'>;
+
+export type ReviewScreenProp = StackScreenProps<
+  RootStackParamList,
+  'ArticleReviewScreen'
+>;
+export type SplashScreenProp = StackScreenProps<
+  RootStackParamList,
+  'SplashScreen'
+>;
+
+export type LoginScreenProp = StackScreenProps<
+  RootStackParamList,
+  'LoginScreen'
+>;
+export type SignUpScreenProp = StackScreenProps<
+  RootStackParamList,
+  'SignUpScreen'
+>;
+
+export type NewPasswordScreenProp = StackScreenProps<
+  RootStackParamList,
+  'NewPasswordScreen'
+>;
+
+export type OtpScreenProp = StackScreenProps<
+  RootStackParamList,
+  'OtpScreen'
+>;
+
+export type TabParamList = {
+  Article: undefined;
+  Podcast: undefined;
+  Notification: undefined;
+  Report: undefined;
+  Profile: undefined;
+};

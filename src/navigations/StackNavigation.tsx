@@ -7,6 +7,7 @@ import OtpScreen from '../screens/auth/OtpScreen';
 import NewPasswordScreen from '../screens/auth/NewPasswordScreen';
 import { RootStackParamList } from '../type';
 import TabNavigation from './TabNavigation';
+import ArticleReviewScreen from '../screens/ArticleReviewScreen';
 
 const Stack = createStackNavigator<RootStackParamList>();
 
@@ -45,6 +46,11 @@ const StackNavigation = () => {
         options={{headerShown: false}}
       />
     
+    <Stack.Screen
+        name="ArticleReviewScreen"
+        component={ArticleReviewScreen}
+        options={{headerShown: false}}
+      />
      
     </Stack.Navigator>
   );

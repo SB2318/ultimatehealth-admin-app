@@ -18,7 +18,7 @@ import {
   } from '../helper/Theme';
   import FontAwesome5 from 'react-native-vector-icons/FontAwesome5';
   import {useSafeAreaInsets} from 'react-native-safe-area-context';
-  import {ArticleData, ReviewScreenProp, User} from '../type';
+  import {ArticleData, ReviewScreenProp, Admin, Comment} from '../type';
   import Feather from 'react-native-vector-icons/Feather';
   import Entypo from 'react-native-vector-icons/Entypo';
   import Ionicons from 'react-native-vector-icons/Ionicons';
@@ -33,21 +33,20 @@ import {
   } from '../helper/APIUtils';
   import axios from 'axios';
   
-  //import io from 'socket.io-client';
   
-  import {useSocket} from '../../../SocketContext';
-  //import CommentScreen from '../CommentScreen';
-  import {setUserHandle} from '../../store/UserSlice';
+  import {useSocket} from '../components/SocketContext';
+ 
+  import {setUserHandle} from '../stores/UserSlice';
   import {actions, RichEditor, RichToolbar} from 'react-native-pell-rich-editor';
   import {
     createFeebackHTMLStructure,
     StatusEnum,
-  } from '../../helper/Utils';
-  import ReviewItem from '../../components/ReviewItem';
+  } from '../helper/Utils';
+  import ReviewItem from '../components/ReviewCard';
   
   const ReviewScreen = ({navigation, route}: ReviewScreenProp) => {
     const insets = useSafeAreaInsets();
-    const {articleId, authorId} = route.params;
+    const {articleId, authorId, destination} = route.params;
     const {user_token} = useSelector((state: any) => state.user);
     const RichText = useRef();
     const [feedback, setFeedback] = useState('');
@@ -57,28 +56,18 @@ import {
     const dispatch = useDispatch();
   
     const [comments, setComments] = useState<Comment[]>([]);
-    const [newComment, setNewComment] = useState('');
-    const flatListRef = useRef<FlatList<Comment>>(null);
-    const [selectedCommentId, setSelectedCommentId] = useState<string>('');
-    const [editMode, setEditMode] = useState<Boolean>(false);
-    const [editCommentId, setEditCommentId] = useState<string | null>(null);
-    const [commentLoading, setCommentLoading] = useState<Boolean>(false);
-    const [commentLikeLoading, setCommentLikeLoading] = useState<Boolean>(false);
-
   
+    const flatListRef = useRef<FlatList<Comment>>(null);
+ 
     const webViewRef = useRef<WebView>(null);
   
     function handleHeightChange(_height) {
-      // console.log("editor height change:", height);
+   
     }
   
     function editorInitializedCallback() {
       RichText.current?.registerToolbar(function (_items) {
-        // items contain all the actions that are currently active
-        // console.log(
-        //   'Toolbar click, selected items (insert end callback):',
-        //   items,
-        // );
+      
       });
     }
     const {data: article} = useQuery({
@@ -102,7 +91,7 @@ import {
             Authorization: `Bearer ${user_token}`,
           },
         });
-        return response.data.profile as User;
+        return response.data.profile as Admin;
       },
     });
   
@@ -111,8 +100,12 @@ import {
     }
   
     useEffect(() => {
-      socket.emit('load-review-comments', {articleId: route.params.articleId});
-  
+
+      
+      if(destination !== StatusEnum.UNASSIGNED){
+        socket.emit('load-review-comments', {articleId: route.params.articleId});
+      }
+     
       socket.on('connect', () => {
         console.log('connection established');
       });
@@ -149,7 +142,7 @@ import {
         socket.off('new-feedback');
         socket.off('error');
       };
-    }, [socket, route.params.articleId]);
+    }, [socket, route.params.articleId, destination]);
   
     const commentTests = [
       {
@@ -292,7 +285,8 @@ import {
       ? {uri: `${GET_STORAGE_DATA}/${article.content}`}
       : {html: article?.content};
   
-    const getContentLength = async contentSource => {
+    // eslint-disable-next-line @typescript-eslint/no-shadow
+    const getContentLength = async (contentSource:{uri?: string, html?: string}) => {
       if (contentSource.uri) {
         try {
           const response = await fetch(contentSource.uri);
@@ -305,7 +299,7 @@ import {
       } else if (contentSource.html) {
         return contentSource.html.length;
       }
-      return 0; // Return 0 if no valid content source
+      return 0; 
     };
   
     return (
@@ -329,9 +323,7 @@ import {
             {article?.status !== StatusEnum.DISCARDED && (
               <TouchableOpacity
                 onPress={() => {
-                  navigation.navigate('ArticleDescriptionScreen', {
-                    article: article,
-                  });
+                // Discard Article 
                 }}
                 style={[
                   styles.likeButton,
@@ -373,7 +365,8 @@ import {
               />
             </View>
           </View>
-          {article?.status !== StatusEnum.DISCARDED &&
+          {article?.status !== StatusEnum.DISCARDED && 
+          article?.status !== StatusEnum.UNASSIGNED &&
             article?.reviewer_id !== null && (
               <View style={styles.inputContainer}>
                 <RichToolbar
@@ -485,7 +478,7 @@ import {
               </View>
             )}
   
-          {article?.reviewer_id === null ? (
+          {article?.reviewer_id === null || article?.status === StatusEnum.UNASSIGNED ? (
             <View style={{padding: wp(6), marginTop: hp(4.5)}}>
               <Text style={{...styles.authorName, marginBottom:5}}> Test Conversations</Text>
               {commentTests?.map((item, index) => (
@@ -508,13 +501,15 @@ import {
                 Platform.OS === 'ios' ? insets.bottom : insets.bottom + 20,
             },
           ]}>
+
+            {/** Author profile management left 
           <View style={styles.authorContainer}>
             <TouchableOpacity
               onPress={() => {
                 //  if (article && article?.authorId) {
-                navigation.navigate('UserProfileScreen', {
-                  authorId: authorId,
-                });
+              //  navigation.navigate('UserProfileScreen', {
+               //   authorId: authorId,
+               // });
               }}>
               {user && user.Profile_image && user.Profile_image !== '' ? (
                 <Image
@@ -545,6 +540,8 @@ import {
               </Text>
             </View>
           </View>
+
+          */}
         </View>
       </View>
     );

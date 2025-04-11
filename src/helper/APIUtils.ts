@@ -15,6 +15,8 @@ const GET_INPROGRESS_ARTICLES_API = `${EC2_BASE_URL}/admin/review-progress`;
 const GET_COMPLETED_TASK_API = `${EC2_BASE_URL}/admin/review-completed`;
 const PICK_ARTICLE = `${EC2_BASE_URL}/admin/moderator-self-assign`;
 const DISCARD_ARTICLE = `${EC2_BASE_URL}/admin/discard-changes`;
+const GET_STORAGE_DATA = `${EC2_BASE_URL}/getFile`;
+const GET_ARTICLE_BY_ID = `${EC2_BASE_URL}/articles`;
 // For verification related POST and GET request, send isAdmin in request body and query.
 export {
     LOGIN_API,
@@ -33,5 +35,7 @@ export {
     GET_INPROGRESS_ARTICLES_API,
     GET_COMPLETED_TASK_API,
     PICK_ARTICLE,
-    DISCARD_ARTICLE
+    DISCARD_ARTICLE,
+    GET_ARTICLE_BY_ID,
+    GET_STORAGE_DATA
 }

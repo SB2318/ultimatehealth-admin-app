@@ -16,13 +16,12 @@ import {useCallback, useState} from 'react';
 import {useFocusEffect} from '@react-navigation/native';
 import {useSafeAreaInsets} from 'react-native-safe-area-context';
 import ReviewCard from '../components/ReviewCard';
-import { hp } from '../helper/Metric';
+import {hp} from '../helper/Metric';
 
-export default function HomeScreen({navigation}:ArticleProps) {
+export default function HomeScreen({navigation}: ArticleProps) {
   const {user_token, user_id} = useSelector((state: any) => state.user);
   const [refreshing, setRefreshing] = useState<boolean>(false);
   const [selectedCardId, setSelectedCardId] = useState<string>('');
-
 
   //const bottomBarHeight = useBottomTabBarHeight();
   const insets = useSafeAreaInsets();
@@ -99,8 +98,13 @@ export default function HomeScreen({navigation}:ArticleProps) {
 
   const discardArticleMutation = useMutation({
     mutationKey: ['discard-article'],
-    mutationFn: async ({articleId,reason}:{articleId: string, reason: string}) => {
-
+    mutationFn: async ({
+      articleId,
+      reason,
+    }: {
+      articleId: string;
+      reason: string;
+    }) => {
       const res = await axios.post(DISCARD_ARTICLE, {
         articleId: articleId,
         discardReason: reason,
@@ -109,14 +113,14 @@ export default function HomeScreen({navigation}:ArticleProps) {
       return res.data as any;
     },
 
-    onSuccess:(d)=>{
+    onSuccess: d => {
       onRefresh();
     },
-    onError:(err)=>{
+    onError: err => {
       console.log('Error', err);
       Alert.alert(err.message);
-    }
-  })
+    },
+  });
 
   const renderItem = useCallback(
     ({item}: {item: ArticleData}) => {
@@ -135,16 +139,22 @@ export default function HomeScreen({navigation}:ArticleProps) {
               // Display discard reason or screen
               discardArticleMutation.mutate({
                 articleId: item._id,
-                reason: reason
+                reason: reason,
               });
             }
+          }}
+          onNavigate={item => {
+            navigation.navigate('ArticleReviewScreen', {
+              articleId: Number(item._id),
+              authorId: item.authorId,
+              destination: item.status,
+            });
           }}
         />
       );
     },
-    [discardArticleMutation, pickArticleMutation, selectedCardId],
+    [discardArticleMutation, navigation, pickArticleMutation, selectedCardId],
   );
-
 
   const onRefresh = () => {
     setRefreshing(true);
@@ -280,7 +290,7 @@ const styles = StyleSheet.create({
     width: 160,
     borderRadius: 80,
     resizeMode: 'cover',
-    marginBottom: hp(4)
+    marginBottom: hp(4),
   },
   scrollViewContentContainer: {
     paddingHorizontal: 16,
@@ -323,7 +333,7 @@ const styles = StyleSheet.create({
   message: {
     fontSize: 17,
     color: '#555',
-    fontWeight:"500",
+    fontWeight: '500',
     textAlign: 'center',
   },
   emptyContainer: {

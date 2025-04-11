@@ -8,8 +8,6 @@ import {  PRIMARY_COLOR} from '../helper/Theme';
 const TabBar = ({state, descriptors, navigation}: any) => {
   const isDarkMode = useColorScheme() === 'dark';
 
-
-
   return (
     <View
       style={[
@@ -69,39 +67,39 @@ const TabBar = ({state, descriptors, navigation}: any) => {
                 {label === 'Article' && (
                   <Ionicons
                     name="home"
-                    size={26}
-                    color={isFocused ? 'white' : isDarkMode ? 'white' :  PRIMARY_COLOR  }
+                    size={30}
+                    color={isFocused ? 'white' : isDarkMode ? 'white' :'#343434' }
                   />
                 )}
                 {label === 'Podcast' && (
                   <FontAwesome
                     name="podcast"
-                    size={26}
-                    color={isFocused ? 'white' : isDarkMode ? 'white' :  PRIMARY_COLOR  }
+                    size={30}
+                    color={isFocused ? 'white' : isDarkMode ? 'white' :'#343434' }
                   />
                 )}
 
                 {label === 'Notification' && (
                   <Ionicons
                     name="notifications"
-                    size={26}
-                    color={isFocused ? 'white' : isDarkMode ? 'white' :  PRIMARY_COLOR  }
+                    size={30}
+                    color={isFocused ? 'white' : isDarkMode ? 'white' :'#343434' }
                   />
                 )}
 
                 {label === 'Report' && (
                   <MaterialIcon
                     name="report"
-                    size={26}
-                    color={isFocused ? 'white' : isDarkMode ? 'white' :  PRIMARY_COLOR  }
+                    size={30}
+                    color={isFocused ? 'white' : isDarkMode ? 'white' :'#343434' }
                   />
                 )}
 
           {label === 'Profile' && (
                   <MaterialIcon
                     name="person"
-                    size={26}
-                    color={isFocused ? 'white' : isDarkMode ? 'white' :  PRIMARY_COLOR  }
+                    size={30}
+                    color={isFocused ? 'white' : isDarkMode ? 'white' :'#343434' }
                   />
                 )}
               </View>

@@ -1,7 +1,7 @@
 import type {CompositeScreenProps} from '@react-navigation/native';
 import type {BottomTabScreenProps} from '@react-navigation/bottom-tabs';
 import type {StackScreenProps} from '@react-navigation/stack';
-import {Dispatch, RefObject, SetStateAction} from 'react';
+
 
 
 export type RootStackParamList = {
@@ -14,6 +14,7 @@ export type RootStackParamList = {
   ArticleReviewScreen: {
     articleId: number;
     authorId: string;
+    destination: string;
   }
 }
 
@@ -43,6 +44,7 @@ export type AuthData = {
  export type ArticleData = {
    _id: string;
    title: string;
+   description: string;
    authorName: string;
    authorId: string;
    content: string;
@@ -57,6 +59,8 @@ export type AuthData = {
    likedUsers: [];
    savedUsers: string[];
    mentionedUsers: [];
+   status: string;
+   reviewer_id: string | null;
  };
 
  export type Category = {
@@ -70,6 +74,7 @@ export type AuthData = {
   item: ArticleData;
   onclick: (item: ArticleData, index: number, reason: string) => void;
   isSelected: Boolean;
+  onNavigate: (item: ArticleData)=> void;
   setSelectedCardId: (id: string) => void;
 };
 
@@ -125,4 +130,21 @@ export type TabParamList = {
   Notification: undefined;
   Report: undefined;
   Profile: undefined;
+};
+
+export type Comment = {
+  _id: string;
+  id: string;
+  articleId: number;
+  userId: Admin;
+  content: string;
+  createdAt: string;
+  updatedAt: string;
+  parentCommentId: string;
+  replies: Comment[];
+  likedUsers: string[];
+  status: string;
+  isEdited: Boolean;
+  isReview: Boolean;
+  isNote: Boolean;
 };

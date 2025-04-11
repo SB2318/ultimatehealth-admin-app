@@ -10,7 +10,7 @@ import {
   import {ReviewCardProps} from '../type';
   import moment from 'moment';
   import {BUTTON_COLOR, PRIMARY_COLOR} from '../helper/Theme';
-  import {formatCount, StatusEnum} from '../helper/Utils';
+  import {StatusEnum} from '../helper/Utils';
   import Animated, {
     useAnimatedStyle,
     useSharedValue,
@@ -29,6 +29,7 @@ import DiscardReasonModal from './DiscardReasonModal';
     onclick,
     isSelected,
     setSelectedCardId,
+    onNavigate
   }: ReviewCardProps) => {
     //const socket = io('http://51.20.1.81:8084');
     //const socket = useSocket();
@@ -125,15 +126,7 @@ import DiscardReasonModal from './DiscardReasonModal';
   
             <Text style={styles.description}>{item?.description}</Text>
   
-            {item?.status === StatusEnum.PUBLISHED && (
-              <Text style={{...styles.footerText1, marginBottom: 3}}>
-                {item?.viewUsers
-                  ? item?.viewUsers.length > 1
-                    ? `${formatCount(item?.viewUsers.length)} views`
-                    : `${item?.viewUsers.length} view`
-                  : '0 view'}
-              </Text>
-            )}
+           
             <Text style={styles.footerText1}>
               Last updated: {''}
               {moment(new Date(item?.lastUpdated)).format('DD/MM/YYYY')}
@@ -155,6 +148,8 @@ import DiscardReasonModal from './DiscardReasonModal';
                 style={styles.viewInnnerContainer}
                 onPress={() => {
                  // onclick(item);
+                 onNavigate(item);
+
                 }}>
                 <Text style={styles.viewText}>View</Text>
                 <AntDesign

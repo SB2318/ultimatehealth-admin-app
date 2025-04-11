@@ -14,6 +14,7 @@ import StackNavigation from './src/navigations/StackNavigation';
 import {SafeAreaProvider} from 'react-native-safe-area-context';
 import {QueryClient, QueryClientProvider} from '@tanstack/react-query';
 import { FirebaseProvider } from './src/hooks/FirebaseContext';
+import { SocketProvider } from './src/components/SocketContext';
 
 
 
@@ -39,6 +40,7 @@ function App(): React.JSX.Element {
   return (
     <QueryClientProvider client={queryClient}>
        
+       <SocketProvider>
        <FirebaseProvider>
       <SafeAreaProvider>
         <View style={{ flex: 1, backgroundColor: backgroundStyle.backgroundColor }}>
@@ -51,8 +53,10 @@ function App(): React.JSX.Element {
           </NavigationContainer>
         </View>
       </SafeAreaProvider>
+    
 
       </FirebaseProvider>
+      </SocketProvider>
    
   </QueryClientProvider>
   );

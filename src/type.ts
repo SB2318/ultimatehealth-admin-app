@@ -19,6 +19,7 @@ export type RootStackParamList = {
 }
 
 export type Admin={
+   Profile_image: Admin | undefined;
    _id: string;
    user_name: string;
    user_handle: string;

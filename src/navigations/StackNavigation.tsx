@@ -8,6 +8,8 @@ import NewPasswordScreen from '../screens/auth/NewPasswordScreen';
 import { RootStackParamList } from '../type';
 import TabNavigation from './TabNavigation';
 import ArticleReviewScreen from '../screens/ArticleReviewScreen';
+import { StyleSheet, TouchableOpacity } from 'react-native';
+import FontAwesome6 from 'react-native-vector-icons/FontAwesome6';
 
 const Stack = createStackNavigator<RootStackParamList>();
 
@@ -49,13 +51,71 @@ const StackNavigation = () => {
     <Stack.Screen
         name="ArticleReviewScreen"
         component={ArticleReviewScreen}
-        options={{headerShown: false}}
+        options={({navigation}) => ({
+          headerShown: true,
+          headerTitle: '',
+          headerTransparent: true,
+          headerBackTitleVisible: false,
+          // eslint-disable-next-line react/no-unstable-nested-components
+          headerLeft: () => (
+            <TouchableOpacity
+              style={styles.headerLeftButton}
+              onPress={() => {
+                navigation.goBack();
+              }}>
+              <FontAwesome6 size={25} name="arrow-left" color="white" />
+            </TouchableOpacity>
+          ),
+        })}
       />
      
     </Stack.Navigator>
   );
 };
 
+const styles = StyleSheet.create({
+  headerLeftButton: {
+    marginLeft: 15,
+    backgroundColor: 'rgba(0,0,0,0.4)',
+    paddingHorizontal: 8,
+    paddingVertical: 6,
+    borderRadius: 50,
+  },
+  headerLeftButtonEditorScreen: {
+    marginLeft: 15,
+    paddingHorizontal: 8,
+    paddingVertical: 6,
+  },
+
+  headerLeftButtonCommentScreen: {
+    marginLeft: 15,
+    backgroundColor: '#ffffff',
+    paddingHorizontal: 6,
+    paddingVertical: 6,
+    marginTop: 0,
+  },
+  profileScreenHeaderLeftButton: {
+    marginLeft: 15,
+    paddingHorizontal: 8,
+    paddingVertical: 6,
+    borderRadius: 50,
+  },
+  dropdown: {
+    height: 40,
+    // borderColor: '#0CAFFF',
+    // borderWidth: 1,
+    borderRadius: 100,
+    paddingHorizontal: 17,
+    marginBottom: 20,
+    paddingRight: 12,
+    width: 150,
+    backgroundColor: 'rgb(229, 233, 241)',
+  },
+  placeholderStyle: {
+    fontSize: 15,
+    color: 'black',
+  },
+});
 export default StackNavigation;
 
 

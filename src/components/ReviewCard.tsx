@@ -50,7 +50,7 @@ import DiscardReasonModal from './DiscardReasonModal';
         transform: [{translateY: yValue.value}],
       };
     });
-   // console.log('Image Utils', item?.tags);
+    console.log('Image Utils', item?.tags);
   
     const handleAnimation = () => {
       if (width.value === 0) {
@@ -119,9 +119,13 @@ import DiscardReasonModal from './DiscardReasonModal';
             </TouchableOpacity>
   
             {/* Title & Footer Text */}
-            <Text style={styles.footerText}>
+            {
+              item && item?.tags && (
+                <Text style={styles.footerText}>
               {item?.tags.map(tag => tag.name).join(' | ')}
-            </Text>
+              </Text>
+              )
+            }
             <Text style={styles.title}>{item?.title}</Text>
   
             <Text style={styles.description}>{item?.description}</Text>

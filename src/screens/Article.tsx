@@ -1,10 +1,12 @@
 import {View, Text, StyleSheet, Image, Alert} from 'react-native';
-import {ON_PRIMARY_COLOR, PRIMARY_COLOR} from '../helper/Theme';
+import {BUTTON_COLOR, ON_PRIMARY_COLOR, PRIMARY_COLOR} from '../helper/Theme';
 import {Tabs, MaterialTabBar} from 'react-native-collapsible-tab-view';
 import {useSelector} from 'react-redux';
 import axios from 'axios';
 import {useMutation, useQuery} from '@tanstack/react-query';
+import AntDesign from 'react-native-vector-icons/AntDesign';
 import {ArticleData, ArticleProps} from '../type';
+import {FAB} from 'react-native-paper';
 import {
   DISCARD_ARTICLE,
   GET_AVILABLE_ARTICLES_API,
@@ -66,7 +68,7 @@ export default function HomeScreen({navigation}: ArticleProps) {
     refetch: refetchCompletedArticles,
     isLoading: isCompletedArticleLoading,
   } = useQuery({
-    queryKey: ['get-progress-articles'],
+    queryKey: ['get-publish-articles'],
     queryFn: async () => {
       const response = await axios.get(`${GET_COMPLETED_TASK_API}/${user_id}`, {
         headers: {
@@ -268,6 +270,17 @@ export default function HomeScreen({navigation}: ArticleProps) {
             />
           </Tabs.Tab>
         </Tabs.Container>
+
+        <FAB
+        style={styles.fab}
+        small
+        icon={({size, color}) => (
+          <AntDesign color="white" name="menu-fold" size={25} />
+        )}
+        onPress={() => {
+          //navigation.goBack();
+        }}
+      />
       </View>
     </View>
   );
@@ -346,5 +359,12 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
+  },
+  fab: {
+    position: 'absolute',
+    right: 20,
+    bottom: 60,
+    borderRadius: hp(20),
+    backgroundColor: BUTTON_COLOR, 
   },
 });

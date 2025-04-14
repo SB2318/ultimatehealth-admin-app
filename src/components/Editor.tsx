@@ -197,7 +197,7 @@ const createFeebackHTMLStructure = (feedback: string)=>{
           containerStyle={styles.editor}
           ref={RichText}
           style={styles.rich}
-          placeholder={'Start conversation with admin'}
+          placeholder={'Leave your note'}
           initialContentHTML={feedback}
           onChange={text => setFeedback(text)}
           editorInitializedCallback={editorInitializedCallback}
@@ -229,7 +229,8 @@ const styles = StyleSheet.create({
         borderColor: '#000',
         borderWidth: 0.2,
         marginHorizontal: wp(0),
-        marginTop: hp(0)
+        marginTop: hp(0),
+        
       },
       editor: {
         backgroundColor: 'blue',

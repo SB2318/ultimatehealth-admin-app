@@ -51,6 +51,44 @@ import DiscardReasonModal from './DiscardReasonModal';
       };
     });
     console.log('Image Utils', item?.tags);
+
+    const unAssignActions = [
+      {
+        name: 'Pick Article',
+        action: () => {
+          onclick(item, 0, "");
+          handleAnimation();
+        },
+        icon: 'hand-point-right',
+        color: BUTTON_COLOR
+      },
+      {
+          name: 'Discard Article',
+          action: () => {
+            setDiscardModalVisible(true)
+            //onclick(item, 1);
+            handleAnimation();
+          },
+          icon: 'times-circle',
+          color:'red',
+        },
+    ];
+
+    const progressActions = [
+    
+      {
+          name: 'Discard Article',
+          action: () => {
+            setDiscardModalVisible(true)
+            //onclick(item, 1);
+            handleAnimation();
+          },
+          icon: 'times-circle',
+          color:'red',
+        },
+    ]
+
+
   
     const handleAnimation = () => {
       if (width.value === 0) {
@@ -86,37 +124,22 @@ import DiscardReasonModal from './DiscardReasonModal';
             {isSelected && (
               <Animated.View style={[menuStyle, styles.shareIconContainer]}>
                 <ArticleFloatingMenu
-                  items={[
-                    {
-                      name: 'Pick Article',
-                      action: () => {
-                        onclick(item, 0, "");
-                        handleAnimation();
-                      },
-                      icon: 'hand-point-right',
-                      color: BUTTON_COLOR
-                    },
-                    {
-                        name: 'Discard Article',
-                        action: () => {
-                          setDiscardModalVisible(true)
-                          //onclick(item, 1);
-                          handleAnimation();
-                        },
-                        icon: 'times-circle',
-                        color:'red',
-                      },
-                  ]}
+                  items={item.status === StatusEnum.UNASSIGNED ? unAssignActions: progressActions}
                 />
               </Animated.View>
             )}
   
             {/* Icon for more options */}
-            <TouchableOpacity
+           
+           {
+            item.status !== StatusEnum.PUBLISHED &&(
+              <TouchableOpacity
               style={styles.shareIconContainer}
               onPress={() => handleAnimation()}>
               <Entypo name="dots-three-vertical" size={20} color={'black'} />
             </TouchableOpacity>
+            )
+           }
   
             {/* Title & Footer Text */}
             {

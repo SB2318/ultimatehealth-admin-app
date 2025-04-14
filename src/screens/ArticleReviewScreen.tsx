@@ -7,9 +7,10 @@ import {
   View,
   ScrollView,
   FlatList,
+  Alert,
 } from 'react-native';
 import React, {useEffect, useRef, useState} from 'react';
-import {useQuery} from '@tanstack/react-query';
+import {useMutation, useQuery} from '@tanstack/react-query';
 import {BUTTON_COLOR, ON_PRIMARY_COLOR, PRIMARY_COLOR} from '../helper/Theme';
 import AntDesign from 'react-native-vector-icons/AntDesign';
 import MaterialIcon from 'react-native-vector-icons/MaterialIcons';
@@ -18,14 +19,17 @@ import {ArticleData, ReviewScreenProp, Admin, Comment} from '../type';
 import Feather from 'react-native-vector-icons/Feather';
 import Entypo from 'react-native-vector-icons/Entypo';
 import Ionicons from 'react-native-vector-icons/Ionicons';
+
 import FontAwesome from 'react-native-vector-icons/FontAwesome';
 import {useDispatch, useSelector} from 'react-redux';
 import WebView from 'react-native-webview';
 import {hp, wp} from '../helper/Metric';
 import {
+  DISCARD_ARTICLE,
   GET_ARTICLE_BY_ID,
   GET_PROFILE_API,
   GET_STORAGE_DATA,
+  PUBLISH_ARTICLE,
 } from '../helper/APIUtils';
 import axios from 'axios';
 
@@ -36,14 +40,17 @@ import {actions, RichEditor, RichToolbar} from 'react-native-pell-rich-editor';
 import {createFeebackHTMLStructure, StatusEnum} from '../helper/Utils';
 import ReviewItem from '../components/ReviewCard';
 import CommentCardItem from './CommentCardItem';
+import DiscardReasonModal from '../components/DiscardReasonModal';
+import Loader from '../components/Loader';
 
 const ReviewScreen = ({navigation, route}: ReviewScreenProp) => {
   const insets = useSafeAreaInsets();
   const {articleId, authorId, destination} = route.params;
-  const {user_token} = useSelector((state: any) => state.user);
+  const {user_token, user_id} = useSelector((state: any) => state.user);
   const RichText = useRef();
   const [feedback, setFeedback] = useState('');
   const [webviewHeight, setWebViewHeight] = useState(0);
+  const [discardModalVisible, setDiscardModalVisible] = useState(false);
 
   const socket = useSocket();
   const dispatch = useDispatch();
@@ -239,8 +246,62 @@ const ReviewScreen = ({navigation, route}: ReviewScreenProp) => {
     },
   ];
   */
-  const commentTests: any[] =[];
+  const commentTests: any[] = [];
 
+
+  const discardArticleMutation = useMutation({
+    mutationKey: ['discard-article-in-review-state'],
+    mutationFn: async ({
+      articleId,
+      reason,
+    }: {
+      articleId: string;
+      reason: string;
+    }) => {
+      const res = await axios.post(DISCARD_ARTICLE, {
+        articleId: articleId,
+        discardReason: reason,
+      });
+
+      return res.data as any;
+    },
+
+    onSuccess: d => {
+     // onRefresh();
+     Alert.alert("Article discarded");
+    },
+    onError: err => {
+      console.log('Error', err);
+      Alert.alert(err.message);
+    },
+  });
+
+  const publishArticleMutation = useMutation({
+    mutationKey: ['publish-article-in-review-state'],
+    mutationFn: async ({
+      articleId,
+      reviewer_id,
+    }: {
+      articleId: string;
+      reviewer_id: string;
+    }) => {
+      const res = await axios.post(PUBLISH_ARTICLE, {
+        articleId: articleId,
+        reviewer_id: reviewer_id,
+      });
+
+      return res.data as any;
+    },
+
+    onSuccess: d => {
+     // onRefresh();
+     Alert.alert("Article published");
+    },
+    onError: err => {
+      console.log('Error', err);
+      Alert.alert(err.message);
+    },
+  });
   useEffect(() => {
     if (article) {
       let source = article?.content?.endsWith('.html')
@@ -297,6 +358,11 @@ const ReviewScreen = ({navigation, route}: ReviewScreenProp) => {
     return 0;
   };
 
+
+  if(discardArticleMutation.isPending || publishArticleMutation.isPending){
+    return <Loader />
+  }
+
   return (
     <View style={styles.container}>
       <ScrollView
@@ -315,49 +381,80 @@ const ReviewScreen = ({navigation, route}: ReviewScreenProp) => {
             />
           )}
 
+          <TouchableOpacity
+            style={styles.topIcon}
+            onPress={() => {
+              // Image copyright checker
+            }}>
+
+           <MaterialIcon name="plagiarism" size={30} color={PRIMARY_COLOR} /> 
+          </TouchableOpacity>
+
           {article?.status !== StatusEnum.DISCARDED && (
             <TouchableOpacity
               onPress={() => {
                 // Discard Article
+                setDiscardModalVisible(true);
               }}
               style={[
                 styles.likeButton,
                 {
-                  backgroundColor: 'white',
+                  backgroundColor: 'red',
                 },
               ]}>
-              <Ionicons name="heart-dislike" size={34} color={'red'} />
+              <AntDesign name="poweroff" size={27} color={'white'} />
             </TouchableOpacity>
           )}
 
-         {article?.status !== StatusEnum.DISCARDED && (
+          {article?.status !== StatusEnum.DISCARDED && (
             <TouchableOpacity
               onPress={() => {
-                // Discard Article
+                // Grammar checker
               }}
               style={[
                 styles.playButton,
                 {
-                  backgroundColor: 'white',
+                  backgroundColor: BUTTON_COLOR,
                 },
               ]}>
-              <AntDesign name="google" size={34} color={'#478778'} />
-             
+              <AntDesign name="google" size={28} color={'white'} />
             </TouchableOpacity>
           )}
 
-         {article?.status !== StatusEnum.DISCARDED && (
+          {article?.status !== StatusEnum.DISCARDED && (
             <TouchableOpacity
               onPress={() => {
-                // Discard Article
+                // Palagrism Checker
               }}
               style={[
                 styles.plaButton,
                 {
-                  backgroundColor: 'white',
+                  backgroundColor: '#660099',
                 },
               ]}>
-              <MaterialIcon name="plagiarism" size={34} color={BUTTON_COLOR} />
+                <MaterialIcon size={28} name="published-with-changes" color={'white'} /> 
+             
+            </TouchableOpacity>
+          )}
+
+            {article?.status !== StatusEnum.DISCARDED && (
+            <TouchableOpacity
+              onPress={() => {
+                // Publish article
+                publishArticleMutation.mutate({
+                  articleId: article? article._id: '0' ,
+                  reviewer_id: user_id,
+                });
+              }}
+              style={[
+                styles.pubButton,
+                {
+                  backgroundColor: '#478778',
+              
+                },
+              ]}>
+                <MaterialIcon size={28} name="domain-verification" color={'white'} /> 
+             
             </TouchableOpacity>
           )}
         </View>
@@ -370,9 +467,13 @@ const ReviewScreen = ({navigation, route}: ReviewScreenProp) => {
 
           {article && (
             <>
-              <Text style={styles.titleText}>{article?.title}</Text>
+              <Text style={styles.titleText}>Title: {article?.title}</Text>
             </>
           )}
+
+          <Text style={styles.authorName}>
+            Author Name: {article?.authorName}
+          </Text>
           <View style={styles.descriptionContainer}>
             <WebView
               style={{
@@ -391,8 +492,8 @@ const ReviewScreen = ({navigation, route}: ReviewScreenProp) => {
             />
           </View>
         </View>
-        {article?.status !== StatusEnum.DISCARDED &&
-          article?.status !== StatusEnum.UNASSIGNED &&
+        {destination !== StatusEnum.DISCARDED &&
+          destination !== StatusEnum.UNASSIGNED &&
           article?.reviewer_id !== null && (
             <View style={styles.inputContainer}>
               <RichToolbar
@@ -494,8 +595,8 @@ const ReviewScreen = ({navigation, route}: ReviewScreenProp) => {
                       articleId: article?._id,
                       reviewer_id: article?.reviewer_id,
                       feedback: ans,
-                      isReview: false,
-                      isNote: true,
+                      isReview: true,
+                      isNote: false,
                     });
                   }}>
                   <Text style={styles.submitButtonText}>Post</Text>
@@ -504,13 +605,9 @@ const ReviewScreen = ({navigation, route}: ReviewScreenProp) => {
             </View>
           )}
 
-        {commentTests.length > 0 && article?.reviewer_id === null ||
+        {(commentTests.length > 0 && article?.reviewer_id === null) ||
         article?.status === StatusEnum.UNASSIGNED ? (
           <View style={{padding: wp(6), marginTop: hp(4.5)}}>
-            <Text style={{...styles.authorName, marginBottom: 5}}>
-              {' '}
-              Test Conversations
-            </Text>
             {commentTests?.map((item, index) => (
               <CommentCardItem key={index} item={item} />
             ))}
@@ -522,36 +619,23 @@ const ReviewScreen = ({navigation, route}: ReviewScreenProp) => {
             ))}
           </View>
         )}
+
+                     <DiscardReasonModal
+                        visible={discardModalVisible}
+                        callback={(reason: string)=>{
+                           //onclick(item, 1, reason);
+                           discardArticleMutation.mutate({
+                             articleId: article ? article._id : '0',
+                             reason: reason
+                           });
+                           setDiscardModalVisible(false);
+                        }}
+                        dismiss={()=>{
+                          setDiscardModalVisible(false)
+                        }}
+        
+                       />
       </ScrollView>
-      <View
-        style={[
-          styles.footer,
-          {
-            paddingBottom:
-              Platform.OS === 'ios' ? insets.bottom : insets.bottom + 20,
-          },
-        ]}>
-        {
-          <View style={styles.authorContainer}>
-
-            <View  style={styles.authorImage}>
-            <Text
-            style={styles.authorText}
-            >{article?.authorName? article.authorName.substring(0,1): "A"}</Text>
-            </View>
-            
-
-            <View>
-              <Text style={styles.authorName}>Author Name</Text>
-              <Text style={styles.authorFollowers}>
-                {article ? article?.authorName : ''}
-              </Text>
-            </View>
-
-
-          </View>
-        }
-      </View>
     </View>
   );
 };
@@ -585,7 +669,7 @@ const styles = StyleSheet.create({
     padding: 10,
     position: 'absolute',
     bottom: -25,
-    right: 110,
+    right: 160,
     borderRadius: 50,
   },
 
@@ -593,11 +677,19 @@ const styles = StyleSheet.create({
     padding: 10,
     position: 'absolute',
     bottom: -25,
-    right: 60,
+    right: 110,
     borderRadius: 50,
   },
 
   plaButton: {
+    padding: 10,
+    position: 'absolute',
+    bottom: -25,
+    right: 60,
+    borderRadius: 50,
+  },
+
+  pubButton: {
     padding: 10,
     position: 'absolute',
     bottom: -25,
@@ -609,10 +701,11 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
   },
   categoryText: {
-    fontWeight: '400',
+    fontWeight: '600',
     fontSize: 12,
-    color: '#6C6C6D',
+    color: BUTTON_COLOR,
     textTransform: 'uppercase',
+    marginVertical: hp(1),
   },
   viewText: {
     fontWeight: '500',
@@ -623,6 +716,8 @@ const styles = StyleSheet.create({
     fontSize: 25,
     fontWeight: 'bold',
     marginTop: 5,
+    color: PRIMARY_COLOR,
+    marginVertical: hp(1),
   },
   avatarsContainer: {
     position: 'relative',
@@ -704,12 +799,13 @@ const styles = StyleSheet.create({
     width: 50,
     borderRadius: 25,
     backgroundColor: PRIMARY_COLOR,
-    justifyContent:"center",
-    alignItems:"center"
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   authorName: {
-    fontWeight: '700',
+    fontWeight: '600',
     fontSize: 15,
+    color: 'black',
   },
   authorFollowers: {
     fontWeight: '400',
@@ -789,8 +885,21 @@ const styles = StyleSheet.create({
   },
   richBar: {
     height: 45,
-    backgroundColor: BUTTON_COLOR,
+    backgroundColor: PRIMARY_COLOR,
     marginTop: 0,
     marginBottom: hp(0.8),
+  },
+
+  topIcon: {
+    position: 'absolute',
+    top: 10,
+    right: 10,
+   
+    paddingHorizontal: 8,
+    paddingVertical: 6,
+    borderRadius: 50,
+    resizeMode: 'contain',
+    zIndex: 5,
+    backgroundColor: ON_PRIMARY_COLOR,
   },
 });

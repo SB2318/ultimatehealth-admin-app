@@ -17,6 +17,7 @@ const PICK_ARTICLE = `${EC2_BASE_URL}/admin/moderator-self-assign`;
 const DISCARD_ARTICLE = `${EC2_BASE_URL}/admin/discard-changes`;
 const GET_STORAGE_DATA = `${EC2_BASE_URL}/getFile`;
 const GET_ARTICLE_BY_ID = `${EC2_BASE_URL}/articles`;
+const PUBLISH_ARTICLE = `${EC2_BASE_URL}/admin/publish-article`;
 // For verification related POST and GET request, send isAdmin in request body and query.
 export {
     LOGIN_API,
@@ -36,6 +37,7 @@ export {
     GET_COMPLETED_TASK_API,
     PICK_ARTICLE,
     DISCARD_ARTICLE,
+    PUBLISH_ARTICLE,
     GET_ARTICLE_BY_ID,
     GET_STORAGE_DATA
 }

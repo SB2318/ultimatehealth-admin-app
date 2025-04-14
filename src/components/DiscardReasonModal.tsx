@@ -27,7 +27,7 @@ export default function DiscardReasonModal({
         <View style={styles.modalContainer}>
         <View style={styles.header}>
 
-          <Text style={styles.modalTitle}>Discard Reason</Text>
+          <Text style={styles.modalTitle}>Discard Article</Text>
           <TouchableOpacity onPress={dismiss}>
           <Ionicon name="close" size={30} color="white" />
           </TouchableOpacity>
@@ -51,7 +51,7 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: 'rgba(0, 0, 0, 0.5)',
     justifyContent: 'center',
-
+    
     alignItems: 'center',
   },
   modalContainer: {
@@ -68,7 +68,9 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     backgroundColor:"red",
-   padding: wp(3)
+    padding: wp(3),
+    borderTopLeftRadius: 10,
+    borderTopRightRadius: 10,
 
   },
   container: {

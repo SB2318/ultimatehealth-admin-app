@@ -29,6 +29,7 @@
     "react-native-gesture-handler": "^2.22.1",
     "react-native-image-picker": "^8.0.0",
     "react-native-pager-view": "^6.7.0",
+    "react-native-paper": "^5.13.1",
     "react-native-pell-rich-editor": "^1.9.0",
     "react-native-reanimated": "^3.9.0",
     "react-native-safe-area-context": "^5.2.0",

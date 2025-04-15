@@ -17,4 +17,4 @@ Detect unauthorized or low-quality images and logos using AI validation tools â€
 Handle flagged content and investigate reports of inappropriate behavior, misinformation, or policy violations. Keep the platform safe and trustworthy.
 
 **Secure Admin Authentication**
-Role-based access control and secure JWT or OAuth2 login systems ensure sensitive operations are protected.
+Role-based access control and secure auth systems ensure sensitive operations are protected.

@@ -1,5 +1,6 @@
 import {View, Text, StyleSheet, Image, Alert} from 'react-native';
 import {BUTTON_COLOR, ON_PRIMARY_COLOR, PRIMARY_COLOR} from '../helper/Theme';
+import { useRef } from 'react';
 import {Tabs, MaterialTabBar} from 'react-native-collapsible-tab-view';
 import {useSelector} from 'react-redux';
 import axios from 'axios';
@@ -19,6 +20,7 @@ import {useFocusEffect} from '@react-navigation/native';
 import {useSafeAreaInsets} from 'react-native-safe-area-context';
 import ReviewCard from '../components/ReviewCard';
 import {hp} from '../helper/Metric';
+import FilterModal from '../components/FilterModal';
 
 export default function HomeScreen({navigation}: ArticleProps) {
   const {user_token, user_id} = useSelector((state: any) => state.user);
@@ -271,6 +273,17 @@ export default function HomeScreen({navigation}: ArticleProps) {
           </Tabs.Tab>
         </Tabs.Container>
 
+
+        <FilterModal
+        bottomSheetModalRef={bottomSheetModalRef}
+        categories={articleCategories}
+        handleCategorySelection={handleCategorySelection}
+        selectCategoryList={selectCategoryList}
+        handleFilterReset={handleFilterReset}
+        handleFilterApply={handleFilterApply}
+        setSortingType={setSortingType}
+        sortingType={sortingType}
+      />
         <FAB
         style={styles.fab}
         small

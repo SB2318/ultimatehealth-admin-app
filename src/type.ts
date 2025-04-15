@@ -1,6 +1,8 @@
 import type {CompositeScreenProps} from '@react-navigation/native';
 import type {BottomTabScreenProps} from '@react-navigation/bottom-tabs';
 import type {StackScreenProps} from '@react-navigation/stack';
+import { BottomSheetModal } from '@gorhom/bottom-sheet';
+import { RefObject } from 'react';
 
 
 
@@ -71,6 +73,29 @@ export type AuthData = {
    name: string;
  };
 
+ 
+export type CategoryType = {
+  id: number;
+  name: string;
+};
+
+ export type HomeScreenFilterModalProps = {
+  bottomSheetModalRef: RefObject<BottomSheetModal>;
+  categories: CategoryType[];
+  handleCategorySelection: (category: CategoryType['name']) => void;
+  selectCategoryList: CategoryType['name'][];
+  handleFilterReset: () => void;
+  handleFilterApply: () => void; 
+  setSortingType: (selectedType: string) => void;
+  sortingType: string | '';
+};
+
+export type HomeScreenCategoriesFlatlistProps = {
+  bottomSheetModalRef2: RefObject<BottomSheetModal>;
+  categories: CategoryType[];
+  handleCategorySelection: (category: CategoryType['name']) => void;
+  selectCategoryList: CategoryType['name'][];
+};
  export type ReviewCardProps = {
   item: ArticleData;
   onclick: (item: ArticleData, index: number, reason: string) => void;
@@ -78,6 +103,7 @@ export type AuthData = {
   onNavigate: (item: ArticleData)=> void;
   setSelectedCardId: (id: string) => void;
 };
+
 
 export type ArticleProps = CompositeScreenProps<
   BottomTabScreenProps<TabParamList, 'Article'>,

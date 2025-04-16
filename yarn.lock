@@ -6894,7 +6894,7 @@ react-native-collapsible-tab-view@^8.0.0:
   dependencies:
     use-deep-compare "^1.1.0"
 
-react-native-gesture-handler@^2.22.1:
+react-native-gesture-handler@^2.25.0:
   version "2.25.0"
   resolved "https://registry.yarnpkg.com/react-native-gesture-handler/-/react-native-gesture-handler-2.25.0.tgz#3a5a8912ea4f5e68ab211a9fa5a191c08ad50883"
   integrity sha512-NPjJi6mislXxvjxQPU9IYwBjb1Uejp8GvAbE1Lhh+xMIMEvmgAvVIp5cz1P+xAbV6uYcRRArm278+tEInGOqWg==

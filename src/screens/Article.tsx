@@ -53,7 +53,9 @@ export default function HomeScreen({navigation}: ArticleProps) {
   const insets = useSafeAreaInsets();
 
 
-
+  const handlePresentModalPress = useCallback(() => {
+    bottomSheetModalRef.current?.present();
+  }, []);
   const getAllCategories = async () => {
     if (user_token === '') {
       Alert.alert('No token found');
@@ -103,6 +105,8 @@ export default function HomeScreen({navigation}: ArticleProps) {
           Authorization: `Bearer ${user_token}`,
         },
       });
+      let d = response.data as ArticleData[];
+      updateAvailableArticles(d);
       return response.data as ArticleData[];
     },
   });
@@ -122,6 +126,8 @@ export default function HomeScreen({navigation}: ArticleProps) {
           },
         },
       );
+      let d = response.data as ArticleData[];
+      updateProgressArticles(d);
       return response.data as ArticleData[];
     },
   });
@@ -138,6 +144,8 @@ export default function HomeScreen({navigation}: ArticleProps) {
           Authorization: `Bearer ${user_token}`,
         },
       });
+      let d = response.data as ArticleData[];
+      updateCompletedArticles(d);
       return response.data as ArticleData[];
     },
   });
@@ -231,6 +239,104 @@ export default function HomeScreen({navigation}: ArticleProps) {
     updateArticles();
   };
 
+
+  const updateAvailableArticles = (articleData: ArticleData[])=>{
+
+    if (!articleData) {
+      return;
+    }
+
+    let filtered = articleData;
+
+    if (selectedTags.length > 0) {
+      filtered = filtered.filter(article =>
+        selectedTags.some(tag =>
+          article.tags.some(category => category.name === tag),
+        ),
+      );
+    }
+    // console.log('Filtered before sort', filtered);
+    if (sortType === 'recent' && filtered.length > 1) {
+      filtered = filtered.sort(
+        (a, b) =>
+          new Date(b.lastUpdated).getTime() - new Date(a.lastUpdated).getTime(),
+      );
+    } else if (sortType === 'oldest' && filtered.length > 1) {
+      filtered.sort(
+        (a, b) =>
+          new Date(a.lastUpdated).getTime() - new Date(b.lastUpdated).getTime(),
+      );
+    } else if (sortType === 'popular' && filtered.length > 1) {
+      filtered.sort((a, b) => b.viewCount - a.viewCount);
+    }
+
+    dispatch(setFilteredAvailableArticles({filteredArticles: filtered}));
+  }
+
+  const updateProgressArticles = (articleData: ArticleData[])=>{
+
+    if (!articleData) {
+      return;
+    }
+
+    let filtered = articleData;
+  
+    if (selectedTags.length > 0) {
+      filtered = filtered.filter(article =>
+        selectedTags.some(tag =>
+          article.tags.some(category => category.name === tag),
+        ),
+      );
+    }
+  
+    if (sortType === 'recent' && filtered.length > 1) {
+      filtered = filtered.sort(
+        (a, b) =>
+          new Date(b.lastUpdated).getTime() - new Date(a.lastUpdated).getTime(),
+      );
+    } else if (sortType === 'oldest' && filtered.length > 1) {
+      filtered.sort(
+        (a, b) =>
+          new Date(a.lastUpdated).getTime() - new Date(b.lastUpdated).getTime(),
+      );
+    } else if (sortType === 'popular' && filtered.length > 1) {
+      filtered.sort((a, b) => b.viewCount - a.viewCount);
+    }
+  
+    dispatch(setFilteredProgressArticles({filteredArticles: filtered}));
+  }
+  const updateCompletedArticles = (articleData: ArticleData[])=>{
+   
+    if (!articleData) {
+      return;
+    }
+
+    let filtered = articleData;
+  
+    if (selectedTags.length > 0) {
+      filtered = filtered.filter(article =>
+        selectedTags.some(tag =>
+          article.tags.some(category => category.name === tag),
+        ),
+      );
+    }
+   
+    if (sortType === 'recent' && filtered.length > 1) {
+      filtered = filtered.sort(
+        (a, b) =>
+          new Date(b.lastUpdated).getTime() - new Date(a.lastUpdated).getTime(),
+      );
+    } else if (sortType === 'oldest' && filtered.length > 1) {
+      filtered.sort(
+        (a, b) =>
+          new Date(a.lastUpdated).getTime() - new Date(b.lastUpdated).getTime(),
+      );
+    } else if (sortType === 'popular' && filtered.length > 1) {
+      filtered.sort((a, b) => b.viewCount - a.viewCount);
+    }
+   
+    dispatch(setFilteredCompletedArticles({filteredArticles: filtered}));
+  }
 
   const updateArticles = () => {
     
@@ -422,7 +528,7 @@ export default function HomeScreen({navigation}: ArticleProps) {
           {/* Tab 1 */}
           <Tabs.Tab name="Articles">
             <Tabs.FlatList
-              data={filterMode? filteredAvailableArticles: availableArticles !== undefined ? availableArticles : []}
+              data={filteredAvailableArticles}
               renderItem={renderItem}
               showsVerticalScrollIndicator={false}
               contentContainerStyle={[
@@ -445,7 +551,7 @@ export default function HomeScreen({navigation}: ArticleProps) {
 
           <Tabs.Tab name="In Progress">
             <Tabs.FlatList
-              data={filterMode? filteredProgressArticles: progressArticles !== undefined ? progressArticles : []}
+              data={filteredProgressArticles}
               renderItem={renderItem}
               showsVerticalScrollIndicator={false}
               contentContainerStyle={[
@@ -468,7 +574,7 @@ export default function HomeScreen({navigation}: ArticleProps) {
           {/* Tab 3 */}
           <Tabs.Tab name="Completed">
             <Tabs.FlatList
-              data={filterMode? filteredCompletedArticles: completedArticles !== undefined ? completedArticles : []}
+              data={filteredCompletedArticles}
               renderItem={renderItem}
               showsVerticalScrollIndicator={false}
               contentContainerStyle={[
@@ -510,6 +616,7 @@ export default function HomeScreen({navigation}: ArticleProps) {
         )}
         onPress={() => {
           //navigation.goBack();
+          handlePresentModalPress();
         }}
       />
       </View>

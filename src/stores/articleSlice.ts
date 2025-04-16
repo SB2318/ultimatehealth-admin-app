@@ -7,7 +7,7 @@ export type ArticleState = {
   filteredCompletedArticles: ArticleData[];
   selectedTags: string[];
   sortType: 'recent' | 'popular' | 'oldest' | '';
-  searchMode: boolean;
+  filterMode: boolean;
   article: ArticleData;
   categories: Category[];
 }
@@ -18,7 +18,7 @@ const initialState: ArticleState = {
   filteredCompletedArticles: [],
   selectedTags: [],
   sortType: '',
-  searchMode: false,
+  filterMode: false,
   article: {
       _id: '',
       title: '',
@@ -66,8 +66,8 @@ const articleSlice = createSlice({
       state.sortType = action.payload.sortType;
     },
 
-    setSearchMode(state, action){
-      state.searchMode = action.payload.searchMode;
+    setFilterMode(state, action){
+      state.filterMode = action.payload.filterMode;
     },
 
     setArticle(state, action){
@@ -86,7 +86,7 @@ export const {
   setFilteredCompletedArticles,
   setSelectedTags,
   setSortType,
-  setSearchMode,
+  setFilterMode,
   setArticle,
   setTags
 } = articleSlice.actions;

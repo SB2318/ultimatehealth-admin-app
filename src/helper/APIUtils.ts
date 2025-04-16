@@ -18,6 +18,7 @@ const DISCARD_ARTICLE = `${EC2_BASE_URL}/admin/discard-changes`;
 const GET_STORAGE_DATA = `${EC2_BASE_URL}/getFile`;
 const GET_ARTICLE_BY_ID = `${EC2_BASE_URL}/articles`;
 const PUBLISH_ARTICLE = `${EC2_BASE_URL}/admin/publish-article`;
+const ARTICLE_TAGS_API = '/articles/tags';
 // For verification related POST and GET request, send isAdmin in request body and query.
 export {
     LOGIN_API,
@@ -39,5 +40,6 @@ export {
     DISCARD_ARTICLE,
     PUBLISH_ARTICLE,
     GET_ARTICLE_BY_ID,
-    GET_STORAGE_DATA
+    GET_STORAGE_DATA,
+    ARTICLE_TAGS_API
 }

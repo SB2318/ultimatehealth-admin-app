@@ -73,6 +73,15 @@ export type AuthData = {
    name: string;
  };
 
+ export type NotificationD = {
+  _id: string;
+  userId: string;
+  title: string;
+  message: string;
+  read: boolean;
+  timestamp: string;
+};
+
  
 export type CategoryType = {
   id: number;

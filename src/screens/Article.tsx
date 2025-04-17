@@ -224,6 +224,7 @@ export default function HomeScreen({navigation}: ArticleProps) {
 
   const handleFilterApply = () => {
     // Update Redux State Variables
+    console.log("Handle filter apply called");
     if (selectCategoryList.length > 0) {
       dispatch(setSelectedTags({selectedTags: selectCategoryList}));
     } else {
@@ -340,14 +341,15 @@ export default function HomeScreen({navigation}: ArticleProps) {
 
   const updateArticles = () => {
     
+    console.log("Update article called");
 
     let filterdAvailable:ArticleData[] = availableArticles? availableArticles: [];
     let filterProgress:ArticleData[] = progressArticles ? progressArticles: [];
     let filterCompleted:ArticleData[] = completedArticles? completedArticles:[];
    
+    
     if (selectedTags.length > 0) {
     
-      
       // eslint-disable-next-line @typescript-eslint/no-unused-vars
       filterdAvailable = filterdAvailable.filter(article =>
         selectedTags.some((tag) =>

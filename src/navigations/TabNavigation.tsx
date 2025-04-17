@@ -8,8 +8,7 @@ import AntDesign from 'react-native-vector-icons/AntDesign';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 import {TouchableOpacity, View} from 'react-native';
 import {TabParamList} from '../type';
-import FontAwesome6 from 'react-native-vector-icons/FontAwesome6';
-import {BUTTON_COLOR} from '../helper/Theme';
+import {ON_PRIMARY_COLOR, PRIMARY_COLOR} from '../helper/Theme';
 import Podcast from '../screens/Podcast';
 import Notification from '../screens/Notification';
 import Report from '../screens/Report';
@@ -17,6 +16,8 @@ import Profile from '../screens/Profile';
 
 const Tab = createBottomTabNavigator<TabParamList>();
 const TabNavigation = () => {
+
+
   return (
     <Tab.Navigator
       initialRouteName="Article"
@@ -70,32 +71,12 @@ const TabNavigation = () => {
         component={Notification}
         options={({navigation}) => ({
           headerTitleAlign: 'center',
-          title: 'Notification',
-          headerShown: true,
-          headerBackTitleVisible: false,
+        
           headerStyle: {
-            backgroundColor: BUTTON_COLOR,
+            backgroundColor: ON_PRIMARY_COLOR,
           },
-          headerTintColor: 'white',
-          headerShadowVisible: false,
-          tabBarHideOnKeyboard: true,
-          headerLeft: () => (
-            <TouchableOpacity
-              style={{
-                marginLeft: 15,
-                height: 35,
-                width: 35,
-                borderRadius: 50,
-                alignItems: 'center',
-                justifyContent: 'center',
-                backgroundColor: 'white',
-              }}
-              onPress={() => {
-                navigation.goBack();
-              }}>
-              <FontAwesome6 size={20} name="arrow-left" color="black" />
-            </TouchableOpacity>
-          ),
+        
+        
         })}
       />
       <Tab.Screen

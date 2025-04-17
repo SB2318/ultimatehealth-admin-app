@@ -1,0 +1,152 @@
+import moment from 'moment';
+import React from 'react';
+import {
+  Pressable,
+  View,
+  Text,
+  StyleSheet,
+  TouchableOpacity,
+  Alert,
+} from 'react-native';
+import {NotificationD} from '../type';
+import {fp, hp} from '../helper/Metric';
+import MaterialCommunityIcon from 'react-native-vector-icons/MaterialCommunityIcons';
+import {BUTTON_COLOR} from '../helper/Theme';
+
+export default function NotificationItem({
+  item,
+  handleDeleteAction,
+}: {
+  item: NotificationD;
+  handleDeleteAction: (item: NotificationD) => void;
+}) {
+  return (
+    <Pressable
+      onPress={() => {
+        // handle onPress
+      }}>
+      <View style={styles.cardContainer}>
+        {/* Share Icon */}
+
+        <View style={styles.textContainer}>
+          {/* title */}
+          <Text style={styles.title}>{item?.title}</Text>
+
+          <Text style={styles.footerText}>
+            {item?.message} {''}
+          </Text>
+          <Text style={styles.footerText}>
+            Received at: {''}
+            {moment(new Date(item?.timestamp)).format('hh:mm A DD/MM/YYYY')}
+          </Text>
+        </View>
+
+        <TouchableOpacity
+          onPress={() => {
+            Alert.alert(
+              'Alert',
+              'Are you sure you want to delete this notification.',
+              [
+                {
+                  text: 'Cancel',
+                  onPress: () => console.log('Cancel Pressed'),
+                  style: 'cancel',
+                },
+                {
+                  text: 'OK',
+                  onPress: () => {
+                    // delete notification api
+                    handleDeleteAction(item);
+                  },
+                },
+              ],
+              {cancelable: false},
+            );
+          }}>
+          <MaterialCommunityIcon
+            name="delete-empty-outline"
+            size={30}
+            color={BUTTON_COLOR}
+            style={{alignSelf: 'center'}}
+          />
+        </TouchableOpacity>
+      </View>
+    </Pressable>
+  );
+}
+
+const styles = StyleSheet.create({
+  cardContainer: {
+    flex: 0,
+    width: '100%',
+    maxHeight: 360,
+    backgroundColor: 'white',
+    flexDirection: 'row',
+    marginVertical: 14,
+    overflow: 'hidden',
+    elevation: 4,
+
+    borderRadius: 12,
+  },
+  image: {
+    flex: 0.8,
+    resizeMode: 'cover',
+  },
+
+  likeSaveContainer: {
+    flexDirection: 'row',
+    width: '100%',
+    marginTop: 6,
+    justifyContent: 'space-between',
+  },
+
+  likeSaveChildContainer: {
+    flexDirection: 'row',
+    justifyContent: 'flex-start',
+    marginHorizontal: hp(0),
+    marginVertical: hp(1),
+  },
+  textContainer: {
+    flex: 1,
+    backgroundColor: 'white',
+    paddingHorizontal: 14,
+    paddingVertical: 13,
+  },
+  title: {
+    fontSize: fp(4.5),
+    fontWeight: 'bold',
+    color: '#121a26',
+    marginBottom: 4,
+    fontFamily: 'Lobster-Regular',
+  },
+  description: {
+    fontSize: fp(3),
+    fontWeight: '500',
+    lineHeight: 18,
+    color: '#778599',
+    marginBottom: 10,
+    fontFamily: 'monospace',
+  },
+  footerText: {
+    fontSize: fp(3.3),
+    fontWeight: '600',
+    color: '#121a26',
+    marginBottom: 3,
+  },
+
+  footerContainer: {
+    flex: 0,
+    width: '100%',
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginTop: 4,
+  },
+  shareIconContainer: {
+    position: 'absolute',
+    top: 2,
+    right: 1,
+    zIndex: 1,
+  },
+ 
+});

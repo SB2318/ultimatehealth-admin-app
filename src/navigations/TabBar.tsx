@@ -1,12 +1,48 @@
-import React from 'react';
-import {View, Pressable, StyleSheet, useColorScheme} from 'react-native';
+import React, { useCallback } from 'react';
+import {View, Pressable, StyleSheet, useColorScheme, Text} from 'react-native';
 import FontAwesome from 'react-native-vector-icons/FontAwesome';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import MaterialIcon from 'react-native-vector-icons/MaterialIcons';
-import {  PRIMARY_COLOR} from '../helper/Theme';
+import {PRIMARY_COLOR} from '../helper/Theme';
+import { useFocusEffect } from '@react-navigation/native';
+import { useQuery } from '@tanstack/react-query';
+import axios from 'axios';
+import { EC2_BASE_URL } from '../helper/APIUtils';
+import { useSelector } from 'react-redux';
 
 const TabBar = ({state, descriptors, navigation}: any) => {
   const isDarkMode = useColorScheme() === 'dark';
+  const {user_token} = useSelector((state: any) => state.user);
+
+   const {data: unreadCount, refetch: refetchUnreadCount} = useQuery({
+      queryKey: ['get-unread-notifications-count'],
+      queryFn: async () => {
+        try {
+          if (user_token === '') {
+            throw new Error('No token found');
+          }
+          const response = await axios.get(
+            `${EC2_BASE_URL}/notification/unread-count?role=1`,
+            {
+              headers: {
+                Authorization: `Bearer ${user_token}`,
+              },
+            },
+          );
+  
+          // console.log('Notification Response', response);
+          return response.data.unreadCount as number;
+        } catch (err) {
+          console.error('Error fetching articles:', err);
+        }
+      },
+    });
+  
+    useFocusEffect(
+      useCallback(() => {
+        refetchUnreadCount();
+      }, [refetchUnreadCount]),
+    );
 
   return (
     <View
@@ -68,38 +104,77 @@ const TabBar = ({state, descriptors, navigation}: any) => {
                   <Ionicons
                     name="home"
                     size={30}
-                    color={isFocused ? 'white' : isDarkMode ? 'white' :'#343434' }
+                    color={
+                      isFocused ? 'white' : isDarkMode ? 'white' : '#343434'
+                    }
                   />
                 )}
                 {label === 'Podcast' && (
                   <FontAwesome
                     name="podcast"
                     size={30}
-                    color={isFocused ? 'white' : isDarkMode ? 'white' :'#343434' }
+                    color={
+                      isFocused ? 'white' : isDarkMode ? 'white' : '#343434'
+                    }
                   />
                 )}
 
                 {label === 'Notification' && (
-                  <Ionicons
-                    name="notifications"
-                    size={30}
-                    color={isFocused ? 'white' : isDarkMode ? 'white' :'#343434' }
-                  />
+                  <View style={{position: 'relative'}}>
+                    <Ionicons
+                      name="notifications"
+                      size={30}
+                      color={
+                        isFocused ? 'white' : isDarkMode ? 'white' : '#343434'
+                      }
+                    />
+
+                    {/* Red dot */}
+                    {unreadCount > 0 && (
+                      <View
+                        style={{
+                          position: 'absolute',
+                          top: 6,
+                          right: 2,
+                          width: 15,
+                          height: 15,
+                          borderRadius: 8,
+                          backgroundColor: 'red',
+                          justifyContent: 'center',
+                          alignItems: 'center',
+                        }}>
+                        {/* Optionally show the unread count */}
+                        <Text
+                          style={{
+                            color: 'white',
+                            fontSize: 11,
+                            fontWeight: 'bold',
+                            textAlign: 'center',
+                          }}>
+                          {unreadCount > 9 ? '9+' : unreadCount}
+                        </Text>
+                      </View>
+                    )}
+                  </View>
                 )}
 
                 {label === 'Report' && (
                   <MaterialIcon
                     name="report"
                     size={30}
-                    color={isFocused ? 'white' : isDarkMode ? 'white' :'#343434' }
+                    color={
+                      isFocused ? 'white' : isDarkMode ? 'white' : '#343434'
+                    }
                   />
                 )}
 
-          {label === 'Profile' && (
+                {label === 'Profile' && (
                   <MaterialIcon
                     name="person"
                     size={30}
-                    color={isFocused ? 'white' : isDarkMode ? 'white' :'#343434' }
+                    color={
+                      isFocused ? 'white' : isDarkMode ? 'white' : '#343434'
+                    }
                   />
                 )}
               </View>

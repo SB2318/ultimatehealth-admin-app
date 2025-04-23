@@ -88,6 +88,16 @@ export type CategoryType = {
   name: string;
 };
 
+export type ProfileHeaderProps = {
+
+  username: string,
+  userhandle: string,
+  profileImg: string,
+  userEmailID: string,
+  onOverviewClick : ()=> void,
+  contriutions: string,
+
+};
  export type HomeScreenFilterModalProps = {
   bottomSheetModalRef: RefObject<BottomSheetModal>;
   categories: CategoryType[];

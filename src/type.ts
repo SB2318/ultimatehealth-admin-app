@@ -92,7 +92,7 @@ export type ProfileHeaderProps = {
 
   username: string,
   userhandle: string,
-  profileImg: string,
+  profileImg: string | undefined,
   userEmailID: string,
   onOverviewClick : ()=> void,
   contriutions: string,
@@ -183,6 +183,7 @@ export type Comment = {
   id: string;
   articleId: number;
   userId: Admin;
+  Profile_image: string|undefined;
   content: string;
   createdAt: string;
   updatedAt: string;

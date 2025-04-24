@@ -5,16 +5,13 @@ import {
     Image,
     TouchableOpacity,
     Linking,
-    Platform,
     Alert,
   } from 'react-native';
   import React from 'react';
   import EllipseSvg from '../../assets/svg/EllipseSvg';
   import {ON_PRIMARY_COLOR, PRIMARY_COLOR} from '../helper/Theme';
-  import FontAwesome from 'react-native-vector-icons/FontAwesome';
   import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
   import MaterialCommunityIcon from 'react-native-vector-icons/MaterialCommunityIcons';
-  import Feather from 'react-native-vector-icons/Feather';
   import {fp, hp, wp} from '../helper/Metric';
   import {ProfileHeaderProps} from '../type';
   
@@ -24,9 +21,7 @@ import {
     username,
     userhandle,
     profileImg,
-    userEmailID,
     onOverviewClick,
-    contriutions,
   }: ProfileHeaderProps) => {
     
     const handleMail = mail => {
@@ -53,74 +48,20 @@ import {
           <Text style={[styles.usernameText, {color: PRIMARY_COLOR}]}>
             {userhandle}
           </Text>
-          
-          {isDoctor ? (
-            <View style={styles.contactContainer}>
-              <TouchableOpacity
-                onPress={() => {
-                  handleCall(userPhoneNumber);
-                }}
-                style={[styles.iconButton, {backgroundColor: PRIMARY_COLOR}]}>
-                <MaterialIcons name="phone-in-talk" size={25} color="white" />
-              </TouchableOpacity>
-              <TouchableOpacity
-                onPress={() => {
-                  handleMail(userEmailID);
-                }}
-                style={[styles.iconButton, {backgroundColor: PRIMARY_COLOR}]}>
-                <MaterialIcons name="email" size={25} color="white" />
-              </TouchableOpacity>
-              {other && (
-                <TouchableOpacity
-                  style={[styles.iconButton, {backgroundColor: PRIMARY_COLOR}]}
-                  onPress={() => {
-                    navigation.navigate('ProfileEditScreen');
-                  }}>
-                  <Feather name="edit-3" size={25} color="white" />
-                </TouchableOpacity>
-              )}
-            </View>
-          ) : other ? (
-            // <TouchableOpacity
-            //   style={styles.editProfileButton}
-            //   onPress={() => {
-            //     navigation.navigate('ProfileEditScreen');
-            //   }}>
-            //   <Text style={styles.editProfileButtonText}>Edit Profile</Text>
-            // </TouchableOpacity>
+        
+           
             <TouchableOpacity
               onPress={() => {
-                navigation.navigate('ProfileEditScreen');
+              //  navigation.navigate('ProfileEditScreen');
               }}>
               <View style={styles.btnSM}>
                 <MaterialIcons name="edit" size={20} color="black" />
                 <Text style={styles.btnSMText}>Edit Profile</Text>
               </View>
             </TouchableOpacity>
-          ) : (
-            <TouchableOpacity onPress={onFollowClick}>
-              <View
-                style={{
-                  ...styles.btnSM,
-                  backgroundColor: isFollowing ? PRIMARY_COLOR : '#fff',
-                }}>
-                <MaterialIcons
-                  name="person"
-                  size={20}
-                  color={isFollowing ? '#fff' : 'black'}
-                />
-                <Text
-                  style={{
-                    ...styles.btnSMText,
-                    color: isFollowing ? '#fff' : 'black',
-                  }}>
-                  {isFollowing ? 'Following' : 'Follow'}
-                </Text>
-              </View>
-            </TouchableOpacity>
-          )}
+          
           <TouchableOpacity onPress={onOverviewClick}>
-            {other && (
+           
               <View style={styles.btnSM}>
                 <MaterialCommunityIcon
                   name="view-dashboard"
@@ -129,61 +70,29 @@ import {
                 />
                 <Text style={styles.btnSMText}>Overview</Text>
               </View>
-            )}
+            
           </TouchableOpacity>
   
           <TouchableOpacity
             onPress={() => {
+              /*
               navigation.navigate('LogoutScreen', {
                 profile_image: profileImg,
                 username: username,
               });
+              */
             }}>
-            {other && (
+           
               <View style={styles.btnSM}>
                 <MaterialIcons name="logout" size={20} color="black" />
                 <Text style={styles.btnSMText}>Logout</Text>
               </View>
-            )}
+            
           </TouchableOpacity>
   
-          {isDoctor && (
-            <View style={styles.infoContainer}>
-              <View style={styles.infoBlock}>
-                <Text style={[styles.infoText, {color: PRIMARY_COLOR}]}>
-                  {specialization}
-                </Text>
-                <Text style={styles.infoLabel}>Specialization</Text>
-              </View>
-              <View style={styles.infoBlock}>
-                <Text style={[styles.infoText, {color: PRIMARY_COLOR}]}>
-                  {qualification}
-                </Text>
-                <Text style={styles.infoLabel}>Qualification</Text>
-              </View>
-            </View>
-          )}
-          <View style={styles.infoContainer}>
-            <TouchableOpacity onPress={onFollowerPress} style={styles.infoBlock}>
-              <Text style={[styles.infoText, {color: PRIMARY_COLOR}]}>
-                {followers}
-              </Text>
-              <Text style={styles.infoLabel}>
-                {followers > 1 ? 'Followers' : 'Follower'}
-              </Text>
-            </TouchableOpacity>
-  
-            <TouchableOpacity onPress={onFollowingPress} style={styles.infoBlock}>
-              <Text style={[styles.infoText, {color: PRIMARY_COLOR}]}>
-                {followings}
-              </Text>
-              <Text style={styles.infoLabel}>
-                {followings > 1 ? 'Followings' : 'Following'}
-              </Text>
-            </TouchableOpacity>
           </View>
         </View>
-      </View>
+      
     );
   };
   

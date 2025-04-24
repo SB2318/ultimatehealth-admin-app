@@ -35,12 +35,15 @@ const ProfileScreen = ({navigation}: ProfileScreenProps) => {
   } = useQuery({
     queryKey: ['get-profile'],
     queryFn: async () => {
+
+     // console.log("GET profile API", GET_PROFILE_API);
+     // console.log("User token", user_token);
       const response = await axios.get(`${GET_PROFILE_API}`, {
         headers: {
           Authorization: `Bearer ${user_token}`,
         },
       });
-      return response.data.profile as Admin;
+      return response.data as Admin;
     },
   });
 

@@ -19,6 +19,8 @@ const GET_STORAGE_DATA = `${EC2_BASE_URL}/getFile`;
 const GET_ARTICLE_BY_ID = `${EC2_BASE_URL}/articles`;
 const PUBLISH_ARTICLE = `${EC2_BASE_URL}/admin/publish-article`;
 const ARTICLE_TAGS_API = '/articles/tags';
+const GET_MONTHLY_CONTRIBUTION = `${EC2_BASE_URL}/analytics/admin/get-monthly-contribution`;
+const GET_YEARLY_CONTRIBUTION = `${EC2_BASE_URL}/analytics/admin/get-yearly-contribution`;
 // For verification related POST and GET request, send isAdmin in request body and query.
 export {
     LOGIN_API,
@@ -41,5 +43,7 @@ export {
     PUBLISH_ARTICLE,
     GET_ARTICLE_BY_ID,
     GET_STORAGE_DATA,
-    ARTICLE_TAGS_API
+    ARTICLE_TAGS_API,
+    GET_MONTHLY_CONTRIBUTION,
+    GET_YEARLY_CONTRIBUTION
 }

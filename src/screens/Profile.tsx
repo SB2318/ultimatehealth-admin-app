@@ -130,7 +130,7 @@ console.log("User", user);
               contentInsetAdjustmentBehavior="always"
               contentContainerStyle={styles.scrollViewContentContainer}>
               <ActivityOverview
-               
+               ctype={1}
               />
             </Tabs.ScrollView>
           </Tabs.Tab>
@@ -138,13 +138,13 @@ console.log("User", user);
           <Tabs.Tab name="Improvements">
            
           <ActivityOverview
-               
+              ctype={2} 
             />
           </Tabs.Tab>
 
           <Tabs.Tab name="Reports">
           <ActivityOverview
-               
+             ctype={3}  
             />
           </Tabs.Tab>
        

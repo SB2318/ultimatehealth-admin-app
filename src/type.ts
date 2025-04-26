@@ -20,6 +20,7 @@ export type RootStackParamList = {
   };
   EditProfile: undefined;
   LogoutScreen: {profile_image: string; username: string};
+  WorkHistoryScreen: undefined
 }
 
 export type Admin={
@@ -201,6 +202,10 @@ export type EditProfileProp = StackScreenProps<
   'EditProfile'
 >;
 
+export type WorkHistoryProps = StackScreenProps<
+  RootStackParamList,
+  'WorkHistoryScreen'
+>;
 export type TabParamList = {
   Article: undefined;
   Podcast: undefined;

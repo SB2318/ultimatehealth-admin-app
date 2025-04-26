@@ -25,14 +25,13 @@ import {hp} from '../helper/Metric';
 import FilterModal from '../components/FilterModal';
 import Loader from '../components/Loader';
 import { BottomSheetModal } from '@gorhom/bottom-sheet';
-import { setFilteredAvailableArticles, setFilteredCompletedArticles, setFilteredProgressArticles, setFilterMode, setSelectedTags, setSortType, setTags } from '../stores/articleSlice';
+import { setFilteredAvailableArticles, setFilteredProgressArticles, setFilterMode, setSelectedTags, setSortType, setTags } from '../stores/articleSlice';
 
 export default function HomeScreen({navigation}: ArticleProps) {
   const {user_token, user_id} = useSelector((state: any) => state.user);
   const {
     filteredAvailableArticles,
     filteredProgressArticles,
-    filteredCompletedArticles,
     filterMode,
     selectedTags,
     sortType,
@@ -132,23 +131,7 @@ export default function HomeScreen({navigation}: ArticleProps) {
     },
   });
 
-  const {
-    data: completedArticles,
-    refetch: refetchCompletedArticles,
-    isLoading: isCompletedArticleLoading,
-  } = useQuery({
-    queryKey: ['get-publish-articles'],
-    queryFn: async () => {
-      const response = await axios.get(`${GET_COMPLETED_TASK_API}/${user_id}`, {
-        headers: {
-          Authorization: `Bearer ${user_token}`,
-        },
-      });
-      let d = response.data as ArticleData[];
-      updateCompletedArticles(d);
-      return response.data as ArticleData[];
-    },
-  });
+
 
   const pickArticleMutation = useMutation({
     mutationKey: ['pick-article'],
@@ -219,7 +202,6 @@ export default function HomeScreen({navigation}: ArticleProps) {
     
     dispatch(setFilteredAvailableArticles({filteredArticles: availableArticles}));
     dispatch(setFilteredProgressArticles({filteredArticles: progressArticles}));
-    dispatch(setFilteredCompletedArticles({filteredArticles: completedArticles}));
   };
 
   const handleFilterApply = () => {
@@ -306,38 +288,7 @@ export default function HomeScreen({navigation}: ArticleProps) {
   
     dispatch(setFilteredProgressArticles({filteredArticles: filtered}));
   }
-  const updateCompletedArticles = (articleData: ArticleData[])=>{
-   
-    if (!articleData) {
-      return;
-    }
 
-    let filtered = articleData;
-  
-    if (selectedTags.length > 0) {
-      filtered = filtered.filter(article =>
-        selectedTags.some(tag =>
-          article.tags.some(category => category.name === tag),
-        ),
-      );
-    }
-   
-    if (sortType === 'recent' && filtered.length > 1) {
-      filtered = filtered.sort(
-        (a, b) =>
-          new Date(b.lastUpdated).getTime() - new Date(a.lastUpdated).getTime(),
-      );
-    } else if (sortType === 'oldest' && filtered.length > 1) {
-      filtered.sort(
-        (a, b) =>
-          new Date(a.lastUpdated).getTime() - new Date(b.lastUpdated).getTime(),
-      );
-    } else if (sortType === 'popular' && filtered.length > 1) {
-      filtered.sort((a, b) => b.viewCount - a.viewCount);
-    }
-   
-    dispatch(setFilteredCompletedArticles({filteredArticles: filtered}));
-  }
 
   const updateArticles = () => {
     
@@ -345,7 +296,7 @@ export default function HomeScreen({navigation}: ArticleProps) {
 
     let filterdAvailable:ArticleData[] = availableArticles? availableArticles: [];
     let filterProgress:ArticleData[] = progressArticles ? progressArticles: [];
-    let filterCompleted:ArticleData[] = completedArticles? completedArticles:[];
+   
    
     
     if (selectedTags.length > 0) {
@@ -364,30 +315,25 @@ export default function HomeScreen({navigation}: ArticleProps) {
         ),
       );
 
-      // eslint-disable-next-line @typescript-eslint/no-unused-vars
-      filterCompleted = filterCompleted.filter(article =>
-        selectedTags.some((tag) =>
-          article.tags.some(category => category.name === tag),
-        ),
-      );
+     
 
     }
   
-    if (sortType === 'recent' && filtered.length > 1) {
-      filterdAvailable = filterdAvailable.sort(
-        (a, b) =>
-          new Date(b.lastUpdated).getTime() - new Date(a.lastUpdated).getTime(),
-      );
+    if (sortType === 'recent') {
+
+      
+        filterdAvailable = filterdAvailable.sort(
+          (a, b) =>
+            new Date(b.lastUpdated).getTime() - new Date(a.lastUpdated).getTime(),
+        );
+      
+      
 
       filterProgress = filterProgress.sort(
         (a, b) =>
           new Date(b.lastUpdated).getTime() - new Date(a.lastUpdated).getTime(),
       );
 
-      filterCompleted = filterCompleted.sort(
-        (a, b) =>
-          new Date(b.lastUpdated).getTime() - new Date(a.lastUpdated).getTime(),
-      );
     } else if (sortType === 'oldest') {
 
       if(filterdAvailable.length > 1){
@@ -406,15 +352,6 @@ export default function HomeScreen({navigation}: ArticleProps) {
         );
       }
 
-      if(filterCompleted.length > 1){
-
-        filterCompleted.sort(
-          (a, b) =>
-            new Date(a.lastUpdated).getTime() - new Date(b.lastUpdated).getTime(),
-        );
-      }
-
-   
     } else if (sortType === 'popular') {
 
 
@@ -432,18 +369,12 @@ export default function HomeScreen({navigation}: ArticleProps) {
         );
       }
 
-      if(filterCompleted.length > 1){
 
-        filterCompleted.sort(
-          (a, b) => b.viewCount - a.viewCount
-        );
-      }
-      
     }
   
     dispatch(setFilteredAvailableArticles({filteredArticles: filterdAvailable}));
     dispatch(setFilteredProgressArticles({filteredArticles: filterProgress}));
-    dispatch(setFilteredCompletedArticles({filteredArticles: filterCompleted}));
+   
   };
 
 
@@ -485,7 +416,6 @@ export default function HomeScreen({navigation}: ArticleProps) {
     setRefreshing(true);
     availableAticleRefetch();
     refetchProgressArticles();
-    refetchCompletedArticles();
     setRefreshing(false);
   };
 
@@ -493,10 +423,8 @@ export default function HomeScreen({navigation}: ArticleProps) {
     useCallback(() => {
       availableAticleRefetch();
       refetchProgressArticles();
-      refetchCompletedArticles();
     }, [
       availableAticleRefetch,
-      refetchCompletedArticles,
       refetchProgressArticles,
     ]),
   );
@@ -515,7 +443,7 @@ export default function HomeScreen({navigation}: ArticleProps) {
     );
   };
 
-  if(isAvailableArticleLoading || isProgressArticleLoading || isCompletedArticleLoading){
+  if(isAvailableArticleLoading || isProgressArticleLoading){
     return (
       <Loader />
     )
@@ -551,6 +479,31 @@ export default function HomeScreen({navigation}: ArticleProps) {
             />
           </Tabs.Tab>
 
+            {/* Available Improvements articles */}
+            <Tabs.Tab name="Improvement">
+            <Tabs.FlatList
+              data={[]}
+              renderItem={renderItem}
+              showsVerticalScrollIndicator={false}
+              contentContainerStyle={[
+                styles.flatListContentContainer,
+                {paddingBottom: 15},
+              ]}
+              keyExtractor={item => item?._id}
+              refreshing={refreshing}
+              ListEmptyComponent={
+                <View style={styles.emptyContainer}>
+                  <Image
+                    source={require('../../assets/article_default.jpg')}
+                    style={styles.image}
+                  />
+
+                  <Text style={styles.message}>No Article Found</Text>
+                </View>
+              }
+            />
+          </Tabs.Tab>
+
           <Tabs.Tab name="In Progress">
             <Tabs.FlatList
               data={filteredProgressArticles}
@@ -573,30 +526,7 @@ export default function HomeScreen({navigation}: ArticleProps) {
               }
             />
           </Tabs.Tab>
-          {/* Tab 3 */}
-          <Tabs.Tab name="Completed">
-            <Tabs.FlatList
-              data={filteredCompletedArticles}
-              renderItem={renderItem}
-              showsVerticalScrollIndicator={false}
-              contentContainerStyle={[
-                styles.flatListContentContainer,
-                {paddingBottom: 15},
-              ]}
-              keyExtractor={item => item?._id}
-              refreshing={refreshing}
-              ListEmptyComponent={
-                <View style={styles.emptyContainer}>
-                  <Image
-                    source={require('../../assets/article_default.jpg')}
-                    style={styles.image}
-                  />
-
-                  <Text style={styles.message}>No Article Found</Text>
-                </View>
-              }
-            />
-          </Tabs.Tab>
+        
         </Tabs.Container>
 
 

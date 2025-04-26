@@ -12,6 +12,7 @@ import { StyleSheet, TouchableOpacity } from 'react-native';
 import FontAwesome6 from 'react-native-vector-icons/FontAwesome6';
 import EditProfile from '../screens/EditProfile';
 import LogoutScreen from '../screens/auth/LogoutScreen';
+import WorkHistoryScreen from '../screens/WorkHistoryScreen';
 
 const Stack = createStackNavigator<RootStackParamList>();
 
@@ -93,6 +94,14 @@ const StackNavigation = () => {
        <Stack.Screen
         name="LogoutScreen"
         component={LogoutScreen}
+        options={{
+          headerShown: false,
+        }}
+      />
+
+       <Stack.Screen
+        name="WorkHistoryScreen"
+        component={WorkHistoryScreen}
         options={{
           headerShown: false,
         }}

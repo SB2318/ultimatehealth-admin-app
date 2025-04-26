@@ -77,7 +77,7 @@ const ProfileScreen = ({navigation}: ProfileScreenProps) => {
     
         onOverviewClick={() => {
           if (user) {
-           // navigation.navigate('OverviewScreen', {articles: user.articles});
+            navigation.navigate('WorkHistoryScreen');
           }
         }}
         onEditProfileClick={()=>{

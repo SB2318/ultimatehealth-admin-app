@@ -21,6 +21,8 @@ const PUBLISH_ARTICLE = `${EC2_BASE_URL}/admin/publish-article`;
 const ARTICLE_TAGS_API = '/articles/tags';
 const GET_MONTHLY_CONTRIBUTION = `${EC2_BASE_URL}/analytics/admin/get-monthly-contribution`;
 const GET_YEARLY_CONTRIBUTION = `${EC2_BASE_URL}/analytics/admin/get-yearly-contribution`;
+const UPDATE_USER_DETAILS = `${EC2_BASE_URL}/admin/update-profile`;
+const ADMIN_LOGOUT = `${EC2_BASE_URL}/admin/logout`;
 // For verification related POST and GET request, send isAdmin in request body and query.
 export {
     LOGIN_API,
@@ -45,5 +47,7 @@ export {
     GET_STORAGE_DATA,
     ARTICLE_TAGS_API,
     GET_MONTHLY_CONTRIBUTION,
-    GET_YEARLY_CONTRIBUTION
+    GET_YEARLY_CONTRIBUTION,
+    UPDATE_USER_DETAILS,
+    ADMIN_LOGOUT
 }

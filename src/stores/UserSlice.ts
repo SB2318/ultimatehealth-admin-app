@@ -22,6 +22,7 @@ const userSlice = createSlice({
     resetUserState(state) {
       state.user_id = '';
       state.user_token = '';
+      state.user_handle = '';
     },
   },
 });

@@ -22,22 +22,21 @@ import {
     userhandle,
     profileImg,
     onOverviewClick,
+    onEditProfileClick,
+    onLogoutClick
   }: ProfileHeaderProps) => {
     
-    const handleMail = mail => {
-      Linking.openURL(`mailto: ${mail}`).catch(() =>
-        Alert.alert('Unable to open mail!'),
-      );
-    };
+   
     return (
       <View style={styles.container}>
         <EllipseSvg style={styles.ellipseSvg} />
         <View style={styles.contentContainer}>
           <Image
             source={{
-              uri: profileImg.startsWith('https')
+              uri: profileImg ? profileImg.startsWith('https')
                 ? profileImg
-                : `${GET_STORAGE_DATA}/${profileImg}`,
+                : `${GET_STORAGE_DATA}/${profileImg}`:
+                'https://images.pexels.com/photos/771742/pexels-photo-771742.jpeg?auto=compress&cs=tinysrgb&dpr=1&w=500',
             }}
             style={[
               styles.profileImage,
@@ -53,6 +52,7 @@ import {
             <TouchableOpacity
               onPress={() => {
               //  navigation.navigate('ProfileEditScreen');
+              onEditProfileClick();
               }}>
               <View style={styles.btnSM}>
                 <MaterialIcons name="edit" size={20} color="black" />
@@ -68,20 +68,13 @@ import {
                   size={20}
                   color="black"
                 />
-                <Text style={styles.btnSMText}>Overview</Text>
+                <Text style={styles.btnSMText}>Work History</Text>
               </View>
             
           </TouchableOpacity>
   
           <TouchableOpacity
-            onPress={() => {
-              /*
-              navigation.navigate('LogoutScreen', {
-                profile_image: profileImg,
-                username: username,
-              });
-              */
-            }}>
+            onPress={onLogoutClick}>
            
               <View style={styles.btnSM}>
                 <MaterialIcons name="logout" size={20} color="black" />
@@ -89,7 +82,7 @@ import {
               </View>
             
           </TouchableOpacity>
-  
+       
           </View>
         </View>
       

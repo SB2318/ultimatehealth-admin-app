@@ -2,7 +2,7 @@ import type {CompositeScreenProps} from '@react-navigation/native';
 import type {BottomTabScreenProps} from '@react-navigation/bottom-tabs';
 import type {StackScreenProps} from '@react-navigation/stack';
 import { BottomSheetModal } from '@gorhom/bottom-sheet';
-import { RefObject } from 'react';
+import { Dispatch, RefObject, SetStateAction } from 'react';
 
 
 
@@ -17,11 +17,13 @@ export type RootStackParamList = {
     articleId: number;
     authorId: string;
     destination: string;
-  }
+  };
+  EditProfile: undefined;
+  LogoutScreen: {profile_image: string; username: string};
 }
 
 export type Admin={
-   Profile_image: Admin | undefined;
+   //Profile_image: string | undefined;
    _id: string;
    user_name: string;
    user_handle: string;
@@ -89,16 +91,18 @@ export type CategoryType = {
 };
 
 export type ProfileHeaderProps = {
-
   username: string,
   userhandle: string,
   profileImg: string | undefined,
   userEmailID: string,
   onOverviewClick : ()=> void,
   contriutions: string,
+  onEditProfileClick: ()=> void,
+  onLogoutClick: ()=>void;
 
 };
- export type HomeScreenFilterModalProps = {
+ 
+export type HomeScreenFilterModalProps = {
   bottomSheetModalRef: RefObject<BottomSheetModal>;
   categories: CategoryType[];
   handleCategorySelection: (category: CategoryType['name']) => void;
@@ -115,7 +119,8 @@ export type HomeScreenCategoriesFlatlistProps = {
   handleCategorySelection: (category: CategoryType['name']) => void;
   selectCategoryList: CategoryType['name'][];
 };
- export type ReviewCardProps = {
+
+export type ReviewCardProps = {
   item: ArticleData;
   onclick: (item: ArticleData, index: number, reason: string) => void;
   isSelected: Boolean;
@@ -123,6 +128,22 @@ export type HomeScreenCategoriesFlatlistProps = {
   setSelectedCardId: (id: string) => void;
 };
 
+
+export type ProfileEditProps = {
+  username: string;
+  userhandle: string;
+  imgUrl: string;
+  setUsername: Dispatch<SetStateAction<string>>;
+  setUserHandle: Dispatch<SetStateAction<string>>;
+  handleSubmitGeneralDetails: () => void;
+  selectImage: () => void;
+  old_password: string;
+  new_password: string;
+  confirm_password: string;
+  setOldPassword: Dispatch<SetStateAction<string>>;
+  setNewPassword: Dispatch<SetStateAction<string>>;
+  setConfirmPassword:Dispatch<SetStateAction<string>>
+};
 
 export type ArticleProps = CompositeScreenProps<
   BottomTabScreenProps<TabParamList, 'Article'>,
@@ -139,9 +160,10 @@ export type PodcastProps =
 export type ReportScreenProps = 
   BottomTabScreenProps<TabParamList, 'Report'>;
 
-export type ProfileScreenProps = 
-  BottomTabScreenProps<TabParamList, 'Profile'>;
-
+export type ProfileScreenProps = CompositeScreenProps<
+BottomTabScreenProps<TabParamList, 'Profile'>,
+| StackScreenProps<RootStackParamList, 'EditProfile'>
+>;
 export type ReviewScreenProp = StackScreenProps<
   RootStackParamList,
   'ArticleReviewScreen'
@@ -154,6 +176,10 @@ export type SplashScreenProp = StackScreenProps<
 export type LoginScreenProp = StackScreenProps<
   RootStackParamList,
   'LoginScreen'
+>;
+export type LogoutScreenProp = StackScreenProps<
+  RootStackParamList,
+  'LogoutScreen'
 >;
 export type SignUpScreenProp = StackScreenProps<
   RootStackParamList,
@@ -168,6 +194,11 @@ export type NewPasswordScreenProp = StackScreenProps<
 export type OtpScreenProp = StackScreenProps<
   RootStackParamList,
   'OtpScreen'
+>;
+
+export type EditProfileProp = StackScreenProps<
+  RootStackParamList,
+  'EditProfile'
 >;
 
 export type TabParamList = {

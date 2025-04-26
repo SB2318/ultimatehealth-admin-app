@@ -7,7 +7,7 @@ import {
   import React, {useCallback, useState} from 'react';
   import {ON_PRIMARY_COLOR, PRIMARY_COLOR} from '../helper/Theme';
   import {Dropdown} from 'react-native-element-dropdown';
-  import {LineChart} from 'react-native-gifted-charts';
+  import {LineChart, lineDataItem} from 'react-native-gifted-charts';
   import {useQuery} from '@tanstack/react-query';
   import moment from 'moment';
   import {fp} from '../helper/Metric';
@@ -31,6 +31,7 @@ import {
       new Date().getMonth(),
     );
     const [selectedYear, setSelectedYear] = useState<number>(new Date().getFullYear());
+    const [isYearSelected, setYearChange] = useState<number>(-1);
     const [isFocus, setIsFocus] = useState(false);
   
     const monthlyDrops = [
@@ -67,15 +68,16 @@ import {
           // console.log('URL', url);
           const date = new Date();
           const year = selectedYear !== -1 ? date.getFullYear(): selectedYear;
-          let url = `${GET_MONTHLY_CONTRIBUTION}?year=${year}&month=${selectedMonth}&cTYPE=${ctype}`;
+          let url = `${GET_MONTHLY_CONTRIBUTION}?year=${year}&month=${selectedMonth}&cType=${ctype}`;
+         // console.log("Month Url", url);
           const response = await axios.get(url, {
             headers: {
               Authorization: `Bearer ${user_token}`,
             },
           });
-  
+         // console.log("Month response", response.data);
          
-          return response.data as {label: string, value: string}[];
+          return response.data as lineDataItem[];
         } catch (err) {
           console.error('Error fetching articles writes monthly:', err);
         }
@@ -100,7 +102,8 @@ import {
             },
           });
   
-          return response.data as {label: string, value: string}[];
+         // console.log("Yearly response", response.data);
+          return response.data as lineDataItem[];
         } catch (err) {
           console.error('Error fetching articles reads yearly:', err);
         }
@@ -181,7 +184,7 @@ import {
               // setSelectedDay(-1);
               setSelectedYear(-1);
               setIsFocus(false);
-            
+              setYearChange(-1);
               refetchMonthWriteReport();
               
             }}
@@ -205,6 +208,7 @@ import {
               setSelectedYear(item.value);
               // setSelectedDay(-1);
               setSelectedMonth(-1);
+              setYearChange(0);
               setIsFocus(false);
   
             
@@ -224,7 +228,7 @@ import {
             />
           </View>
         )}
-        {selectedYear !== -1 && (
+        {isYearSelected !== -1 && (
           <View style={{marginTop: 10, flex:1}}>
             <LineChart
               data2={yearlyReadReport?.map(item => ({

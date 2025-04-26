@@ -1,5 +1,5 @@
-import {StyleSheet, View} from 'react-native';
-import React, {useCallback, useState} from 'react';
+import {StyleSheet, Text, View} from 'react-native';
+import React, {useCallback} from 'react';
 import {ON_PRIMARY_COLOR, PRIMARY_COLOR} from '../helper/Theme';
 import ActivityOverview from '../components/ActivityOverview';
 import {Tabs, MaterialTabBar} from 'react-native-collapsible-tab-view';
@@ -16,15 +16,12 @@ import {useQuery} from '@tanstack/react-query';
 import axios from 'axios';
 import Loader from '../components/Loader';
 import {useFocusEffect} from '@react-navigation/native';
-import {useSocket} from '../components/SocketContext';
 import {setUserHandle} from '../stores/UserSlice';
 
 const ProfileScreen = ({navigation}: ProfileScreenProps) => {
-  const {user_handle, user_id, user_token} = useSelector(
+  const {user_token} = useSelector(
     (state: any) => state.user,
   );
-  const [refreshing, setRefreshing] = useState<boolean>(false);
-  const socket = useSocket();
   const dispatch = useDispatch();
 
 
@@ -36,8 +33,6 @@ const ProfileScreen = ({navigation}: ProfileScreenProps) => {
     queryKey: ['get-profile'],
     queryFn: async () => {
 
-     // console.log("GET profile API", GET_PROFILE_API);
-     // console.log("User token", user_token);
       const response = await axios.get(`${GET_PROFILE_API}`, {
         headers: {
           Authorization: `Bearer ${user_token}`,
@@ -51,15 +46,10 @@ const ProfileScreen = ({navigation}: ProfileScreenProps) => {
     dispatch(setUserHandle(user.user_handle));
   }
  
-console.log("User", user);
 
   const insets = useSafeAreaInsets();
 
-  const onRefresh = () => {
-    setRefreshing(true);
-    refetch();
-    setRefreshing(false);
-  };
+ 
 
   useFocusEffect(
     useCallback(() => {
@@ -78,7 +68,7 @@ console.log("User", user);
         username={user.user_name || ''}
         userhandle={user.user_handle || ''}
         profileImg={
-          user?.Profile_image ||
+          user?.Profile_avtar ||
           'https://images.pexels.com/photos/771742/pexels-photo-771742.jpeg?auto=compress&cs=tinysrgb&dpr=1&w=500'
         }
     
@@ -90,6 +80,16 @@ console.log("User", user);
            // navigation.navigate('OverviewScreen', {articles: user.articles});
           }
         }}
+        onEditProfileClick={()=>{
+          navigation.navigate('EditProfile');
+        }}
+        onLogoutClick={()=>{
+          navigation.navigate('LogoutScreen',{
+            profile_image: user && user.Profile_avtar ? user.Profile_avtar: "",
+            username: user?.user_name
+          });
+        }
+        }
       />
     );
   };
@@ -118,7 +118,14 @@ console.log("User", user);
 
   return (
     <View style={styles.container}>
+
+       <View style={{marginVertical: 10, marginHorizontal:10}}>
+            <Text style={styles.btnSMText}>Your Insights</Text>
+        
+          </View>
       <View style={[styles.innerContainer, {paddingTop: insets.top}]}>
+
+           
         <Tabs.Container
           renderHeader={renderHeader}
           renderTabBar={renderTabBar}
@@ -137,15 +144,27 @@ console.log("User", user);
           {/* Tab 2 */}
           <Tabs.Tab name="Improvements">
            
+          <Tabs.ScrollView
+              automaticallyAdjustContentInsets={true}
+              contentInsetAdjustmentBehavior="always"
+              contentContainerStyle={styles.scrollViewContentContainer}>
           <ActivityOverview
               ctype={2} 
             />
+
+            </Tabs.ScrollView>
           </Tabs.Tab>
 
           <Tabs.Tab name="Reports">
-          <ActivityOverview
+
+          <Tabs.ScrollView
+              automaticallyAdjustContentInsets={true}
+              contentInsetAdjustmentBehavior="always"
+              contentContainerStyle={styles.scrollViewContentContainer}>
+            <ActivityOverview
              ctype={3}  
             />
+            </Tabs.ScrollView>
           </Tabs.Tab>
        
         </Tabs.Container>
@@ -221,5 +240,12 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
+  },
+  btnSMText: {
+    fontSize: 17,
+    lineHeight: 20,
+    fontWeight: '600',
+    //color: '#374151',
+    color:"white"
   },
 });

@@ -10,6 +10,8 @@ import TabNavigation from './TabNavigation';
 import ArticleReviewScreen from '../screens/ArticleReviewScreen';
 import { StyleSheet, TouchableOpacity } from 'react-native';
 import FontAwesome6 from 'react-native-vector-icons/FontAwesome6';
+import EditProfile from '../screens/EditProfile';
+import LogoutScreen from '../screens/auth/LogoutScreen';
 
 const Stack = createStackNavigator<RootStackParamList>();
 
@@ -42,7 +44,7 @@ const StackNavigation = () => {
         options={{headerShown: false}}
       />
 
-<Stack.Screen
+     <Stack.Screen
         name="NewPasswordScreen"
         component={NewPasswordScreen}
         options={{headerShown: false}}
@@ -67,6 +69,33 @@ const StackNavigation = () => {
             </TouchableOpacity>
           ),
         })}
+      />
+
+     <Stack.Screen
+        name="EditProfile"
+        component={EditProfile}
+        options={({navigation}) => ({
+          headerShown: true,
+          title: 'Edit Profile',
+          headerBackTitleVisible: false,
+          headerShadowVisible: false,
+          headerLeft: () => (
+            <TouchableOpacity
+              style={styles.profileScreenHeaderLeftButton}
+              onPress={() => {
+                navigation.goBack();
+              }}>
+              <FontAwesome6 size={25} name="arrow-left" color="black" />
+            </TouchableOpacity>
+          ),
+        })}
+      />
+       <Stack.Screen
+        name="LogoutScreen"
+        component={LogoutScreen}
+        options={{
+          headerShown: false,
+        }}
       />
      
     </Stack.Navigator>

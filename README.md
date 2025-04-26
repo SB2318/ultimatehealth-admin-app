@@ -23,14 +23,22 @@ Role-based access control and secure auth systems ensure sensitive operations ar
 ### 🔧 Edit Requests:**
 
 **Admin:**
+
  HomeScreen -> Article & Improvements (All status will available)
+
  WorkHistory -> Article, Improvement, Report with count (All status will available)
+
  ProfileScreen -> Article  Publish Count & Improvement Count
 
 
 **User App:**
+
  Dashboard: 
+
    Articles -> (Inprogress, Publish,Discarded)
+
    Improvements-> ( InProgress, Publish, Discarded)
+
    ProfileScreen: Article Publish Count, Improvement Counts
+
    ArticleViewScreen : Contributors section

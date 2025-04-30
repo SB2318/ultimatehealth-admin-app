@@ -23,6 +23,9 @@ const GET_MONTHLY_CONTRIBUTION = `${EC2_BASE_URL}/analytics/admin/get-monthly-co
 const GET_YEARLY_CONTRIBUTION = `${EC2_BASE_URL}/analytics/admin/get-yearly-contribution`;
 const UPDATE_USER_DETAILS = `${EC2_BASE_URL}/admin/update-profile`;
 const ADMIN_LOGOUT = `${EC2_BASE_URL}/admin/logout`;
+const UNASSIGN_ARTICLE = `${EC2_BASE_URL}/admin/unassign-moderator`;
+const GET_AVAILABLE_IMPROVEMENTS = `${EC2_BASE_URL}/admin/available-improvements`;
+const GET_PROGRESS_IMPROVEMENTS = `${EC2_BASE_URL}/admin/progress-improvements`;
 // For verification related POST and GET request, send isAdmin in request body and query.
 export {
     LOGIN_API,
@@ -49,5 +52,8 @@ export {
     GET_MONTHLY_CONTRIBUTION,
     GET_YEARLY_CONTRIBUTION,
     UPDATE_USER_DETAILS,
-    ADMIN_LOGOUT
+    ADMIN_LOGOUT,
+    UNASSIGN_ARTICLE,
+    GET_AVAILABLE_IMPROVEMENTS,
+    GET_PROGRESS_IMPROVEMENTS
 }

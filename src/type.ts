@@ -47,6 +47,20 @@ export type AuthData = {
     user_handle: string | null;
 };
 
+export type EditRequest = {
+  _id: string;
+  user_id: string;
+  article: ArticleData;
+  edit_reason: string;
+  status: string;
+  reviewer_id: string | undefined;
+  edited_content: string | undefined;
+  editComments: Comment[];
+  created_at: Date;
+  discardReason: string;
+  last_updated: Date;
+
+};
  export type ArticleData = {
    _id: string;
    title: string;

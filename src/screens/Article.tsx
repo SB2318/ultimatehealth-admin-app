@@ -6,16 +6,18 @@ import {useDispatch, useSelector} from 'react-redux';
 import axios from 'axios';
 import {useMutation, useQuery} from '@tanstack/react-query';
 import AntDesign from 'react-native-vector-icons/AntDesign';
-import {ArticleData, ArticleProps, Category, CategoryType} from '../type';
+import {ArticleData, ArticleProps, Category, CategoryType, EditRequest} from '../type';
 import {FAB} from 'react-native-paper';
 import {
   ARTICLE_TAGS_API,
   DISCARD_ARTICLE,
   EC2_BASE_URL,
+  GET_AVAILABLE_IMPROVEMENTS,
   GET_AVILABLE_ARTICLES_API,
-  GET_COMPLETED_TASK_API,
   GET_INPROGRESS_ARTICLES_API,
+  GET_PROGRESS_IMPROVEMENTS,
   PICK_ARTICLE,
+  UNASSIGN_ARTICLE,
 } from '../helper/APIUtils';
 import {useCallback, useState} from 'react';
 import {useFocusEffect} from '@react-navigation/native';
@@ -24,8 +26,10 @@ import ReviewCard from '../components/ReviewCard';
 import {hp} from '../helper/Metric';
 import FilterModal from '../components/FilterModal';
 import Loader from '../components/Loader';
+import Snackbar from 'react-native-snackbar';
 import { BottomSheetModal } from '@gorhom/bottom-sheet';
 import { setFilteredAvailableArticles, setFilteredProgressArticles, setFilterMode, setSelectedTags, setSortType, setTags } from '../stores/articleSlice';
+import HomeArticle from './tabs/HomeArticle';
 
 export default function HomeScreen({navigation}: ArticleProps) {
   const {user_token, user_id} = useSelector((state: any) => state.user);
@@ -39,7 +43,7 @@ export default function HomeScreen({navigation}: ArticleProps) {
   const [refreshing, setRefreshing] = useState<boolean>(false);
   const [selectedCardId, setSelectedCardId] = useState<string>('');
   const dispatch = useDispatch();
-
+  const [articleRefreshing, setArticleRefreshing] = useState<boolean>(false);
   const [articleCategories, setArticleCategories] = useState<Category[]>([]);
   const [selectedCategory, setSelectedCategory] = useState<string>('');
   const [sortingType, setSortingType] = useState<string>('');
@@ -118,12 +122,7 @@ export default function HomeScreen({navigation}: ArticleProps) {
     queryKey: ['get-progress-articles'],
     queryFn: async () => {
       const response = await axios.get(
-        `${GET_INPROGRESS_ARTICLES_API}/${user_id}`,
-        {
-         // headers: {
-          //  Authorization: `Bearer ${user_token}`,
-         // },
-        },
+        `${GET_INPROGRESS_ARTICLES_API}/${user_id}`
       );
       let d = response.data as ArticleData[];
       updateProgressArticles(d);
@@ -132,6 +131,35 @@ export default function HomeScreen({navigation}: ArticleProps) {
   });
 
 
+  const {
+    data: availableImprovements,
+    refetch: availableImprovementRefetch,
+    isLoading: isAvailableImprovementLoading,
+  } = useQuery({
+    queryKey: ['get-available-improvements'],
+    queryFn: async () => {
+      const response = await axios.get(`${GET_AVAILABLE_IMPROVEMENTS}`);
+      let d = response.data as EditRequest[];
+      //updateAvailableArticles(d);
+      return response.data as EditRequest[];
+    },
+  });
+
+  const {
+    data: progressImprovements,
+    refetch: refetchProgressImprovements,
+    isLoading: isProgressImprovementLoading,
+  } = useQuery({
+    queryKey: ['get-progress-improvements'],
+    queryFn: async () => {
+      const response = await axios.get(
+        `${GET_PROGRESS_IMPROVEMENTS}`
+      );
+      let d = response.data as EditRequest[];
+      //updateProgressArticles(d);
+      return response.data as EditRequest[];
+    },
+  });
 
   const pickArticleMutation = useMutation({
     mutationKey: ['pick-article'],
@@ -145,6 +173,7 @@ export default function HomeScreen({navigation}: ArticleProps) {
     },
     onSuccess: data => {
       Alert.alert(data.message);
+      onArticleRefresh();
     },
     onError: error => {
       console.log('Error', error);
@@ -170,7 +199,39 @@ export default function HomeScreen({navigation}: ArticleProps) {
     },
 
     onSuccess: d => {
-      onRefresh();
+      // show snackbar
+      Snackbar.show({
+        text: 'Article discarded',
+        duration: Snackbar.LENGTH_SHORT,
+      });
+      onArticleRefresh();
+    },
+    onError: err => {
+      console.log('Error', err);
+      Alert.alert(err.message);
+    },
+  });
+
+  const unassignFromArticleMutation = useMutation({
+    mutationKey: ['unassign-article'],
+    mutationFn: async ({
+      articleId
+    }: {
+      articleId: string;
+    }) => {
+      const res = await axios.post(UNASSIGN_ARTICLE, {
+        articleId: articleId,
+      });
+
+      return res.data as any;
+    },
+
+    onSuccess: d => {
+      Snackbar.show({
+        text: 'You have unassign yourself successfully',
+        duration: Snackbar.LENGTH_SHORT,
+      });
+      onArticleRefresh();
     },
     onError: err => {
       console.log('Error', err);
@@ -391,7 +452,14 @@ export default function HomeScreen({navigation}: ArticleProps) {
             if (index === 0) {
               // Pick article
               pickArticleMutation.mutate(item._id);
-            } else {
+            }
+            else if(index === 2){
+              // unassign yourself
+              unassignFromArticleMutation.mutate({
+                articleId: item._id
+              });
+            }
+            else {
               // Display discard reason or screen
               discardArticleMutation.mutate({
                 articleId: item._id,
@@ -419,6 +487,13 @@ export default function HomeScreen({navigation}: ArticleProps) {
     setRefreshing(false);
   };
 
+  const onArticleRefresh = () => {
+    setArticleRefreshing(true);
+    availableAticleRefetch();
+    refetchProgressArticles();
+    setArticleRefreshing(false);
+  };
+
   useFocusEffect(
     useCallback(() => {
       availableAticleRefetch();
@@ -435,8 +510,9 @@ export default function HomeScreen({navigation}: ArticleProps) {
         {...props}
         indicatorStyle={styles.indicatorStyle}
         style={styles.tabBarStyle}
-        activeColor={PRIMARY_COLOR}
+        activeColor={BUTTON_COLOR}
         inactiveColor="#9098A3"
+        
         labelStyle={styles.labelStyle}
         contentContainerStyle={styles.contentContainerStyle}
       />
@@ -453,34 +529,24 @@ export default function HomeScreen({navigation}: ArticleProps) {
       <View style={[styles.innerContainer, {paddingTop: insets.top}]}>
         <Tabs.Container
           // renderHeader={renderHeader}
+          initialIndex={0}
           renderTabBar={renderTabBar}
           containerStyle={styles.tabsContainer}>
           {/* Tab 1 */}
           <Tabs.Tab name="Articles">
-            <Tabs.FlatList
-              data={filteredAvailableArticles}
+
+            <HomeArticle
+              availableArticle={filteredAvailableArticles}
+              inProgressArticle={filteredProgressArticles}
+              refreshing={articleRefreshing}
+              onRefresh={onArticleRefresh}
               renderItem={renderItem}
-              showsVerticalScrollIndicator={false}
-              contentContainerStyle={[
-                styles.flatListContentContainer,
-                {paddingBottom: 15},
-              ]}
-              keyExtractor={item => item?._id}
-              refreshing={refreshing}
-              ListEmptyComponent={
-                <View style={styles.emptyContainer}>
-                  <Image
-                    source={require('../../assets/article_default.jpg')}
-                    style={styles.image}
-                  />
-                  <Text style={styles.message}>No Article Found</Text>
-                </View>
-              }
-            />
+              />
+            
           </Tabs.Tab>
 
             {/* Available Improvements articles */}
-            <Tabs.Tab name="Improvement">
+            <Tabs.Tab name="Improvements">
             <Tabs.FlatList
               data={[]}
               renderItem={renderItem}
@@ -504,28 +570,6 @@ export default function HomeScreen({navigation}: ArticleProps) {
             />
           </Tabs.Tab>
 
-          <Tabs.Tab name="In Progress">
-            <Tabs.FlatList
-              data={filteredProgressArticles}
-              renderItem={renderItem}
-              showsVerticalScrollIndicator={false}
-              contentContainerStyle={[
-                styles.flatListContentContainer,
-                {paddingBottom: 15},
-              ]}
-              keyExtractor={item => item?._id}
-              refreshing={refreshing}
-              ListEmptyComponent={
-                <View style={styles.emptyContainer}>
-                  <Image
-                    source={require('../../assets/article_default.jpg')}
-                    style={styles.image}
-                  />
-                  <Text style={styles.message}>No Article Found</Text>
-                </View>
-              }
-            />
-          </Tabs.Tab>
         
         </Tabs.Container>
 
@@ -600,7 +644,7 @@ const styles = StyleSheet.create({
   },
   labelStyle: {
     fontWeight: '600',
-    fontSize: 14,
+    fontSize: 17,
     color: 'black',
     textTransform: 'capitalize',
   },

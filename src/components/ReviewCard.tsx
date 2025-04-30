@@ -83,8 +83,18 @@ import DiscardReasonModal from './DiscardReasonModal';
             //onclick(item, 1);
             handleAnimation();
           },
-          icon: 'times-circle',
+          icon: 'ban',
           color:'red',
+        },
+
+        {
+          name: 'Unassign Yourself',
+          action: () => {
+            onclick(item, 2, "");
+            handleAnimation();
+          },
+          icon: 'minus-circle',
+          color:'green',
         },
     ]
 

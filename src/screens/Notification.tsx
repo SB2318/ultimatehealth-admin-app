@@ -36,9 +36,9 @@ export default function Notification({navigation}: NotificationProps) {
         const response = await axios.get(
           `${EC2_BASE_URL}/notifications?role=1`,
           {
-            headers: {
-              Authorization: `Bearer ${user_token}`,
-            },
+           // headers: {
+            //  Authorization: `Bearer ${user_token}`,
+           // },
           },
         );
 
@@ -64,9 +64,9 @@ export default function Notification({navigation}: NotificationProps) {
             role: 1
         },
         {
-          headers: {
-            Authorization: `Bearer ${user_token}`,
-          },
+         // headers: {
+          //  Authorization: `Bearer ${user_token}`,
+          //},
         },
       );
 
@@ -101,9 +101,9 @@ export default function Notification({navigation}: NotificationProps) {
         `${EC2_BASE_URL}/notification/${id}`,
 
         {
-          headers: {
-            Authorization: `Bearer ${user_token}`,
-          },
+         // headers: {
+          //  Authorization: `Bearer ${user_token}`,
+         // },
         },
       );
 

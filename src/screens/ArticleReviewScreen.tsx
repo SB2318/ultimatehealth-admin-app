@@ -70,9 +70,9 @@ const ReviewScreen = ({navigation, route}: ReviewScreenProp) => {
     queryKey: ['get-article-by-id'],
     queryFn: async () => {
       const response = await axios.get(`${GET_ARTICLE_BY_ID}/${articleId}`, {
-        headers: {
-          Authorization: `Bearer ${user_token}`,
-        },
+        //headers: {
+        //  Authorization: `Bearer ${user_token}`,
+        //},
       });
 
       return response.data.article as ArticleData;
@@ -83,9 +83,9 @@ const ReviewScreen = ({navigation, route}: ReviewScreenProp) => {
     queryKey: ['get-my-profile'],
     queryFn: async () => {
       const response = await axios.get(`${GET_PROFILE_API}`, {
-        headers: {
-          Authorization: `Bearer ${user_token}`,
-        },
+        //headers: {
+        //  Authorization: `Bearer ${user_token}`,
+        //},
       });
       return response.data.profile as Admin;
     },

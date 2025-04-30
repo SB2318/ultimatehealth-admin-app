@@ -29,9 +29,9 @@ const LogoutScreen = ({navigation, route}:LogoutScreenProp) => {
         `${ADMIN_LOGOUT}`,
         {},
         {
-          headers: {
-            Authorization: `Bearer ${user_token}`,
-          },
+          //headers: {
+          //  Authorization: `Bearer ${user_token}`,
+          //},
         },
       );
       return response.data as any;

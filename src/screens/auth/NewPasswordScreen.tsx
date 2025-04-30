@@ -12,7 +12,6 @@ import {PRIMARY_COLOR} from '../../helper/Theme';
 import feather from 'react-native-vector-icons/Feather';
 import {hp} from '../../helper/Metric';
 import AntIcon from 'react-native-vector-icons/AntDesign';
-//import {NewPasswordScreenProp} from '../../type';
 import {useMutation} from '@tanstack/react-query';
 import axios, {AxiosError} from 'axios';
 import {CHANGE_PASSWORD_API} from '../../helper/APIUtils';
@@ -90,9 +89,9 @@ export default function NewPasswordScreen({
         new_password: password,
       },
       {
-        headers: {
-          Authorization: `Bearer ${user_token}`,
-        }
+        //headers: {
+        //  Authorization: `Bearer ${user_token}`,
+       // }
       });
       return res.data as any;
     },

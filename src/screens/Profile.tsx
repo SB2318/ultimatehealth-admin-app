@@ -34,9 +34,9 @@ const ProfileScreen = ({navigation}: ProfileScreenProps) => {
     queryFn: async () => {
 
       const response = await axios.get(`${GET_PROFILE_API}`, {
-        headers: {
-          Authorization: `Bearer ${user_token}`,
-        },
+        //headers: {
+        //  Authorization: `Bearer ${user_token}`,
+        //},
       });
       return response.data as Admin;
     },

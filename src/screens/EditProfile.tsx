@@ -49,9 +49,9 @@ const EditProfile = ({navigation}:EditProfileProp) => {
     queryKey: ['get-user-details-by-id'],
     queryFn: async () => {
       const response = await axios.get(`${GET_PROFILE_API}`, {
-        headers: {
-          Authorization: `Bearer ${user_token}`,
-        },
+        //headers: {
+        //  Authorization: `Bearer ${user_token}`,
+        //},
       });
 
       return response.data as Admin;
@@ -70,9 +70,9 @@ const EditProfile = ({navigation}:EditProfileProp) => {
           profile_avtar: profileImage,
         },
         {
-          headers: {
-            Authorization: `Bearer ${user_token}`,
-          },
+         // headers: {
+         //   Authorization: `Bearer ${user_token}`,
+         // },
         },
       );
       return response.data as any;

@@ -1,4 +1,5 @@
 import React from 'react';
+
 import {createStackNavigator} from '@react-navigation/stack';
 import SplashScreen from '../screens/SplashScreen';
 import LoginScreen from '../screens/auth/LoginScreen';
@@ -17,6 +18,7 @@ import WorkHistoryScreen from '../screens/WorkHistoryScreen';
 const Stack = createStackNavigator<RootStackParamList>();
 
 const StackNavigation = () => {
+
   return (
     <Stack.Navigator>
       <Stack.Screen

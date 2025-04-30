@@ -13,7 +13,7 @@ import {PRIMARY_COLOR} from '../../helper/Theme';
 import {hp} from '../../helper/Metric';
 import Icon from 'react-native-vector-icons/Entypo';
 import AntIcon from 'react-native-vector-icons/AntDesign';
-//import {OtpScreenProp} from '../../type';
+
 import {OTPInput, OTPInputConfig} from '../../components/OTPInput';
 import {useMutation} from '@tanstack/react-query';
 import axios, {AxiosError} from 'axios';

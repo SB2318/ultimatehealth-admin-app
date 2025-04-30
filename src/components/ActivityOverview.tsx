@@ -71,9 +71,9 @@ import {
           let url = `${GET_MONTHLY_CONTRIBUTION}?year=${year}&month=${selectedMonth}&cType=${ctype}`;
          // console.log("Month Url", url);
           const response = await axios.get(url, {
-            headers: {
-              Authorization: `Bearer ${user_token}`,
-            },
+           // headers: {
+            //  Authorization: `Bearer ${user_token}`,
+           // },
           });
          // console.log("Month response", response.data);
          
@@ -97,9 +97,9 @@ import {
 
           let url = `${GET_YEARLY_CONTRIBUTION}?year=${selectedYear}&cType=${ctype}`;
           const response = await axios.get(url, {
-            headers: {
-              Authorization: `Bearer ${user_token}`,
-            },
+           // headers: {
+            //  Authorization: `Bearer ${user_token}`,
+           // },
           });
   
          // console.log("Yearly response", response.data);

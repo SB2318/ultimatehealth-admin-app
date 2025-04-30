@@ -35,9 +35,9 @@ export default function WorkHistoryScreen({
     queryKey: ['get-publish-articles'],
     queryFn: async () => {
       const response = await axios.get(`${GET_COMPLETED_TASK_API}/${user_id}`, {
-        headers: {
-          Authorization: `Bearer ${user_token}`,
-        },
+        //headers: {
+        //  Authorization: `Bearer ${user_token}`,
+        //},
       });
       return response.data as ArticleData[];
     },

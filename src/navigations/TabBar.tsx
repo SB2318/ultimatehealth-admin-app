@@ -24,9 +24,9 @@ const TabBar = ({state, descriptors, navigation}: any) => {
           const response = await axios.get(
             `${EC2_BASE_URL}/notification/unread-count?role=1`,
             {
-              headers: {
-                Authorization: `Bearer ${user_token}`,
-              },
+              //headers: {
+              //  Authorization: `Bearer ${user_token}`,
+             // },
             },
           );
   

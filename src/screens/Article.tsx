@@ -63,9 +63,9 @@ export default function HomeScreen({navigation}: ArticleProps) {
     const {data: categoryData} = await axios.get(
       `${EC2_BASE_URL + ARTICLE_TAGS_API}`,
       {
-        headers: {
-          Authorization: `Bearer ${user_token}`,
-        },
+        //headers: {
+        //  Authorization: `Bearer ${user_token}`,
+        //},
       },
     );
     if (
@@ -100,9 +100,9 @@ export default function HomeScreen({navigation}: ArticleProps) {
     queryKey: ['get-available-articles'],
     queryFn: async () => {
       const response = await axios.get(`${GET_AVILABLE_ARTICLES_API}`, {
-        headers: {
-          Authorization: `Bearer ${user_token}`,
-        },
+       // headers: {
+       //   Authorization: `Bearer ${user_token}`,
+       // },
       });
       let d = response.data as ArticleData[];
       updateAvailableArticles(d);
@@ -120,9 +120,9 @@ export default function HomeScreen({navigation}: ArticleProps) {
       const response = await axios.get(
         `${GET_INPROGRESS_ARTICLES_API}/${user_id}`,
         {
-          headers: {
-            Authorization: `Bearer ${user_token}`,
-          },
+         // headers: {
+          //  Authorization: `Bearer ${user_token}`,
+         // },
         },
       );
       let d = response.data as ArticleData[];

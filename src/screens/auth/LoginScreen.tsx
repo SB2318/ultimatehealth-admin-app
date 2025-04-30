@@ -175,6 +175,8 @@ export default function LoginScreen({navigation}){
               );
               dispatch(setUserId(auth.userId));
               dispatch(setUserToken(auth.token));
+              // set default header of axios
+              axios.defaults.headers.common['Authorization'] = `Bearer ${auth.token}`;
               dispatch(setUserHandle(auth.user_handle));
               setTimeout(() => {
                 navigation?.reset({

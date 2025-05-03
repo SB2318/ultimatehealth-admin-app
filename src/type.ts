@@ -144,6 +144,16 @@ export type ReviewCardProps = {
 };
 
 
+export type ImprovementCardProps = {
+  item: EditRequest;
+  onclick: (item: EditRequest, index: number, reason: string) => void;
+  isSelected: Boolean;
+  onNavigate: (item: EditRequest)=> void;
+  setSelectedCardId: (id: string) => void;
+};
+
+
+
 export type ProfileEditProps = {
   username: string;
   userhandle: string;

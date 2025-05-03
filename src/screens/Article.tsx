@@ -1,21 +1,19 @@
 import {View, Text, StyleSheet, Image, Alert} from 'react-native';
-import {BUTTON_COLOR, ON_PRIMARY_COLOR, PRIMARY_COLOR} from '../helper/Theme';
+import {BUTTON_COLOR, ON_PRIMARY_COLOR} from '../helper/Theme';
 import { useEffect, useRef } from 'react';
 import {Tabs, MaterialTabBar} from 'react-native-collapsible-tab-view';
 import {useDispatch, useSelector} from 'react-redux';
 import axios from 'axios';
 import {useMutation, useQuery} from '@tanstack/react-query';
 import AntDesign from 'react-native-vector-icons/AntDesign';
-import {ArticleData, ArticleProps, Category, CategoryType, EditRequest} from '../type';
+import {ArticleData, ArticleProps, Category, CategoryType} from '../type';
 import {FAB} from 'react-native-paper';
 import {
   ARTICLE_TAGS_API,
   DISCARD_ARTICLE,
   EC2_BASE_URL,
-  GET_AVAILABLE_IMPROVEMENTS,
   GET_AVILABLE_ARTICLES_API,
   GET_INPROGRESS_ARTICLES_API,
-  GET_PROGRESS_IMPROVEMENTS,
   PICK_ARTICLE,
   UNASSIGN_ARTICLE,
 } from '../helper/APIUtils';
@@ -30,13 +28,14 @@ import Snackbar from 'react-native-snackbar';
 import { BottomSheetModal } from '@gorhom/bottom-sheet';
 import { setFilteredAvailableArticles, setFilteredProgressArticles, setFilterMode, setSelectedTags, setSortType, setTags } from '../stores/articleSlice';
 import HomeArticle from './tabs/HomeArticle';
+import Improvement from './tabs/Improvement';
+
 
 export default function HomeScreen({navigation}: ArticleProps) {
-  const {user_token, user_id} = useSelector((state: any) => state.user);
+  const {user_id} = useSelector((state: any) => state.user);
   const {
     filteredAvailableArticles,
     filteredProgressArticles,
-    filterMode,
     selectedTags,
     sortType,
   } = useSelector((state: any) => state.article);
@@ -59,18 +58,11 @@ export default function HomeScreen({navigation}: ArticleProps) {
   const handlePresentModalPress = useCallback(() => {
     bottomSheetModalRef.current?.present();
   }, []);
+
   const getAllCategories = async () => {
-    if (user_token === '') {
-      Alert.alert('No token found');
-      return;
-    }
+   
     const {data: categoryData} = await axios.get(
-      `${EC2_BASE_URL + ARTICLE_TAGS_API}`,
-      {
-        //headers: {
-        //  Authorization: `Bearer ${user_token}`,
-        //},
-      },
+      `${EC2_BASE_URL + ARTICLE_TAGS_API}`
     );
     if (
       selectedTags === undefined ||
@@ -103,11 +95,7 @@ export default function HomeScreen({navigation}: ArticleProps) {
   } = useQuery({
     queryKey: ['get-available-articles'],
     queryFn: async () => {
-      const response = await axios.get(`${GET_AVILABLE_ARTICLES_API}`, {
-       // headers: {
-       //   Authorization: `Bearer ${user_token}`,
-       // },
-      });
+      const response = await axios.get(`${GET_AVILABLE_ARTICLES_API}`);
       let d = response.data as ArticleData[];
       updateAvailableArticles(d);
       return response.data as ArticleData[];
@@ -130,36 +118,6 @@ export default function HomeScreen({navigation}: ArticleProps) {
     },
   });
 
-
-  const {
-    data: availableImprovements,
-    refetch: availableImprovementRefetch,
-    isLoading: isAvailableImprovementLoading,
-  } = useQuery({
-    queryKey: ['get-available-improvements'],
-    queryFn: async () => {
-      const response = await axios.get(`${GET_AVAILABLE_IMPROVEMENTS}`);
-      let d = response.data as EditRequest[];
-      //updateAvailableArticles(d);
-      return response.data as EditRequest[];
-    },
-  });
-
-  const {
-    data: progressImprovements,
-    refetch: refetchProgressImprovements,
-    isLoading: isProgressImprovementLoading,
-  } = useQuery({
-    queryKey: ['get-progress-improvements'],
-    queryFn: async () => {
-      const response = await axios.get(
-        `${GET_PROGRESS_IMPROVEMENTS}`
-      );
-      let d = response.data as EditRequest[];
-      //updateProgressArticles(d);
-      return response.data as EditRequest[];
-    },
-  });
 
   const pickArticleMutation = useMutation({
     mutationKey: ['pick-article'],
@@ -248,6 +206,7 @@ export default function HomeScreen({navigation}: ArticleProps) {
       return updatedList;
     });
   };
+
   const handleFilterReset = () => {
     // Update Redux State Variables
     setSelectCategoryList([]);
@@ -315,7 +274,7 @@ export default function HomeScreen({navigation}: ArticleProps) {
     }
 
     dispatch(setFilteredAvailableArticles({filteredArticles: filtered}));
-  }
+  };
 
   const updateProgressArticles = (articleData: ArticleData[])=>{
 
@@ -348,7 +307,7 @@ export default function HomeScreen({navigation}: ArticleProps) {
     }
   
     dispatch(setFilteredProgressArticles({filteredArticles: filtered}));
-  }
+  };
 
 
   const updateArticles = () => {
@@ -480,12 +439,7 @@ export default function HomeScreen({navigation}: ArticleProps) {
     [discardArticleMutation, navigation, pickArticleMutation, selectedCardId],
   );
 
-  const onRefresh = () => {
-    setRefreshing(true);
-    availableAticleRefetch();
-    refetchProgressArticles();
-    setRefreshing(false);
-  };
+ 
 
   const onArticleRefresh = () => {
     setArticleRefreshing(true);
@@ -524,6 +478,7 @@ export default function HomeScreen({navigation}: ArticleProps) {
       <Loader />
     )
   }
+
   return (
     <View style={styles.container}>
       <View style={[styles.innerContainer, {paddingTop: insets.top}]}>
@@ -546,33 +501,13 @@ export default function HomeScreen({navigation}: ArticleProps) {
           </Tabs.Tab>
 
             {/* Available Improvements articles */}
-            <Tabs.Tab name="Improvements">
-            <Tabs.FlatList
-              data={[]}
-              renderItem={renderItem}
-              showsVerticalScrollIndicator={false}
-              contentContainerStyle={[
-                styles.flatListContentContainer,
-                {paddingBottom: 15},
-              ]}
-              keyExtractor={item => item?._id}
-              refreshing={refreshing}
-              ListEmptyComponent={
-                <View style={styles.emptyContainer}>
-                  <Image
-                    source={require('../../assets/article_default.jpg')}
-                    style={styles.image}
-                  />
+          <Tabs.Tab name="Improvements">
 
-                  <Text style={styles.message}>No Article Found</Text>
-                </View>
-              }
-            />
+             <Improvement />
+
           </Tabs.Tab>
 
-        
         </Tabs.Container>
-
 
         <FilterModal
         bottomSheetModalRef={bottomSheetModalRef}

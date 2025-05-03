@@ -26,6 +26,9 @@ const ADMIN_LOGOUT = `${EC2_BASE_URL}/admin/logout`;
 const UNASSIGN_ARTICLE = `${EC2_BASE_URL}/admin/unassign-moderator`;
 const GET_AVAILABLE_IMPROVEMENTS = `${EC2_BASE_URL}/admin/available-improvements`;
 const GET_PROGRESS_IMPROVEMENTS = `${EC2_BASE_URL}/admin/progress-improvements`;
+const PICK_IMPROVEMENT = `${EC2_BASE_URL}/admin/approve-improvement-request`;
+const UNASSIGN_IMPROVEMENT = `${EC2_BASE_URL}/admin/improvement/unassign-moderator`;
+const DISCARD_IMPROVEMENT = `${EC2_BASE_URL}/admin/discard-improvement`;
 // For verification related POST and GET request, send isAdmin in request body and query.
 export {
     LOGIN_API,
@@ -55,5 +58,8 @@ export {
     ADMIN_LOGOUT,
     UNASSIGN_ARTICLE,
     GET_AVAILABLE_IMPROVEMENTS,
-    GET_PROGRESS_IMPROVEMENTS
+    GET_PROGRESS_IMPROVEMENTS,
+    PICK_IMPROVEMENT,
+    UNASSIGN_IMPROVEMENT,
+    DISCARD_IMPROVEMENT,
 }

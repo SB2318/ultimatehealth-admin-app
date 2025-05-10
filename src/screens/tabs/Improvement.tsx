@@ -18,19 +18,20 @@ import {
 } from '../../helper/APIUtils';
 import {EditRequest} from '../../type';
 import React, {useCallback, useState} from 'react';
-import {useDispatch} from 'react-redux';
 import {hp} from '../../helper/Metric';
 import {ON_PRIMARY_COLOR, PRIMARY_COLOR} from '../../helper/Theme';
 import ImprovementCard from '../../components/ImprovementCard';
 import Snackbar from 'react-native-snackbar';
 import Loader from '../../components/Loader';
+import { useSelector } from 'react-redux';
 
 export default function Imrovement() {
   const [refreshing, setRefreshing] = useState<boolean>(false);
   const [selectedCardId, setSelectedCardId] = useState<string>('');
-  const dispatch = useDispatch();
+  const {user_id} = useSelector((state:any) => state.user);
+
   const [selectedCat, setSelectedCat] = useState<string>('Available');
-  const categories = ['Available', 'Inprogress'];
+  const  categories = ['Available', 'Inprogress'];
 
   const {
     data: availableImprovements,
@@ -64,6 +65,7 @@ export default function Imrovement() {
     setRefreshing(true);
     availableImprovementRefetch();
     refetchProgressImprovements();
+    setRefreshing(false);
   };
 
   const pickImprovementMutation = useMutation({
@@ -87,6 +89,7 @@ export default function Imrovement() {
         text: data,
         duration: Snackbar.LENGTH_SHORT,
       });
+      onRefresh();
     },
     onError: err => {
       console.log(err);
@@ -110,6 +113,7 @@ export default function Imrovement() {
         text: data,
         duration: Snackbar.LENGTH_SHORT,
       });
+      onRefresh();
     },
 
     onError: err => {
@@ -140,6 +144,7 @@ export default function Imrovement() {
         text: data,
         duration: Snackbar.LENGTH_SHORT,
       });
+      onRefresh();
     },
 
     onError: err => {
@@ -162,7 +167,7 @@ export default function Imrovement() {
               // Pick article
               pickImprovementMutation.mutate({
                 requestId: item._id,
-                reviewerId: item.reviewer_id ? item.reviewer_id : '',
+                reviewerId: user_id,
               });
             } else if (index === 2) {
               // unassign yourself

@@ -50,7 +50,7 @@ import DiscardReasonModal from './DiscardReasonModal';
         transform: [{translateY: yValue.value}],
       };
     });
-    console.log('Image Utils', item?.tags);
+   // console.log('Image Utils', item?.tags);
 
     const unAssignActions = [
       {

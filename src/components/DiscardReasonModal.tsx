@@ -15,7 +15,6 @@ export default function DiscardReasonModal({
   dismiss: () => void;
 }) {
 
-    const [reason, setDiscardReason] = useState<string>('');
 
   return (
     <Modal
@@ -27,7 +26,7 @@ export default function DiscardReasonModal({
         <View style={styles.modalContainer}>
         <View style={styles.header}>
 
-          <Text style={styles.modalTitle}>Discard Article</Text>
+          <Text style={styles.modalTitle}>Discard </Text>
           <TouchableOpacity onPress={dismiss}>
           <Ionicon name="close" size={30} color="white" />
           </TouchableOpacity>
@@ -71,7 +70,6 @@ const styles = StyleSheet.create({
     padding: wp(3),
     borderTopLeftRadius: 10,
     borderTopRightRadius: 10,
-
   },
   container: {
     flex: 0,

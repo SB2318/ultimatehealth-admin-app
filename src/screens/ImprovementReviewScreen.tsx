@@ -14,7 +14,7 @@ import {BUTTON_COLOR, ON_PRIMARY_COLOR, PRIMARY_COLOR} from '../helper/Theme';
 import AntDesign from 'react-native-vector-icons/AntDesign';
 import MaterialIcon from 'react-native-vector-icons/MaterialIcons';
 import {useSafeAreaInsets} from 'react-native-safe-area-context';
-import {ArticleData, ReviewScreenProp, Admin, Comment} from '../type';
+import {ArticleData, ReviewScreenProp, Admin, Comment, ImprovementScreenProp, EditRequest} from '../type';
 import Feather from 'react-native-vector-icons/Feather';
 import Entypo from 'react-native-vector-icons/Entypo';
 import Ionicons from 'react-native-vector-icons/Ionicons';
@@ -26,6 +26,7 @@ import {hp, wp} from '../helper/Metric';
 import {
   DISCARD_ARTICLE,
   GET_ARTICLE_BY_ID,
+  GET_IMPROVEMENT_BY_ID,
   GET_PROFILE_API,
   GET_STORAGE_DATA,
   PUBLISH_ARTICLE,
@@ -42,9 +43,9 @@ import CommentCardItem from './CommentCardItem';
 import DiscardReasonModal from '../components/DiscardReasonModal';
 import Loader from '../components/Loader';
 
-const ReviewScreen = ({navigation, route}: ReviewScreenProp) => {
+const ImprovementReviewScreen = ({navigation, route}: ImprovementScreenProp) => {
   const insets = useSafeAreaInsets();
-  const {articleId, authorId, destination} = route.params;
+  const {requestId, authorId, destination} = route.params;
   const {user_id} = useSelector((state: any) => state.user);
   const RichText = useRef();
   const [feedback, setFeedback] = useState('');
@@ -65,16 +66,16 @@ const ReviewScreen = ({navigation, route}: ReviewScreenProp) => {
   function editorInitializedCallback() {
     RichText.current?.registerToolbar(function (_items) {});
   }
-  const {data: article} = useQuery({
-    queryKey: ['get-article-by-id'],
+  const {data: improvement} = useQuery({
+    queryKey: ['get-improvement-by-id'],
     queryFn: async () => {
-      const response = await axios.get(`${GET_ARTICLE_BY_ID}/${articleId}`, {
+      const response = await axios.get(`${GET_IMPROVEMENT_BY_ID}/${requestId}`, {
         //headers: {
         //  Authorization: `Bearer ${user_token}`,
         //},
       });
 
-      return response.data.article as ArticleData;
+      return response.data.improvement as EditRequest;
     },
   });
 
@@ -96,7 +97,7 @@ const ReviewScreen = ({navigation, route}: ReviewScreenProp) => {
 
   useEffect(() => {
     if (destination !== StatusEnum.UNASSIGNED) {
-      socket.emit('load-review-comments', {articleId: route.params.articleId});
+      socket.emit('load-review-comments', {requestId: requestId});
     }
 
     socket.on('connect', () => {
@@ -108,18 +109,18 @@ const ReviewScreen = ({navigation, route}: ReviewScreenProp) => {
     });
 
     socket.on('review-comments', data => {
-      console.log('comment loaded');
-      if (data.articleId === route.params.articleId) {
-        setComments(data.comments);
-      }
+      console.log('comment loaded', data);
+     
+        setComments(data);
+      
     });
 
     // Listen for new comments
     socket.on('new-feedback', data => {
       console.log('new comment loaded', data);
-      if (data.articleId === route.params.articleId) {
+      
         setComments(prevComments => {
-          const newComments = [data.comment, ...prevComments];
+          const newComments = [data, ...prevComments];
           // Scroll to the first index after adding the new comment
           if (flatListRef.current && newComments.length > 1) {
             flatListRef?.current.scrollToIndex({index: 0, animated: true});
@@ -127,7 +128,7 @@ const ReviewScreen = ({navigation, route}: ReviewScreenProp) => {
 
           return newComments;
         });
-      }
+      
     });
 
     return () => {
@@ -135,7 +136,7 @@ const ReviewScreen = ({navigation, route}: ReviewScreenProp) => {
       socket.off('new-feedback');
       socket.off('error');
     };
-  }, [socket, route.params.articleId, destination]);
+  }, [socket, requestId, destination]);
 
   const commentTests: any[] = [];
 
@@ -159,7 +160,7 @@ const ReviewScreen = ({navigation, route}: ReviewScreenProp) => {
 
     onSuccess: d => {
      // onRefresh();
-     Alert.alert("Article discarded");
+     Alert.alert('Article discarded');
     },
     onError: err => {
       console.log('Error', err);
@@ -186,7 +187,7 @@ const ReviewScreen = ({navigation, route}: ReviewScreenProp) => {
 
     onSuccess: d => {
      // onRefresh();
-     Alert.alert("Article published");
+     Alert.alert('Article published');
     },
     onError: err => {
       console.log('Error', err);
@@ -251,7 +252,7 @@ const ReviewScreen = ({navigation, route}: ReviewScreenProp) => {
 
 
   if(discardArticleMutation.isPending || publishArticleMutation.isPending){
-    return <Loader />
+    return <Loader />;
   }
 
   return (
@@ -278,7 +279,7 @@ const ReviewScreen = ({navigation, route}: ReviewScreenProp) => {
               // Image copyright checker
             }}>
 
-           <MaterialIcon name="plagiarism" size={30} color={PRIMARY_COLOR} /> 
+           <MaterialIcon name="plagiarism" size={30} color={PRIMARY_COLOR} />
           </TouchableOpacity>
 
           {article?.status !== StatusEnum.DISCARDED && (
@@ -323,8 +324,8 @@ const ReviewScreen = ({navigation, route}: ReviewScreenProp) => {
                   backgroundColor: '#660099',
                 },
               ]}>
-                <MaterialIcon size={28} name="published-with-changes" color={'white'} /> 
-             
+                <MaterialIcon size={28} name="published-with-changes" color={'white'} />
+
             </TouchableOpacity>
           )}
 
@@ -333,7 +334,7 @@ const ReviewScreen = ({navigation, route}: ReviewScreenProp) => {
               onPress={() => {
                 // Publish article
                 publishArticleMutation.mutate({
-                  articleId: article? article._id: '0' ,
+                  articleId: article ? article._id : '0' ,
                   reviewer_id: user_id,
                 });
               }}
@@ -341,11 +342,11 @@ const ReviewScreen = ({navigation, route}: ReviewScreenProp) => {
                 styles.pubButton,
                 {
                   backgroundColor: '#478778',
-              
+
                 },
               ]}>
-                <MaterialIcon size={28} name="domain-verification" color={'white'} /> 
-             
+                <MaterialIcon size={28} name="domain-verification" color={'white'} />
+
             </TouchableOpacity>
           )}
         </View>
@@ -517,20 +518,20 @@ const ReviewScreen = ({navigation, route}: ReviewScreenProp) => {
                            //onclick(item, 1, reason);
                            discardArticleMutation.mutate({
                              articleId: article ? article._id : '0',
-                             reason: reason
+                             reason: reason,
                            });
                            setDiscardModalVisible(false);
                         }}
                         dismiss={()=>{
-                          setDiscardModalVisible(false)
+                          setDiscardModalVisible(false);
                         }}
-        
+
                        />
       </ScrollView>
     </View>
   );
 };
-export default ReviewScreen;
+export default ImprovementReviewScreen;
 
 const styles = StyleSheet.create({
   container: {
@@ -785,7 +786,7 @@ const styles = StyleSheet.create({
     position: 'absolute',
     top: 10,
     right: 10,
-   
+
     paddingHorizontal: 8,
     paddingVertical: 6,
     borderRadius: 50,

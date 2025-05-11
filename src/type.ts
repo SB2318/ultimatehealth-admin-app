@@ -20,7 +20,12 @@ export type RootStackParamList = {
   };
   EditProfile: undefined;
   LogoutScreen: {profile_image: string; username: string};
-  WorkHistoryScreen: undefined
+  WorkHistoryScreen: undefined;
+  ImprovementReviewScreen: {
+    requestId: string;
+    authorId: string;
+    destination: string;
+  }
 }
 
 export type Admin={
@@ -192,6 +197,11 @@ BottomTabScreenProps<TabParamList, 'Profile'>,
 export type ReviewScreenProp = StackScreenProps<
   RootStackParamList,
   'ArticleReviewScreen'
+>;
+
+export type ImprovementScreenProp = StackScreenProps<
+  RootStackParamList,
+  'ImprovementReviewScreen'
 >;
 export type SplashScreenProp = StackScreenProps<
   RootStackParamList,

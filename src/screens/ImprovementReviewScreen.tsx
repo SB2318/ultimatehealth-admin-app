@@ -115,7 +115,7 @@ const ImprovementReviewScreen = ({navigation, route}: ImprovementScreenProp) => 
       
     });
 
-    // Listen for new comments
+
     socket.on('new-feedback', data => {
       console.log('new comment loaded', data);
       
@@ -204,7 +204,7 @@ const ImprovementReviewScreen = ({navigation, route}: ImprovementScreenProp) => 
         const length = await getContentLength(source);
         console.log('Content Length:', length);
 
-        //setWebViewHeight(length * 1.2); //Add some buffer to the height calculation
+        //setWebViewHeight(length * 1.2); =
         setWebViewHeight(length);
       };
 
@@ -212,7 +212,7 @@ const ImprovementReviewScreen = ({navigation, route}: ImprovementScreenProp) => 
     }
   }, [article]);
 
-  // console.log('author id', authorId);
+
 
   const cssCode = `
       const style = document.createElement('style');

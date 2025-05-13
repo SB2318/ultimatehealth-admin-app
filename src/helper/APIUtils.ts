@@ -30,6 +30,7 @@ const PICK_IMPROVEMENT = `${EC2_BASE_URL}/admin/approve-improvement-request`;
 const UNASSIGN_IMPROVEMENT = `${EC2_BASE_URL}/admin/improvement/unassign-moderator`;
 const DISCARD_IMPROVEMENT = `${EC2_BASE_URL}/admin/discard-improvement`;
 const GET_IMPROVEMENT_BY_ID = `${EC2_BASE_URL}/get-improvement`;
+const PUBLISH_IMPROVEMENT = `${EC2_BASE_URL}/admin/publish-improvement`;
 // For verification related POST and GET request, send isAdmin in request body and query.
 export {
     LOGIN_API,
@@ -63,5 +64,6 @@ export {
     PICK_IMPROVEMENT,
     UNASSIGN_IMPROVEMENT,
     DISCARD_IMPROVEMENT,
-    GET_IMPROVEMENT_BY_ID
+    GET_IMPROVEMENT_BY_ID,
+    PUBLISH_IMPROVEMENT
 }

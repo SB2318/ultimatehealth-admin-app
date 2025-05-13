@@ -25,6 +25,7 @@ import WebView from 'react-native-webview';
 import {hp, wp} from '../helper/Metric';
 import {
   DISCARD_ARTICLE,
+  DISCARD_IMPROVEMENT,
   GET_ARTICLE_BY_ID,
   GET_IMPROVEMENT_BY_ID,
   GET_PROFILE_API,
@@ -42,6 +43,7 @@ import ReviewItem from '../components/ReviewCard';
 import CommentCardItem from './CommentCardItem';
 import DiscardReasonModal from '../components/DiscardReasonModal';
 import Loader from '../components/Loader';
+import Snackbar from 'react-native-snackbar';
 
 const ImprovementReviewScreen = ({navigation, route}: ImprovementScreenProp) => {
   const insets = useSafeAreaInsets();
@@ -141,44 +143,49 @@ const ImprovementReviewScreen = ({navigation, route}: ImprovementScreenProp) => 
   const commentTests: any[] = [];
 
 
-  const discardArticleMutation = useMutation({
-    mutationKey: ['discard-article-in-review-state'],
+  const discardImprovementMutation = useMutation({
+    mutationKey: ['discard-improvement-in-review-state'],
     mutationFn: async ({
-      articleId,
-      reason,
+      requestId,
+      discardReason,
     }: {
-      articleId: string;
-      reason: string;
+      requestId: string;
+      discardReason: string;
     }) => {
-      const res = await axios.post(DISCARD_ARTICLE, {
-        articleId: articleId,
-        discardReason: reason,
+      const res = await axios.post(DISCARD_IMPROVEMENT, {
+        requestId: requestId,
+        discardReason: discardReason,
       });
 
-      return res.data as any;
+      return res.data.message as string;
     },
 
-    onSuccess: d => {
+    onSuccess: data => {
+      Snackbar.show({
+        text: data,
+        duration: Snackbar.LENGTH_SHORT,
+      });
      // onRefresh();
-     Alert.alert('Article discarded');
     },
+
     onError: err => {
-      console.log('Error', err);
-      Alert.alert(err.message);
+      console.log(err);
+      Alert.alert('Try again');
     },
   });
 
-  const publishArticleMutation = useMutation({
-    mutationKey: ['publish-article-in-review-state'],
+
+  const publishImprovementMutation = useMutation({
+    mutationKey: ['publish-improvement-in-review-state'],
     mutationFn: async ({
-      articleId,
+      requestId,
       reviewer_id,
     }: {
-      articleId: string;
+      requestId: string;
       reviewer_id: string;
     }) => {
       const res = await axios.post(PUBLISH_ARTICLE, {
-        articleId: articleId,
+        requestId: requestId,
         reviewer_id: reviewer_id,
       });
 
@@ -195,22 +202,23 @@ const ImprovementReviewScreen = ({navigation, route}: ImprovementScreenProp) => 
     },
   });
   useEffect(() => {
-    if (article) {
-      let source = article?.content?.endsWith('.html')
-        ? {uri: `${GET_STORAGE_DATA}/${article.content}`}
-        : {html: article?.content};
+   if (improvement && improvement.article) {
+      let source = improvement.edited_content
+        ? improvement?.edited_content?.endsWith('.html')
+          ? {uri: `${GET_STORAGE_DATA}/${improvement.edited_content}`}
+          : {html: improvement?.edited_content}
+        : improvement?.article.content?.endsWith('.html')
+        ? {uri: `${GET_STORAGE_DATA}/${improvement?.article.content}`}
+        : {html: improvement?.article.content};
 
       const fetchContentLength = async () => {
         const length = await getContentLength(source);
-        console.log('Content Length:', length);
-
-        //setWebViewHeight(length * 1.2); =
         setWebViewHeight(length);
       };
 
       fetchContentLength();
     }
-  }, [article]);
+  }, [improvement]);
 
 
 
@@ -226,9 +234,13 @@ const ImprovementReviewScreen = ({navigation, route}: ImprovementScreenProp) => 
       document.head.appendChild(style);
     `;
 
-  const contentSource = article?.content?.endsWith('.html')
-    ? {uri: `${GET_STORAGE_DATA}/${article.content}`}
-    : {html: article?.content};
+    let contentSource = improvement?.edited_content
+        ? improvement?.edited_content?.endsWith('.html')
+          ? {uri: `${GET_STORAGE_DATA}/${improvement.edited_content}`}
+          : {html: improvement?.edited_content}
+        : improvement?.article.content?.endsWith('.html')
+        ? {uri: `${GET_STORAGE_DATA}/${improvement?.article.content}`}
+        : {html: improvement?.article.content}
 
   // eslint-disable-next-line @typescript-eslint/no-shadow
   const getContentLength = async (contentSource: {
@@ -251,7 +263,7 @@ const ImprovementReviewScreen = ({navigation, route}: ImprovementScreenProp) => 
   };
 
 
-  if(discardArticleMutation.isPending || publishArticleMutation.isPending){
+  if(discardImprovementMutation.isPending || publishImprovementMutation.isPending){
     return <Loader />;
   }
 
@@ -261,9 +273,9 @@ const ImprovementReviewScreen = ({navigation, route}: ImprovementScreenProp) => 
         style={styles.scrollView}
         contentContainerStyle={styles.scrollViewContent}>
         <View style={styles.imageContainer}>
-          {article && article?.imageUtils && article?.imageUtils.length > 0 ? (
+          {improvement && improvement.article?.imageUtils && improvement.article?.imageUtils.length > 0 ? (
             <Image
-              source={{uri: article?.imageUtils[0]}}
+              source={{uri: improvement.article?.imageUtils[0]}}
               style={styles.image}
             />
           ) : (
@@ -282,7 +294,7 @@ const ImprovementReviewScreen = ({navigation, route}: ImprovementScreenProp) => 
            <MaterialIcon name="plagiarism" size={30} color={PRIMARY_COLOR} />
           </TouchableOpacity>
 
-          {article?.status !== StatusEnum.DISCARDED && (
+          {improvement?.status !== StatusEnum.DISCARDED && (
             <TouchableOpacity
               onPress={() => {
                 // Discard Article
@@ -298,7 +310,7 @@ const ImprovementReviewScreen = ({navigation, route}: ImprovementScreenProp) => 
             </TouchableOpacity>
           )}
 
-          {article?.status !== StatusEnum.DISCARDED && (
+          {improvement?.status !== StatusEnum.DISCARDED && (
             <TouchableOpacity
               onPress={() => {
                 // Grammar checker
@@ -313,7 +325,7 @@ const ImprovementReviewScreen = ({navigation, route}: ImprovementScreenProp) => 
             </TouchableOpacity>
           )}
 
-          {article?.status !== StatusEnum.DISCARDED && (
+          {improvement?.status !== StatusEnum.DISCARDED && (
             <TouchableOpacity
               onPress={() => {
                 // Palagrism Checker
@@ -329,12 +341,12 @@ const ImprovementReviewScreen = ({navigation, route}: ImprovementScreenProp) => 
             </TouchableOpacity>
           )}
 
-            {article?.status !== StatusEnum.DISCARDED && (
+            {improvement?.status !== StatusEnum.DISCARDED && (
             <TouchableOpacity
               onPress={() => {
                 // Publish article
-                publishArticleMutation.mutate({
-                  articleId: article ? article._id : '0' ,
+                publishImprovementMutation.mutate({
+                  requestId: improvement ? improvement._id : '0' ,
                   reviewer_id: user_id,
                 });
               }}
@@ -351,20 +363,20 @@ const ImprovementReviewScreen = ({navigation, route}: ImprovementScreenProp) => 
           )}
         </View>
         <View style={styles.contentContainer}>
-          {article && article?.tags && (
+          {improvement && improvement.article?.tags && (
             <Text style={styles.categoryText}>
-              {article.tags.map(tag => tag.name).join(' | ')}
+              {improvement.article.tags.map(tag => tag.name).join(' | ')}
             </Text>
           )}
 
-          {article && (
+          {improvement && improvement.article && (
             <>
-              <Text style={styles.titleText}>Title: {article?.title}</Text>
+              <Text style={styles.titleText}>Title: {improvement.article?.title}</Text>
             </>
           )}
 
           <Text style={styles.authorName}>
-            Author Name: {article?.authorName}
+            Author Name: {improvement?.article?.authorName}
           </Text>
           <View style={styles.descriptionContainer}>
             <WebView
@@ -386,7 +398,7 @@ const ImprovementReviewScreen = ({navigation, route}: ImprovementScreenProp) => 
         </View>
         {destination !== StatusEnum.DISCARDED &&
           destination !== StatusEnum.UNASSIGNED &&
-          article?.reviewer_id !== null && (
+          improvement?.reviewer_id !== null && (
             <View style={styles.inputContainer}>
               <RichToolbar
                 style={[styles.richBar]}
@@ -484,8 +496,8 @@ const ImprovementReviewScreen = ({navigation, route}: ImprovementScreenProp) => 
                     // emit socket event for feedback
                     const ans = createFeebackHTMLStructure(feedback);
                     socket.emit('add-review-comment', {
-                      articleId: article?._id,
-                      reviewer_id: article?.reviewer_id,
+                      requestId: improvement?._id,
+                      reviewer_id: improvement?.reviewer_id,
                       feedback: ans,
                       isReview: true,
                       isNote: false,
@@ -497,8 +509,8 @@ const ImprovementReviewScreen = ({navigation, route}: ImprovementScreenProp) => 
             </View>
           )}
 
-        {(commentTests.length > 0 && article?.reviewer_id === null) ||
-        article?.status === StatusEnum.UNASSIGNED ? (
+        {(commentTests.length > 0 && improvement?.reviewer_id === null) ||
+        improvement?.status === StatusEnum.UNASSIGNED ? (
           <View style={{padding: wp(6), marginTop: hp(4.5)}}>
             {commentTests?.map((item, index) => (
               <CommentCardItem key={index} item={item} />
@@ -516,9 +528,9 @@ const ImprovementReviewScreen = ({navigation, route}: ImprovementScreenProp) => 
                         visible={discardModalVisible}
                         callback={(reason: string)=>{
                            //onclick(item, 1, reason);
-                           discardArticleMutation.mutate({
-                             articleId: article ? article._id : '0',
-                             reason: reason,
+                           discardImprovementMutation.mutate({
+                             requestId: improvement ? improvement._id : '0',
+                             discardReason: reason,
                            });
                            setDiscardModalVisible(false);
                         }}

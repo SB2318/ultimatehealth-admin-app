@@ -14,7 +14,7 @@ import {BUTTON_COLOR, ON_PRIMARY_COLOR, PRIMARY_COLOR} from '../helper/Theme';
 import AntDesign from 'react-native-vector-icons/AntDesign';
 import MaterialIcon from 'react-native-vector-icons/MaterialIcons';
 import {useSafeAreaInsets} from 'react-native-safe-area-context';
-import {ArticleData, ReviewScreenProp, Admin, Comment, ImprovementScreenProp, EditRequest} from '../type';
+import {Admin, Comment, ImprovementScreenProp, EditRequest} from '../type';
 import Feather from 'react-native-vector-icons/Feather';
 import Entypo from 'react-native-vector-icons/Entypo';
 import Ionicons from 'react-native-vector-icons/Ionicons';
@@ -24,9 +24,7 @@ import {useDispatch, useSelector} from 'react-redux';
 import WebView from 'react-native-webview';
 import {hp, wp} from '../helper/Metric';
 import {
-  DISCARD_ARTICLE,
   DISCARD_IMPROVEMENT,
-  GET_ARTICLE_BY_ID,
   GET_IMPROVEMENT_BY_ID,
   GET_PROFILE_API,
   GET_STORAGE_DATA,
@@ -45,7 +43,10 @@ import DiscardReasonModal from '../components/DiscardReasonModal';
 import Loader from '../components/Loader';
 import Snackbar from 'react-native-snackbar';
 
-const ImprovementReviewScreen = ({navigation, route}: ImprovementScreenProp) => {
+const ImprovementReviewScreen = ({
+  navigation,
+  route,
+}: ImprovementScreenProp) => {
   const insets = useSafeAreaInsets();
   const {requestId, authorId, destination} = route.params;
   const {user_id} = useSelector((state: any) => state.user);
@@ -71,13 +72,18 @@ const ImprovementReviewScreen = ({navigation, route}: ImprovementScreenProp) => 
   const {data: improvement} = useQuery({
     queryKey: ['get-improvement-by-id'],
     queryFn: async () => {
-      const response = await axios.get(`${GET_IMPROVEMENT_BY_ID}/${requestId}`, {
-        //headers: {
-        //  Authorization: `Bearer ${user_token}`,
-        //},
-      });
+      const response = await axios.get(
+        `${GET_IMPROVEMENT_BY_ID}/${requestId}`,
+        {
+          //headers: {
+          //  Authorization: `Bearer ${user_token}`,
+          //},
+        },
+      );
 
-      return response.data.improvement as EditRequest;
+      // console.log("Response Improvement", response);
+
+      return response.data as EditRequest;
     },
   });
 
@@ -89,7 +95,8 @@ const ImprovementReviewScreen = ({navigation, route}: ImprovementScreenProp) => 
         //  Authorization: `Bearer ${user_token}`,
         //},
       });
-      return response.data.profile as Admin;
+      // console.log("Response", response);
+      return response.data as Admin;
     },
   });
 
@@ -112,25 +119,22 @@ const ImprovementReviewScreen = ({navigation, route}: ImprovementScreenProp) => 
 
     socket.on('review-comments', data => {
       console.log('comment loaded', data);
-     
-        setComments(data);
-      
-    });
 
+      setComments(data);
+    });
 
     socket.on('new-feedback', data => {
       console.log('new comment loaded', data);
-      
-        setComments(prevComments => {
-          const newComments = [data, ...prevComments];
-          // Scroll to the first index after adding the new comment
-          if (flatListRef.current && newComments.length > 1) {
-            flatListRef?.current.scrollToIndex({index: 0, animated: true});
-          }
 
-          return newComments;
-        });
-      
+      setComments(prevComments => {
+        const newComments = [data, ...prevComments];
+        // Scroll to the first index after adding the new comment
+        if (flatListRef.current && newComments.length > 1) {
+          flatListRef?.current.scrollToIndex({index: 0, animated: true});
+        }
+
+        return newComments;
+      });
     });
 
     return () => {
@@ -141,7 +145,6 @@ const ImprovementReviewScreen = ({navigation, route}: ImprovementScreenProp) => 
   }, [socket, requestId, destination]);
 
   const commentTests: any[] = [];
-
 
   const discardImprovementMutation = useMutation({
     mutationKey: ['discard-improvement-in-review-state'],
@@ -165,7 +168,7 @@ const ImprovementReviewScreen = ({navigation, route}: ImprovementScreenProp) => 
         text: data,
         duration: Snackbar.LENGTH_SHORT,
       });
-     // onRefresh();
+      // onRefresh();
     },
 
     onError: err => {
@@ -173,7 +176,6 @@ const ImprovementReviewScreen = ({navigation, route}: ImprovementScreenProp) => 
       Alert.alert('Try again');
     },
   });
-
 
   const publishImprovementMutation = useMutation({
     mutationKey: ['publish-improvement-in-review-state'],
@@ -193,8 +195,8 @@ const ImprovementReviewScreen = ({navigation, route}: ImprovementScreenProp) => 
     },
 
     onSuccess: d => {
-     // onRefresh();
-     Alert.alert('Article published');
+      // onRefresh();
+      Alert.alert('Article published');
     },
     onError: err => {
       console.log('Error', err);
@@ -202,7 +204,7 @@ const ImprovementReviewScreen = ({navigation, route}: ImprovementScreenProp) => 
     },
   });
   useEffect(() => {
-   if (improvement && improvement.article) {
+    if (improvement && improvement.article) {
       let source = improvement.edited_content
         ? improvement?.edited_content?.endsWith('.html')
           ? {uri: `${GET_STORAGE_DATA}/${improvement.edited_content}`}
@@ -220,8 +222,6 @@ const ImprovementReviewScreen = ({navigation, route}: ImprovementScreenProp) => 
     }
   }, [improvement]);
 
-
-
   const cssCode = `
       const style = document.createElement('style');
       style.innerHTML = \`
@@ -234,14 +234,15 @@ const ImprovementReviewScreen = ({navigation, route}: ImprovementScreenProp) => 
       document.head.appendChild(style);
     `;
 
-    let contentSource = improvement?.edited_content
-        ? improvement?.edited_content?.endsWith('.html')
-          ? {uri: `${GET_STORAGE_DATA}/${improvement.edited_content}`}
-          : {html: improvement?.edited_content}
-        : improvement?.article.content?.endsWith('.html')
-        ? {uri: `${GET_STORAGE_DATA}/${improvement?.article.content}`}
-        : {html: improvement?.article.content}
+  let contentSource = improvement?.edited_content
+    ? improvement?.edited_content?.endsWith('.html')
+      ? {uri: `${GET_STORAGE_DATA}/${improvement.edited_content}`}
+      : {html: improvement?.edited_content}
+    : improvement?.article.content?.endsWith('.html')
+    ? {uri: `${GET_STORAGE_DATA}/${improvement?.article.content}`}
+    : {html: `${improvement?.article.content}`};
 
+  //console.log("Content source", contentSource);
   // eslint-disable-next-line @typescript-eslint/no-shadow
   const getContentLength = async (contentSource: {
     uri?: string;
@@ -262,8 +263,10 @@ const ImprovementReviewScreen = ({navigation, route}: ImprovementScreenProp) => 
     return 0;
   };
 
-
-  if(discardImprovementMutation.isPending || publishImprovementMutation.isPending){
+  if (
+    discardImprovementMutation.isPending ||
+    publishImprovementMutation.isPending
+  ) {
     return <Loader />;
   }
 
@@ -273,7 +276,9 @@ const ImprovementReviewScreen = ({navigation, route}: ImprovementScreenProp) => 
         style={styles.scrollView}
         contentContainerStyle={styles.scrollViewContent}>
         <View style={styles.imageContainer}>
-          {improvement && improvement.article?.imageUtils && improvement.article?.imageUtils.length > 0 ? (
+          {improvement &&
+          improvement.article?.imageUtils &&
+          improvement.article?.imageUtils.length > 0 ? (
             <Image
               source={{uri: improvement.article?.imageUtils[0]}}
               style={styles.image}
@@ -290,8 +295,7 @@ const ImprovementReviewScreen = ({navigation, route}: ImprovementScreenProp) => 
             onPress={() => {
               // Image copyright checker
             }}>
-
-           <MaterialIcon name="plagiarism" size={30} color={PRIMARY_COLOR} />
+            <MaterialIcon name="plagiarism" size={30} color={PRIMARY_COLOR} />
           </TouchableOpacity>
 
           {improvement?.status !== StatusEnum.DISCARDED && (
@@ -336,17 +340,20 @@ const ImprovementReviewScreen = ({navigation, route}: ImprovementScreenProp) => 
                   backgroundColor: '#660099',
                 },
               ]}>
-                <MaterialIcon size={28} name="published-with-changes" color={'white'} />
-
+              <MaterialIcon
+                size={28}
+                name="published-with-changes"
+                color={'white'}
+              />
             </TouchableOpacity>
           )}
 
-            {improvement?.status !== StatusEnum.DISCARDED && (
+          {improvement?.status !== StatusEnum.DISCARDED && (
             <TouchableOpacity
               onPress={() => {
                 // Publish article
                 publishImprovementMutation.mutate({
-                  requestId: improvement ? improvement._id : '0' ,
+                  requestId: improvement ? improvement._id : '0',
                   reviewer_id: user_id,
                 });
               }}
@@ -354,11 +361,13 @@ const ImprovementReviewScreen = ({navigation, route}: ImprovementScreenProp) => 
                 styles.pubButton,
                 {
                   backgroundColor: '#478778',
-
                 },
               ]}>
-                <MaterialIcon size={28} name="domain-verification" color={'white'} />
-
+              <MaterialIcon
+                size={28}
+                name="domain-verification"
+                color={'white'}
+              />
             </TouchableOpacity>
           )}
         </View>
@@ -371,7 +380,9 @@ const ImprovementReviewScreen = ({navigation, route}: ImprovementScreenProp) => 
 
           {improvement && improvement.article && (
             <>
-              <Text style={styles.titleText}>Title: {improvement.article?.title}</Text>
+              <Text style={styles.titleText}>
+                Title: {improvement.article?.title}
+              </Text>
             </>
           )}
 
@@ -396,6 +407,45 @@ const ImprovementReviewScreen = ({navigation, route}: ImprovementScreenProp) => 
             />
           </View>
         </View>
+
+        {improvement && !improvement.edited_content && (
+          <Text style={{...styles.authorName, color: 'red', margin: hp(3)}}>
+            The user has not made any changes yet.
+          </Text>
+        )}
+
+        {improvement && (
+          <TouchableOpacity
+            style={styles.submitButton2}
+            onPress={() => {
+              // navigate to publish article screen
+              if (improvement.article) {
+                navigation.navigate('ArticleReviewScreen', {
+                  articleId: Number(improvement.article._id),
+                  authorId: improvement.article.authorId,
+                  destination: StatusEnum.PUBLISHED,
+                });
+              }else{
+                Snackbar.show({
+                  text:"Article Not found, Try again!",
+                  duration: Snackbar.LENGTH_SHORT,
+                })
+              }
+            }}>
+            <Text style={styles.submitButtonText}>See old article</Text>
+          </TouchableOpacity>
+        )}
+
+        {improvement && (
+          <TouchableOpacity
+            style={{...styles.submitButton2, backgroundColor: 'red'}}
+            onPress={() => {
+              // detect content loss api integration
+            }}>
+            <Text style={styles.submitButtonText}>Detect Content Loss</Text>
+          </TouchableOpacity>
+        )}
+
         {destination !== StatusEnum.DISCARDED &&
           destination !== StatusEnum.UNASSIGNED &&
           improvement?.reviewer_id !== null && (
@@ -509,36 +559,32 @@ const ImprovementReviewScreen = ({navigation, route}: ImprovementScreenProp) => 
             </View>
           )}
 
-        {(commentTests.length > 0 && improvement?.reviewer_id === null) ||
-        improvement?.status === StatusEnum.UNASSIGNED ? (
-          <View style={{padding: wp(6), marginTop: hp(4.5)}}>
-            {commentTests?.map((item, index) => (
+     
+         {
+          comments && (
+            <View style={{padding: wp(4), marginTop: hp(4.5)}}>
+            {comments?.map((item, index) => (
               <CommentCardItem key={index} item={item} />
             ))}
           </View>
-        ) : (
-          <View style={{padding: wp(4), marginTop: hp(4.5)}}>
-            {comments?.map((item, index) => (
-              <ReviewItem key={index} item={item} />
-            ))}
-          </View>
-        )}
+          )
+         }
+        
 
-                     <DiscardReasonModal
-                        visible={discardModalVisible}
-                        callback={(reason: string)=>{
-                           //onclick(item, 1, reason);
-                           discardImprovementMutation.mutate({
-                             requestId: improvement ? improvement._id : '0',
-                             discardReason: reason,
-                           });
-                           setDiscardModalVisible(false);
-                        }}
-                        dismiss={()=>{
-                          setDiscardModalVisible(false);
-                        }}
-
-                       />
+        <DiscardReasonModal
+          visible={discardModalVisible}
+          callback={(reason: string) => {
+            //onclick(item, 1, reason);
+            discardImprovementMutation.mutate({
+              requestId: improvement ? improvement._id : '0',
+              discardReason: reason,
+            });
+            setDiscardModalVisible(false);
+          }}
+          dismiss={() => {
+            setDiscardModalVisible(false);
+          }}
+        />
       </ScrollView>
     </View>
   );
@@ -754,6 +800,16 @@ const styles = StyleSheet.create({
     //borderRadius: 8,
     alignItems: 'center',
   },
+
+  submitButton2: {
+    backgroundColor: PRIMARY_COLOR,
+    padding: 15,
+    marginHorizontal: hp(2.8),
+    marginVertical: wp(2),
+    borderRadius: 8,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
   submitButtonText: {
     fontSize: 18,
     color: '#fff',
@@ -772,10 +828,12 @@ const styles = StyleSheet.create({
     overflow: 'hidden',
     //backgroundColor: 'red',
     //padding: hp(1),
+
     borderColor: '#000',
     borderWidth: 0.5,
     // padding: wp(6),
-    marginHorizontal: wp(4),
+    margin: hp(2),
+    marginHorizontal: hp(3),
   },
   editor: {
     backgroundColor: 'blue',

@@ -42,9 +42,8 @@ import CommentCardItem from './CommentCardItem';
 import DiscardReasonModal from '../components/DiscardReasonModal';
 import Loader from '../components/Loader';
 
-const ReviewScreen = ({navigation, route}: ReviewScreenProp) => {
-  const insets = useSafeAreaInsets();
-  const {articleId, authorId, destination} = route.params;
+const ReviewScreen = ({route}: ReviewScreenProp) => {
+  const {articleId, destination} = route.params;
   const {user_id} = useSelector((state: any) => state.user);
   const RichText = useRef();
   const [feedback, setFeedback] = useState('');
@@ -86,7 +85,7 @@ const ReviewScreen = ({navigation, route}: ReviewScreenProp) => {
         //  Authorization: `Bearer ${user_token}`,
         //},
       });
-      return response.data.profile as Admin;
+      return response.data as Admin;
     },
   });
 
@@ -95,7 +94,7 @@ const ReviewScreen = ({navigation, route}: ReviewScreenProp) => {
   }
 
   useEffect(() => {
-    if (destination !== StatusEnum.UNASSIGNED) {
+    if (destination !== StatusEnum.UNASSIGNED && destination !== StatusEnum.PUBLISHED) {
       socket.emit('load-review-comments', {articleId: route.params.articleId});
     }
 
@@ -109,15 +108,15 @@ const ReviewScreen = ({navigation, route}: ReviewScreenProp) => {
 
     socket.on('review-comments', data => {
       console.log('comment loaded');
-      if (data.articleId === route.params.articleId) {
+   
         setComments(data.comments);
-      }
+      
     });
 
     // Listen for new comments
     socket.on('new-feedback', data => {
       console.log('new comment loaded', data);
-      if (data.articleId === route.params.articleId) {
+    
         setComments(prevComments => {
           const newComments = [data.comment, ...prevComments];
           // Scroll to the first index after adding the new comment
@@ -127,7 +126,7 @@ const ReviewScreen = ({navigation, route}: ReviewScreenProp) => {
 
           return newComments;
         });
-      }
+      
     });
 
     return () => {
@@ -137,7 +136,7 @@ const ReviewScreen = ({navigation, route}: ReviewScreenProp) => {
     };
   }, [socket, route.params.articleId, destination]);
 
-  const commentTests: any[] = [];
+
 
 
   const discardArticleMutation = useMutation({
@@ -157,7 +156,7 @@ const ReviewScreen = ({navigation, route}: ReviewScreenProp) => {
       return res.data as any;
     },
 
-    onSuccess: d => {
+    onSuccess: () => {
      // onRefresh();
      Alert.alert("Article discarded");
     },
@@ -184,7 +183,7 @@ const ReviewScreen = ({navigation, route}: ReviewScreenProp) => {
       return res.data as any;
     },
 
-    onSuccess: d => {
+    onSuccess: () => {
      // onRefresh();
      Alert.alert("Article published");
     },
@@ -272,7 +271,9 @@ const ReviewScreen = ({navigation, route}: ReviewScreenProp) => {
             />
           )}
 
-          <TouchableOpacity
+        {
+          destination !== StatusEnum.PUBLISHED && (
+            <TouchableOpacity
             style={styles.topIcon}
             onPress={() => {
               // Image copyright checker
@@ -280,8 +281,10 @@ const ReviewScreen = ({navigation, route}: ReviewScreenProp) => {
 
            <MaterialIcon name="plagiarism" size={30} color={PRIMARY_COLOR} /> 
           </TouchableOpacity>
+          )
+        }
 
-          {article?.status !== StatusEnum.DISCARDED && (
+          {article?.status !== StatusEnum.DISCARDED && destination !== StatusEnum.PUBLISHED && (
             <TouchableOpacity
               onPress={() => {
                 // Discard Article
@@ -297,7 +300,7 @@ const ReviewScreen = ({navigation, route}: ReviewScreenProp) => {
             </TouchableOpacity>
           )}
 
-          {article?.status !== StatusEnum.DISCARDED && (
+          {article?.status !== StatusEnum.DISCARDED && destination !== StatusEnum.PUBLISHED && (
             <TouchableOpacity
               onPress={() => {
                 // Grammar checker
@@ -312,7 +315,7 @@ const ReviewScreen = ({navigation, route}: ReviewScreenProp) => {
             </TouchableOpacity>
           )}
 
-          {article?.status !== StatusEnum.DISCARDED && (
+          {article?.status !== StatusEnum.DISCARDED && destination !== StatusEnum.PUBLISHED && (
             <TouchableOpacity
               onPress={() => {
                 // Palagrism Checker
@@ -328,7 +331,7 @@ const ReviewScreen = ({navigation, route}: ReviewScreenProp) => {
             </TouchableOpacity>
           )}
 
-            {article?.status !== StatusEnum.DISCARDED && (
+            {article?.status !== StatusEnum.DISCARDED && destination !== StatusEnum.PUBLISHED && (
             <TouchableOpacity
               onPress={() => {
                 // Publish article
@@ -385,6 +388,7 @@ const ReviewScreen = ({navigation, route}: ReviewScreenProp) => {
         </View>
         {destination !== StatusEnum.DISCARDED &&
           destination !== StatusEnum.UNASSIGNED &&
+          destination !== StatusEnum.PUBLISHED &&
           article?.reviewer_id !== null && (
             <View style={styles.inputContainer}>
               <RichToolbar
@@ -496,21 +500,15 @@ const ReviewScreen = ({navigation, route}: ReviewScreenProp) => {
             </View>
           )}
 
-        {(commentTests.length > 0 && article?.reviewer_id === null) ||
-        article?.status === StatusEnum.UNASSIGNED ? (
-          <View style={{padding: wp(6), marginTop: hp(4.5)}}>
-            {commentTests?.map((item, index) => (
+        {
+          comments && destination !== StatusEnum.PUBLISHED && (
+          <View style={{padding: wp(4), marginTop: hp(4.5)}}>
+            {comments?.map((item, index) => (
               <CommentCardItem key={index} item={item} />
             ))}
           </View>
-        ) : (
-          <View style={{padding: wp(4), marginTop: hp(4.5)}}>
-            {comments?.map((item, index) => (
-              <ReviewItem key={index} item={item} />
-            ))}
-          </View>
-        )}
-
+          )
+        }
                      <DiscardReasonModal
                         visible={discardModalVisible}
                         callback={(reason: string)=>{
@@ -588,7 +586,7 @@ const styles = StyleSheet.create({
     borderRadius: 50,
   },
   contentContainer: {
-    marginTop: 25,
+    marginTop: hp(6),
     paddingHorizontal: 16,
   },
   categoryText: {

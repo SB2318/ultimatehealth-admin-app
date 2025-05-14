@@ -1,6 +1,6 @@
 import {View, Text, StyleSheet, Image, Alert} from 'react-native';
 import {BUTTON_COLOR, ON_PRIMARY_COLOR} from '../helper/Theme';
-import { useEffect, useRef } from 'react';
+import {useEffect, useRef} from 'react';
 import {Tabs, MaterialTabBar} from 'react-native-collapsible-tab-view';
 import {useDispatch, useSelector} from 'react-redux';
 import axios from 'axios';
@@ -25,11 +25,17 @@ import {hp} from '../helper/Metric';
 import FilterModal from '../components/FilterModal';
 import Loader from '../components/Loader';
 import Snackbar from 'react-native-snackbar';
-import { BottomSheetModal } from '@gorhom/bottom-sheet';
-import { setFilteredAvailableArticles, setFilteredProgressArticles, setFilterMode, setSelectedTags, setSortType, setTags } from '../stores/articleSlice';
+import {BottomSheetModal} from '@gorhom/bottom-sheet';
+import {
+  setFilteredAvailableArticles,
+  setFilteredProgressArticles,
+  setFilterMode,
+  setSelectedTags,
+  setSortType,
+  setTags,
+} from '../stores/articleSlice';
 import HomeArticle from './tabs/HomeArticle';
 import Improvement from './tabs/Improvement';
-
 
 export default function HomeScreen({navigation}: ArticleProps) {
   const {user_id} = useSelector((state: any) => state.user);
@@ -54,15 +60,13 @@ export default function HomeScreen({navigation}: ArticleProps) {
   const bottomSheetModalRef = useRef<BottomSheetModal>(null);
   const insets = useSafeAreaInsets();
 
-
   const handlePresentModalPress = useCallback(() => {
     bottomSheetModalRef.current?.present();
   }, []);
 
   const getAllCategories = async () => {
-   
     const {data: categoryData} = await axios.get(
-      `${EC2_BASE_URL + ARTICLE_TAGS_API}`
+      `${EC2_BASE_URL + ARTICLE_TAGS_API}`,
     );
     if (
       selectedTags === undefined ||
@@ -71,7 +75,7 @@ export default function HomeScreen({navigation}: ArticleProps) {
       //console.log('Category Data', categoryData);
       dispatch(
         setSelectedTags({
-          selectedTags: categoryData.map((category:Category) => category.name),
+          selectedTags: categoryData.map((category: Category) => category.name),
         }),
       );
       setSelectedCategory(categoryData[0]?.name);
@@ -84,7 +88,7 @@ export default function HomeScreen({navigation}: ArticleProps) {
 
   useEffect(() => {
     getAllCategories();
-   
+
     return () => {};
   }, []);
 
@@ -110,14 +114,13 @@ export default function HomeScreen({navigation}: ArticleProps) {
     queryKey: ['get-progress-articles'],
     queryFn: async () => {
       const response = await axios.get(
-        `${GET_INPROGRESS_ARTICLES_API}/${user_id}`
+        `${GET_INPROGRESS_ARTICLES_API}/${user_id}`,
       );
       let d = response.data as ArticleData[];
       updateProgressArticles(d);
       return response.data as ArticleData[];
     },
   });
-
 
   const pickArticleMutation = useMutation({
     mutationKey: ['pick-article'],
@@ -172,11 +175,7 @@ export default function HomeScreen({navigation}: ArticleProps) {
 
   const unassignFromArticleMutation = useMutation({
     mutationKey: ['unassign-article'],
-    mutationFn: async ({
-      articleId
-    }: {
-      articleId: string;
-    }) => {
+    mutationFn: async ({articleId}: {articleId: string}) => {
       const res = await axios.post(UNASSIGN_ARTICLE, {
         articleId: articleId,
       });
@@ -219,14 +218,15 @@ export default function HomeScreen({navigation}: ArticleProps) {
     dispatch(setSortType({sortType: ''}));
     dispatch(setFilterMode({filterMode: false}));
 
-    
-    dispatch(setFilteredAvailableArticles({filteredArticles: availableArticles}));
+    dispatch(
+      setFilteredAvailableArticles({filteredArticles: availableArticles}),
+    );
     dispatch(setFilteredProgressArticles({filteredArticles: progressArticles}));
   };
 
   const handleFilterApply = () => {
     // Update Redux State Variables
-    console.log("Handle filter apply called");
+    console.log('Handle filter apply called');
     if (selectCategoryList.length > 0) {
       dispatch(setSelectedTags({selectedTags: selectCategoryList}));
     } else {
@@ -242,9 +242,7 @@ export default function HomeScreen({navigation}: ArticleProps) {
     updateArticles();
   };
 
-
-  const updateAvailableArticles = (articleData: ArticleData[])=>{
-
+  const updateAvailableArticles = (articleData: ArticleData[]) => {
     if (!articleData) {
       return;
     }
@@ -276,14 +274,13 @@ export default function HomeScreen({navigation}: ArticleProps) {
     dispatch(setFilteredAvailableArticles({filteredArticles: filtered}));
   };
 
-  const updateProgressArticles = (articleData: ArticleData[])=>{
-
+  const updateProgressArticles = (articleData: ArticleData[]) => {
     if (!articleData) {
       return;
     }
 
     let filtered = articleData;
-  
+
     if (selectedTags.length > 0) {
       filtered = filtered.filter(article =>
         selectedTags.some(tag =>
@@ -291,7 +288,7 @@ export default function HomeScreen({navigation}: ArticleProps) {
         ),
       );
     }
-  
+
     if (sortType === 'recent' && filtered.length > 1) {
       filtered = filtered.sort(
         (a, b) =>
@@ -305,98 +302,77 @@ export default function HomeScreen({navigation}: ArticleProps) {
     } else if (sortType === 'popular' && filtered.length > 1) {
       filtered.sort((a, b) => b.viewCount - a.viewCount);
     }
-  
+
     dispatch(setFilteredProgressArticles({filteredArticles: filtered}));
   };
 
-
   const updateArticles = () => {
-    
-    console.log("Update article called");
+    console.log('Update article called');
 
-    let filterdAvailable:ArticleData[] = availableArticles? availableArticles: [];
-    let filterProgress:ArticleData[] = progressArticles ? progressArticles: [];
-   
-   
-    
+    let filterdAvailable: ArticleData[] = availableArticles
+      ? availableArticles
+      : [];
+    let filterProgress: ArticleData[] = progressArticles
+      ? progressArticles
+      : [];
+
     if (selectedTags.length > 0) {
-    
       // eslint-disable-next-line @typescript-eslint/no-unused-vars
       filterdAvailable = filterdAvailable.filter(article =>
-        selectedTags.some((tag) =>
+        selectedTags.some(tag =>
           article.tags.some(category => category.name === tag),
         ),
       );
 
       // eslint-disable-next-line @typescript-eslint/no-unused-vars
       filterProgress = filterProgress.filter(article =>
-        selectedTags.some((tag) =>
+        selectedTags.some(tag =>
           article.tags.some(category => category.name === tag),
         ),
       );
-
-     
-
     }
-  
-    if (sortType === 'recent') {
 
-      
-        filterdAvailable = filterdAvailable.sort(
-          (a, b) =>
-            new Date(b.lastUpdated).getTime() - new Date(a.lastUpdated).getTime(),
-        );
-      
-      
+    if (sortType === 'recent') {
+      filterdAvailable = filterdAvailable.sort(
+        (a, b) =>
+          new Date(b.lastUpdated).getTime() - new Date(a.lastUpdated).getTime(),
+      );
 
       filterProgress = filterProgress.sort(
         (a, b) =>
           new Date(b.lastUpdated).getTime() - new Date(a.lastUpdated).getTime(),
       );
-
     } else if (sortType === 'oldest') {
-
-      if(filterdAvailable.length > 1){
-
+      if (filterdAvailable.length > 1) {
         filterdAvailable.sort(
           (a, b) =>
-            new Date(a.lastUpdated).getTime() - new Date(b.lastUpdated).getTime(),
+            new Date(a.lastUpdated).getTime() -
+            new Date(b.lastUpdated).getTime(),
         );
       }
-     
-      if(filterProgress.length > 1){
 
+      if (filterProgress.length > 1) {
         filterProgress.sort(
           (a, b) =>
-            new Date(a.lastUpdated).getTime() - new Date(b.lastUpdated).getTime(),
+            new Date(a.lastUpdated).getTime() -
+            new Date(b.lastUpdated).getTime(),
         );
       }
-
     } else if (sortType === 'popular') {
-
-
-      if(filterdAvailable.length > 1){
-
-        filterdAvailable.sort(
-          (a, b) => b.viewCount - a.viewCount
-        );
-      }
-     
-      if(filterProgress.length > 1){
-
-        filterProgress.sort(
-          (a, b) => b.viewCount - a.viewCount
-        );
+      if (filterdAvailable.length > 1) {
+        filterdAvailable.sort((a, b) => b.viewCount - a.viewCount);
       }
 
-
+      if (filterProgress.length > 1) {
+        filterProgress.sort((a, b) => b.viewCount - a.viewCount);
+      }
     }
-  
-    dispatch(setFilteredAvailableArticles({filteredArticles: filterdAvailable}));
-    dispatch(setFilteredProgressArticles({filteredArticles: filterProgress}));
-   
-  };
 
+    dispatch(
+      setFilteredAvailableArticles({filteredArticles: filterdAvailable}),
+    );
+    dispatch(setFilteredProgressArticles({filteredArticles: filterProgress}));
+  };
 
   const renderItem = useCallback(
     ({item}: {item: ArticleData}) => {
@@ -411,14 +387,12 @@ export default function HomeScreen({navigation}: ArticleProps) {
             if (index === 0) {
               // Pick article
               pickArticleMutation.mutate(item._id);
-            }
-            else if(index === 2){
+            } else if (index === 2) {
               // unassign yourself
               unassignFromArticleMutation.mutate({
-                articleId: item._id
+                articleId: item._id,
               });
-            }
-            else {
+            } else {
               // Display discard reason or screen
               discardArticleMutation.mutate({
                 articleId: item._id,
@@ -439,8 +413,6 @@ export default function HomeScreen({navigation}: ArticleProps) {
     [discardArticleMutation, navigation, pickArticleMutation, selectedCardId],
   );
 
- 
-
   const onArticleRefresh = () => {
     setArticleRefreshing(true);
     availableAticleRefetch();
@@ -452,11 +424,21 @@ export default function HomeScreen({navigation}: ArticleProps) {
     useCallback(() => {
       availableAticleRefetch();
       refetchProgressArticles();
-    }, [
-      availableAticleRefetch,
-      refetchProgressArticles,
-    ]),
+    }, [availableAticleRefetch, refetchProgressArticles]),
   );
+
+  const handleImprovementReviewNav = (
+    requestId: string,
+    authorId: string,
+    destination: string,
+  ) => {
+    
+    navigation.navigate('ImprovementReviewScreen', {
+      requestId: requestId,
+      authorId: authorId,
+      destination: destination,
+    });
+  };
 
   const renderTabBar = props => {
     return (
@@ -466,17 +448,14 @@ export default function HomeScreen({navigation}: ArticleProps) {
         style={styles.tabBarStyle}
         activeColor={BUTTON_COLOR}
         inactiveColor="#9098A3"
-        
         labelStyle={styles.labelStyle}
         contentContainerStyle={styles.contentContainerStyle}
       />
     );
   };
 
-  if(isAvailableArticleLoading || isProgressArticleLoading){
-    return (
-      <Loader />
-    )
+  if (isAvailableArticleLoading || isProgressArticleLoading) {
+    return <Loader />;
   }
 
   return (
@@ -489,47 +468,42 @@ export default function HomeScreen({navigation}: ArticleProps) {
           containerStyle={styles.tabsContainer}>
           {/* Tab 1 */}
           <Tabs.Tab name="Articles">
-
             <HomeArticle
               availableArticle={filteredAvailableArticles}
               inProgressArticle={filteredProgressArticles}
               refreshing={articleRefreshing}
               onRefresh={onArticleRefresh}
               renderItem={renderItem}
-              />
-            
+            />
           </Tabs.Tab>
 
-            {/* Available Improvements articles */}
+          {/* Available Improvements articles */}
           <Tabs.Tab name="Improvements">
-
-             <Improvement />
-
+            <Improvement handleNav ={handleImprovementReviewNav}/>
           </Tabs.Tab>
-
         </Tabs.Container>
 
         <FilterModal
-        bottomSheetModalRef={bottomSheetModalRef}
-        categories={articleCategories}
-        handleCategorySelection={handleCategorySelection}
-        selectCategoryList={selectCategoryList}
-        handleFilterReset={handleFilterReset}
-        handleFilterApply={handleFilterApply}
-        setSortingType={setSortingType}
-        sortingType={sortingType}
-      />
+          bottomSheetModalRef={bottomSheetModalRef}
+          categories={articleCategories}
+          handleCategorySelection={handleCategorySelection}
+          selectCategoryList={selectCategoryList}
+          handleFilterReset={handleFilterReset}
+          handleFilterApply={handleFilterApply}
+          setSortingType={setSortingType}
+          sortingType={sortingType}
+        />
         <FAB
-        style={styles.fab}
-        small
-        icon={({size, color}) => (
-          <AntDesign color="white" name="menu-fold" size={25} />
-        )}
-        onPress={() => {
-          //navigation.goBack();
-          handlePresentModalPress();
-        }}
-      />
+          style={styles.fab}
+          small
+          icon={({size, color}) => (
+            <AntDesign color="white" name="menu-fold" size={25} />
+          )}
+          onPress={() => {
+            //navigation.goBack();
+            handlePresentModalPress();
+          }}
+        />
       </View>
     </View>
   );
@@ -614,6 +588,6 @@ const styles = StyleSheet.create({
     right: 20,
     bottom: 60,
     borderRadius: hp(20),
-    backgroundColor: BUTTON_COLOR, 
+    backgroundColor: BUTTON_COLOR,
   },
 });

@@ -23,15 +23,19 @@ import {ON_PRIMARY_COLOR, PRIMARY_COLOR} from '../../helper/Theme';
 import ImprovementCard from '../../components/ImprovementCard';
 import Snackbar from 'react-native-snackbar';
 import Loader from '../../components/Loader';
-import { useSelector } from 'react-redux';
+import {useSelector} from 'react-redux';
 
-export default function Imrovement() {
+export default function Imrovement({
+  handleNav,
+}: {
+  handleNav: (requestId: string, authorId: string, destination: string) => void;
+}) {
   const [refreshing, setRefreshing] = useState<boolean>(false);
   const [selectedCardId, setSelectedCardId] = useState<string>('');
-  const {user_id} = useSelector((state:any) => state.user);
+  const {user_id} = useSelector((state: any) => state.user);
 
   const [selectedCat, setSelectedCat] = useState<string>('Available');
-  const  categories = ['Available', 'Inprogress'];
+  const categories = ['Available', 'Inprogress'];
 
   const {
     data: availableImprovements,
@@ -188,6 +192,7 @@ export default function Imrovement() {
             //  authorId: item.authorId,
             //  destination: item.status,
             //});
+            handleNav(item._id, item.article.authorId, item.status);
           }}
         />
       );

@@ -15,6 +15,8 @@ import EditProfile from '../screens/EditProfile';
 import LogoutScreen from '../screens/auth/LogoutScreen';
 import WorkHistoryScreen from '../screens/WorkHistoryScreen';
 import ImprovementReviewScreen from '../screens/ImprovementReviewScreen';
+import ChangesHistoryScreen from '../screens/ChangesHistoryScreen';
+import { PRIMARY_COLOR } from '../helper/Theme';
 
 const Stack = createStackNavigator<RootStackParamList>();
 
@@ -91,6 +93,27 @@ const StackNavigation = () => {
                 navigation.goBack();
               }}>
               <FontAwesome6 size={25} name="arrow-left" color="white" />
+            </TouchableOpacity>
+          ),
+        })}
+      />
+
+       <Stack.Screen
+        name="ChangesHistoryScreen"
+        component={ChangesHistoryScreen}
+        options={({navigation}) => ({
+          headerShown: true,
+          title: 'Changes History',
+          headerTitleAlign:"center",
+          headerBackTitleVisible: false,
+          headerShadowVisible: false,
+          headerLeft: () => (
+            <TouchableOpacity
+              style={styles.profileScreenHeaderLeftButton}
+              onPress={() => {
+                navigation.goBack();
+              }}>
+              <FontAwesome6 size={25} name="arrow-left" color={PRIMARY_COLOR} />
             </TouchableOpacity>
           ),
         })}

@@ -31,6 +31,7 @@ const UNASSIGN_IMPROVEMENT = `${EC2_BASE_URL}/admin/improvement/unassign-moderat
 const DISCARD_IMPROVEMENT = `${EC2_BASE_URL}/admin/discard-improvement`;
 const GET_IMPROVEMENT_BY_ID = `${EC2_BASE_URL}/get-improvement`;
 const PUBLISH_IMPROVEMENT = `${EC2_BASE_URL}/admin/publish-improvement`;
+const GET_CHANGES_HISTORY = `${EC2_BASE_URL}/article/detect-content-loss`;
 // For verification related POST and GET request, send isAdmin in request body and query.
 export {
     LOGIN_API,
@@ -65,5 +66,6 @@ export {
     UNASSIGN_IMPROVEMENT,
     DISCARD_IMPROVEMENT,
     GET_IMPROVEMENT_BY_ID,
-    PUBLISH_IMPROVEMENT
+    PUBLISH_IMPROVEMENT,
+    GET_CHANGES_HISTORY
 }

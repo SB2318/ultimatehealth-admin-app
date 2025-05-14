@@ -197,12 +197,7 @@ export default function Imrovement({
         />
       );
     },
-    [
-      discardImprovementMutation,
-      pickImprovementMutation,
-      selectedCardId,
-      unassignFromImprovementMutation,
-    ],
+    [discardImprovementMutation, handleNav, pickImprovementMutation, selectedCardId, unassignFromImprovementMutation, user_id],
   );
 
   if (

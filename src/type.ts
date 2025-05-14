@@ -25,6 +25,9 @@ export type RootStackParamList = {
     requestId: string;
     authorId: string;
     destination: string;
+  };
+  ChangesHistoryScreen:{
+    requestId: string;
   }
 }
 
@@ -229,6 +232,11 @@ export type NewPasswordScreenProp = StackScreenProps<
 export type OtpScreenProp = StackScreenProps<
   RootStackParamList,
   'OtpScreen'
+>;
+
+export type ChangesHistoryScreenProp = StackScreenProps<
+   RootStackParamList,
+  'ChangesHistoryScreen'
 >;
 
 export type EditProfileProp = StackScreenProps<

@@ -119,6 +119,7 @@ import WebView from 'react-native-webview';
           width.value = withTiming(0, {duration: 250});
           yValue.value = withTiming(100, {duration: 250});
           setSelectedCardId('');
+          onNavigate(item);
           /*
           navigation.navigate('ArticleScreen', {
             articleId: Number(item._id),

@@ -586,7 +586,7 @@ const styles = StyleSheet.create({
     borderRadius: 50,
   },
   contentContainer: {
-    marginTop: hp(6),
+    marginVertical: hp(6),
     paddingHorizontal: 16,
   },
   categoryText: {

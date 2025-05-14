@@ -441,6 +441,11 @@ const ImprovementReviewScreen = ({
             style={{...styles.submitButton2, backgroundColor: 'red'}}
             onPress={() => {
               // detect content loss api integration
+             if(improvement){
+                navigation.navigate('ChangesHistoryScreen',{
+                requestId: improvement._id,
+              });
+             }
             }}>
             <Text style={styles.submitButtonText}>Detect Content Loss</Text>
           </TouchableOpacity>
@@ -647,7 +652,7 @@ const styles = StyleSheet.create({
     borderRadius: 50,
   },
   contentContainer: {
-    marginTop: 25,
+    marginVertical: hp(6),
     paddingHorizontal: 16,
   },
   categoryText: {

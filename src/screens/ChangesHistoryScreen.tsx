@@ -1,5 +1,5 @@
 import {useQuery} from '@tanstack/react-query';
-import {StyleSheet, View} from 'react-native';
+import {ScrollView, StyleSheet, View} from 'react-native';
 import {ChangesHistoryScreenProp} from '../type';
 import axios from 'axios';
 import {GET_CHANGES_HISTORY} from '../helper/APIUtils';
@@ -43,9 +43,10 @@ export default function ChangesHistoryScreen({
         <Loader/>
         )
     }
+    //console.log("History Length", history?.length);
   return (
-    <View style={styles.container}>
-      <View style={styles.descriptionContainer}>
+    <ScrollView style={styles.container}>
+    
         <WebView
           style={{
             padding: 7,
@@ -61,8 +62,8 @@ export default function ChangesHistoryScreen({
           source={{html: history ? history : '<p>No changes made </p>'}}
           textZoom={100}
         />
-      </View>
-    </View>
+      
+    </ScrollView>
   );
 }
 
@@ -70,12 +71,15 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     position: 'relative',
+     height:"100%",
+    width:"100%",
     backgroundColor: ON_PRIMARY_COLOR,
   },
 
     descriptionContainer: {
-    flex: 1,
-    marginTop: 10,
+   // flex: 1,
+    marginTop: 7,
+   
     backgroundColor: ON_PRIMARY_COLOR
   },
 });

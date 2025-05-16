@@ -43,15 +43,14 @@ export default function ChangesHistoryScreen({
         <Loader/>
         )
     }
-    //console.log("History Length", history?.length);
+    console.log("History Length", history?.length);
   return (
     <ScrollView style={styles.container}>
     
         <WebView
           style={{
-            padding: 7,
-
-            minHeight: history ? history.length : 1,
+            
+            minHeight: history ? history.length-6000 : 1,
             backgroundColor: ON_PRIMARY_COLOR,
             justifyContent: 'center',
             alignItems: 'center',
@@ -71,9 +70,10 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     position: 'relative',
-     height:"100%",
-    width:"100%",
-    backgroundColor: ON_PRIMARY_COLOR,
+     //height:"100%",
+     padding: 7,
+    //width:"100%",
+   // backgroundColor: ON_PRIMARY_COLOR,
   },
 
     descriptionContainer: {

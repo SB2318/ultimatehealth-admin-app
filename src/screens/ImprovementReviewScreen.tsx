@@ -215,6 +215,7 @@ const ImprovementReviewScreen = ({
 
       const fetchContentLength = async () => {
         const length = await getContentLength(source);
+        console.log("Webview length", length);
         setWebViewHeight(length);
       };
 
@@ -394,7 +395,7 @@ const ImprovementReviewScreen = ({
               style={{
                 padding: 7,
                 //width: '99%',
-                minHeight: webviewHeight,
+                height: webviewHeight-3000,
                 // flex:7,
                 justifyContent: 'center',
                 alignItems: 'center',

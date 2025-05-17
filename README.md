@@ -42,3 +42,33 @@ Role-based access control and secure auth systems ensure sensitive operations ar
    ProfileScreen: Article Publish Count, Improvement Counts
 
    ArticleViewScreen : Contributors section
+
+
+
+### Report Action
+
+#### Report Flow
+
+A user will be temporarily blocked if they have 3 or more active reports in their report bucket.
+
+---
+
+#### BLOCK USER (Temporary Restriction)
+
+When a user is blocked, the following restrictions apply:
+
+1. User will be unable to post new content.
+2. User will be unable to comment on existing content.
+3. User will be unable to react to or repost any content.
+4. User will be unable to submit edit requests.
+5. User can still view and save existing content.
+
+---
+
+#### BAN USER (Permanent Restriction)
+
+When a user is banned, the following actions are enforced:
+
+1. User will be unable to post new content.
+2. All content and comments created by the user will be removed from the platform.
+3. User will not be able to view any new or existing posts or perform any actions on the platform.

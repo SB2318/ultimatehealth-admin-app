@@ -50,6 +50,7 @@ Role-based access control and secure auth systems ensure sensitive operations ar
 #### Report Flow
 
 A user will be temporarily blocked if they have 3 or more active reports in their report bucket.
+Users are allowed to submit a **report resolution request** if they believe the reports against them are unfair or mistakenly filed. These requests will be reviewed by moderators.
 
 ---
 

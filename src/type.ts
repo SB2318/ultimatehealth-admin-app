@@ -289,3 +289,16 @@ export type PocketBaseResponse = {
   html_file: string;
   recordId: string;
 }
+
+export type ScoreData = {
+  score: number;
+  corrected: boolean;
+  approved: boolean;
+  correction_percentage: number;
+}
+
+export type ScoreCardProps ={
+  isVisible: boolean;
+  onClose: ()=>void;
+  data: ScoreData;
+}

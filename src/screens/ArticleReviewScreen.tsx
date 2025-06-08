@@ -13,7 +13,13 @@ import {useMutation, useQuery} from '@tanstack/react-query';
 import {BUTTON_COLOR, ON_PRIMARY_COLOR, PRIMARY_COLOR} from '../helper/Theme';
 import AntDesign from 'react-native-vector-icons/AntDesign';
 import MaterialIcon from 'react-native-vector-icons/MaterialIcons';
-import {ArticleData, ReviewScreenProp, Admin, Comment} from '../type';
+import {
+  ArticleData,
+  ReviewScreenProp,
+  Admin,
+  Comment,
+  ScoreData,
+} from '../type';
 import Feather from 'react-native-vector-icons/Feather';
 import Entypo from 'react-native-vector-icons/Entypo';
 import Ionicons from 'react-native-vector-icons/Ionicons';
@@ -23,6 +29,7 @@ import {useDispatch, useSelector} from 'react-redux';
 import WebView from 'react-native-webview';
 import {hp, wp} from '../helper/Metric';
 import {
+  CHECK_GRAMMAR,
   DISCARD_ARTICLE,
   GET_ARTICLE_BY_ID,
   GET_ARTICLE_CONTENT,
@@ -39,6 +46,7 @@ import {createFeebackHTMLStructure, StatusEnum} from '../helper/Utils';
 import CommentCardItem from './CommentCardItem';
 import DiscardReasonModal from '../components/DiscardReasonModal';
 import Loader from '../components/Loader';
+import ScorecardModal from '../components/ScoreCardModal';
 
 const ReviewScreen = ({route}: ReviewScreenProp) => {
   const {articleId, destination, recordId} = route.params;
@@ -47,6 +55,13 @@ const ReviewScreen = ({route}: ReviewScreenProp) => {
   const [feedback, setFeedback] = useState('');
   const [webviewHeight, setWebViewHeight] = useState(0);
   const [discardModalVisible, setDiscardModalVisible] = useState(false);
+  const [grammarModalVisible, setGrammarModalVisible] = useState(false);
+  const [scoreData, setScoreData] = useState<ScoreData>({
+    score: 0,
+    corrected: false,
+    correction_percentage: 0,
+    approved: false,
+  });
 
   const socket = useSocket();
   const dispatch = useDispatch();
@@ -58,6 +73,16 @@ const ReviewScreen = ({route}: ReviewScreenProp) => {
   const webViewRef = useRef<WebView>(null);
 
   function handleHeightChange(_height) {}
+
+  const onGrammarModalClose = () => {
+    setScoreData({
+      score: 0,
+      corrected: false,
+      correction_percentage: 0,
+      approved: false,
+    });
+    setGrammarModalVisible(false);
+  };
 
   function editorInitializedCallback() {
     RichText.current?.registerToolbar(function (_items) {});
@@ -75,7 +100,7 @@ const ReviewScreen = ({route}: ReviewScreenProp) => {
     },
   });
 
-   const {data: htmlContent} = useQuery({
+  const {data: htmlContent} = useQuery({
     queryKey: ['get-article-content'],
     queryFn: async () => {
       const response = await axios.get(`${GET_ARTICLE_CONTENT}/${recordId}`);
@@ -84,7 +109,7 @@ const ReviewScreen = ({route}: ReviewScreenProp) => {
     },
   });
 
-   const noDataHtml = '<p>No Data found</p>';
+  const noDataHtml = '<p>No Data found</p>';
 
   const {data: user} = useQuery({
     queryKey: ['get-my-profile'],
@@ -103,7 +128,10 @@ const ReviewScreen = ({route}: ReviewScreenProp) => {
   }
 
   useEffect(() => {
-    if (destination !== StatusEnum.UNASSIGNED && destination !== StatusEnum.PUBLISHED) {
+    if (
+      destination !== StatusEnum.UNASSIGNED &&
+      destination !== StatusEnum.PUBLISHED
+    ) {
       socket.emit('load-review-comments', {articleId: route.params.articleId});
     }
 
@@ -117,25 +145,23 @@ const ReviewScreen = ({route}: ReviewScreenProp) => {
 
     socket.on('review-comments', data => {
       console.log('comment loaded');
-   
-        setComments(data.comments);
-      
+
+      setComments(data.comments);
     });
 
     // Listen for new comments
     socket.on('new-feedback', data => {
       console.log('new comment loaded', data);
-    
-        setComments(prevComments => {
-          const newComments = [data.comment, ...prevComments];
-          // Scroll to the first index after adding the new comment
-          if (flatListRef.current && newComments.length > 1) {
-            flatListRef?.current.scrollToIndex({index: 0, animated: true});
-          }
 
-          return newComments;
-        });
-      
+      setComments(prevComments => {
+        const newComments = [data.comment, ...prevComments];
+        // Scroll to the first index after adding the new comment
+        if (flatListRef.current && newComments.length > 1) {
+          flatListRef?.current.scrollToIndex({index: 0, animated: true});
+        }
+
+        return newComments;
+      });
     });
 
     return () => {
@@ -144,9 +170,6 @@ const ReviewScreen = ({route}: ReviewScreenProp) => {
       socket.off('error');
     };
   }, [socket, route.params.articleId, destination]);
-
-
-
 
   const discardArticleMutation = useMutation({
     mutationKey: ['discard-article-in-review-state'],
@@ -166,8 +189,8 @@ const ReviewScreen = ({route}: ReviewScreenProp) => {
     },
 
     onSuccess: () => {
-     // onRefresh();
-     Alert.alert("Article discarded");
+      // onRefresh();
+      Alert.alert('Article discarded');
     },
     onError: err => {
       console.log('Error', err);
@@ -193,8 +216,30 @@ const ReviewScreen = ({route}: ReviewScreenProp) => {
     },
 
     onSuccess: () => {
-     // onRefresh();
-     Alert.alert("Article published");
+      // onRefresh();
+      Alert.alert('Article published');
+    },
+    onError: err => {
+      console.log('Error', err);
+      Alert.alert(err.message);
+    },
+  });
+
+  const grammarCheckMutation = useMutation({
+    mutationKey: ['check-grammar-in-review-state'],
+    mutationFn: async () => {
+      const res = await axios.post(CHECK_GRAMMAR, {
+        text: htmlContent,
+      });
+
+      return res.data.corrected as ScoreData;
+    },
+
+    onSuccess: data => {
+      // onRefresh();
+      console.log('ScoreData', data);
+      setScoreData(data);
+      setGrammarModalVisible(true);
     },
     onError: err => {
       console.log('Error', err);
@@ -218,9 +263,9 @@ const ReviewScreen = ({route}: ReviewScreenProp) => {
 
       fetchContentLength();
       */
-     setWebViewHeight(htmlContent.length);
-    }else{
-      setWebViewHeight(noDataHtml.length)
+      setWebViewHeight(htmlContent.length);
+    } else {
+      setWebViewHeight(noDataHtml.length);
     }
   }, [htmlContent]);
 
@@ -238,10 +283,7 @@ const ReviewScreen = ({route}: ReviewScreenProp) => {
       document.head.appendChild(style);
     `;
 
-
-
- 
-    /*
+  /*
   const getContentLength = async (contentSource: {
     uri?: string;
     html?: string;
@@ -262,9 +304,8 @@ const ReviewScreen = ({route}: ReviewScreenProp) => {
   };
   */
 
-
-  if(discardArticleMutation.isPending || publishArticleMutation.isPending){
-    return <Loader />
+  if (grammarCheckMutation.isPending || discardArticleMutation.isPending || publishArticleMutation.isPending) {
+    return <Loader />;
   }
 
   return (
@@ -285,86 +326,93 @@ const ReviewScreen = ({route}: ReviewScreenProp) => {
             />
           )}
 
-        {
-          destination !== StatusEnum.PUBLISHED && (
+          {destination !== StatusEnum.PUBLISHED && (
             <TouchableOpacity
-            style={styles.topIcon}
-            onPress={() => {
-              // Image copyright checker
-            }}>
-
-           <MaterialIcon name="plagiarism" size={30} color={PRIMARY_COLOR} /> 
-          </TouchableOpacity>
-          )
-        }
-
-          {article?.status !== StatusEnum.DISCARDED && destination !== StatusEnum.PUBLISHED && (
-            <TouchableOpacity
+              style={styles.topIcon}
               onPress={() => {
-                // Discard Article
-                setDiscardModalVisible(true);
-              }}
-              style={[
-                styles.likeButton,
-                {
-                  backgroundColor: 'red',
-                },
-              ]}>
-              <AntDesign name="poweroff" size={27} color={'white'} />
+                // Image copyright checker
+              }}>
+              <MaterialIcon name="plagiarism" size={30} color={PRIMARY_COLOR} />
             </TouchableOpacity>
           )}
 
-          {article?.status !== StatusEnum.DISCARDED && destination !== StatusEnum.PUBLISHED && (
-            <TouchableOpacity
-              onPress={() => {
-                // Grammar checker
-              }}
-              style={[
-                styles.playButton,
-                {
-                  backgroundColor: BUTTON_COLOR,
-                },
-              ]}>
-              <AntDesign name="google" size={28} color={'white'} />
-            </TouchableOpacity>
-          )}
+          {article?.status !== StatusEnum.DISCARDED &&
+            destination !== StatusEnum.PUBLISHED && (
+              <TouchableOpacity
+                onPress={() => {
+                  // Discard Article
+                  setDiscardModalVisible(true);
+                }}
+                style={[
+                  styles.likeButton,
+                  {
+                    backgroundColor: 'red',
+                  },
+                ]}>
+                <AntDesign name="poweroff" size={27} color={'white'} />
+              </TouchableOpacity>
+            )}
 
-          {article?.status !== StatusEnum.DISCARDED && destination !== StatusEnum.PUBLISHED && (
-            <TouchableOpacity
-              onPress={() => {
-                // Palagrism Checker
-              }}
-              style={[
-                styles.plaButton,
-                {
-                  backgroundColor: '#660099',
-                },
-              ]}>
-                <MaterialIcon size={28} name="published-with-changes" color={'white'} /> 
-             
-            </TouchableOpacity>
-          )}
+          {article?.status !== StatusEnum.DISCARDED &&
+            destination !== StatusEnum.PUBLISHED && (
+              <TouchableOpacity
+                onPress={() => {
+                  // Grammar checker
+                  grammarCheckMutation.mutate();
+                }}
+                style={[
+                  styles.playButton,
+                  {
+                    backgroundColor: BUTTON_COLOR,
+                  },
+                ]}>
+                <AntDesign name="google" size={28} color={'white'} />
+              </TouchableOpacity>
+            )}
 
-            {article?.status !== StatusEnum.DISCARDED && destination !== StatusEnum.PUBLISHED && (
-            <TouchableOpacity
-              onPress={() => {
-                // Publish article
-                publishArticleMutation.mutate({
-                  articleId: article? article._id: '0' ,
-                  reviewer_id: user_id,
-                });
-              }}
-              style={[
-                styles.pubButton,
-                {
-                  backgroundColor: '#478778',
-              
-                },
-              ]}>
-                <MaterialIcon size={28} name="domain-verification" color={'white'} /> 
-             
-            </TouchableOpacity>
-          )}
+          {article?.status !== StatusEnum.DISCARDED &&
+            destination !== StatusEnum.PUBLISHED && (
+              <TouchableOpacity
+                onPress={() => {
+                  // Palagrism Checker
+                }}
+                style={[
+                  styles.plaButton,
+                  {
+                    backgroundColor: '#660099',
+                  },
+                ]}>
+                <MaterialIcon
+                  size={28}
+                  name="published-with-changes"
+                  color={'white'}
+                />
+              </TouchableOpacity>
+            )}
+
+          {article?.status !== StatusEnum.DISCARDED &&
+            destination !== StatusEnum.PUBLISHED && (
+              <TouchableOpacity
+                onPress={() => {
+                  // Publish article
+                  publishArticleMutation.mutate({
+                    articleId: article ? article._id : '0',
+                    reviewer_id: user_id,
+                  });
+                }}
+                style={[
+                  styles.pubButton,
+                  {
+                    backgroundColor: '#478778',
+                  },
+                ]}>
+                <MaterialIcon
+                  size={28}
+                  name="domain-verification"
+                  color={'white'}
+                />
+              </TouchableOpacity>
+            )}
         </View>
         <View style={styles.contentContainer}>
           {article && article?.tags && (
@@ -395,7 +443,7 @@ const ReviewScreen = ({route}: ReviewScreenProp) => {
               ref={webViewRef}
               originWhitelist={['*']}
               injectedJavaScript={cssCode}
-              source={{html: htmlContent? htmlContent: noDataHtml}}
+              source={{html: htmlContent ? htmlContent : noDataHtml}}
               textZoom={100}
             />
           </View>
@@ -514,30 +562,33 @@ const ReviewScreen = ({route}: ReviewScreenProp) => {
             </View>
           )}
 
-        {
-          comments && destination !== StatusEnum.PUBLISHED && (
+        {comments && destination !== StatusEnum.PUBLISHED && (
           <View style={{padding: wp(4), marginTop: hp(4.5)}}>
             {comments?.map((item, index) => (
               <CommentCardItem key={index} item={item} />
             ))}
           </View>
-          )
-        }
-                     <DiscardReasonModal
-                        visible={discardModalVisible}
-                        callback={(reason: string)=>{
-                           //onclick(item, 1, reason);
-                           discardArticleMutation.mutate({
-                             articleId: article ? article._id : '0',
-                             reason: reason
-                           });
-                           setDiscardModalVisible(false);
-                        }}
-                        dismiss={()=>{
-                          setDiscardModalVisible(false)
-                        }}
-        
-                       />
+        )}
+        <DiscardReasonModal
+          visible={discardModalVisible}
+          callback={(reason: string) => {
+            //onclick(item, 1, reason);
+            discardArticleMutation.mutate({
+              articleId: article ? article._id : '0',
+              reason: reason,
+            });
+            setDiscardModalVisible(false);
+          }}
+          dismiss={() => {
+            setDiscardModalVisible(false);
+          }}
+        />
+
+        <ScorecardModal
+          isVisible={grammarModalVisible}
+          onClose={onGrammarModalClose}
+          data={scoreData}
+        />
       </ScrollView>
     </View>
   );
@@ -569,34 +620,38 @@ const styles = StyleSheet.create({
   },
 
   likeButton: {
-    padding: 10,
+    padding: 14,
     position: 'absolute',
     bottom: -25,
+    marginHorizontal:57,
     right: 160,
     borderRadius: 50,
   },
 
   playButton: {
-    padding: 10,
+    padding: 14,
     position: 'absolute',
     bottom: -25,
     right: 110,
+    marginHorizontal:35,
     borderRadius: 50,
   },
 
   plaButton: {
-    padding: 10,
+    padding: 14,
     position: 'absolute',
     bottom: -25,
     right: 60,
+    marginHorizontal:19,
     borderRadius: 50,
   },
 
   pubButton: {
-    padding: 10,
+    padding: 14,
     position: 'absolute',
     bottom: -25,
     right: 10,
+    marginHorizontal:5,
     borderRadius: 50,
   },
   contentContainer: {
@@ -797,7 +852,7 @@ const styles = StyleSheet.create({
     position: 'absolute',
     top: 10,
     right: 10,
-   
+
     paddingHorizontal: 8,
     paddingVertical: 6,
     borderRadius: 50,

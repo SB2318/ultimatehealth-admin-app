@@ -38,6 +38,7 @@ const GET_IMPROVEMENT_CONTENT = `${Config.BASE_URL}/articles/get-improve-content
 const PUBLISH_IMPROVEMENT_POCKETBASE = `${Config.BASE_URL}/publish-improvement-from-pocketbase`;
 const DELETE_IMPROVEMENT_RECORD_PB = `${Config.BASE_URL}/delete-improvement`;
 // For verification related POST and GET request, send isAdmin in request body and query.
+const CHECK_GRAMMAR = `${Config.CONTENT_CHECKER_URL}/grammar/check-grammar`;
 export {
     LOGIN_API,
     REGISTRATION_API,
@@ -75,5 +76,6 @@ export {
     GET_ARTICLE_CONTENT,
     GET_IMPROVEMENT_CONTENT,
     PUBLISH_IMPROVEMENT_POCKETBASE,
-    DELETE_IMPROVEMENT_RECORD_PB
+    DELETE_IMPROVEMENT_RECORD_PB,
+    CHECK_GRAMMAR
 }

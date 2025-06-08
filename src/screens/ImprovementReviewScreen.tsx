@@ -20,6 +20,8 @@ import {
   ImprovementScreenProp,
   EditRequest,
   PocketBaseResponse,
+  PlagiarismResponse,
+  ScoreData,
 } from '../type';
 import Feather from 'react-native-vector-icons/Feather';
 import Entypo from 'react-native-vector-icons/Entypo';
@@ -30,12 +32,13 @@ import {useDispatch, useSelector} from 'react-redux';
 import WebView from 'react-native-webview';
 import {hp, wp} from '../helper/Metric';
 import {
+  CHECK_GRAMMAR,
+  CHECK_PLAGIARISM,
   DELETE_IMPROVEMENT_RECORD_PB,
   DISCARD_IMPROVEMENT,
   GET_IMPROVEMENT_BY_ID,
   GET_IMPROVEMENT_CONTENT,
   GET_PROFILE_API,
-  PUBLISH_ARTICLE,
   PUBLISH_IMPROVEMENT,
   PUBLISH_IMPROVEMENT_POCKETBASE,
 } from '../helper/APIUtils';
@@ -50,6 +53,8 @@ import CommentCardItem from './CommentCardItem';
 import DiscardReasonModal from '../components/DiscardReasonModal';
 import Loader from '../components/Loader';
 import Snackbar from 'react-native-snackbar';
+import PlagiarismModal from '../components/PlagiarismModal';
+import ScorecardModal from '../components/ScoreCardModal';
 
 const ImprovementReviewScreen = ({
   navigation,
@@ -64,6 +69,21 @@ const ImprovementReviewScreen = ({
   const [webviewHeight, setWebViewHeight] = useState(0);
   const [discardModalVisible, setDiscardModalVisible] = useState(false);
   const [discardReason, setDiscardReason] = useState<string>('');
+
+    const [grammarModalVisible, setGrammarModalVisible] = useState(false);
+    const [plagModalVisible, setPlagModalVisible] = useState(false);
+    const [scoreData, setScoreData] = useState<ScoreData>({
+      score: 0,
+      corrected: false,
+      correction_percentage: 0,
+      approved: false,
+    });
+  
+    const [plagrisedData, setPlagrisedData] = useState<PlagiarismResponse>({
+      plagiarised_percentage: 0,
+      plagiarised_text: '',
+      source_title: '',
+    });
 
   const socket = useSocket();
   const dispatch = useDispatch();
@@ -129,6 +149,27 @@ const ImprovementReviewScreen = ({
   if (user) {
     dispatch(setUserHandle(user.user_handle));
   }
+
+
+   const onGrammarModalClose = () => {
+    setScoreData({
+      score: 0,
+      corrected: false,
+      correction_percentage: 0,
+      approved: false,
+    });
+    setGrammarModalVisible(false);
+  };
+
+  const onPlagiarismModalClose = () => {
+    setPlagrisedData({
+      plagiarised_percentage: 0,
+      plagiarised_text: '',
+      source_title: '',
+    });
+    setPlagModalVisible(false);
+  };
+
 
   useEffect(() => {
     if (destination !== StatusEnum.UNASSIGNED) {
@@ -294,6 +335,51 @@ const ImprovementReviewScreen = ({
     },
   });
 
+
+   const grammarCheckMutation = useMutation({
+    mutationKey: ['check-grammar-improvement-in-review-state'],
+    mutationFn: async () => {
+      const res = await axios.post(CHECK_GRAMMAR, {
+        text: htmlContent,
+      });
+
+      return res.data.corrected as ScoreData;
+    },
+
+    onSuccess: data => {
+      // onRefresh();
+      console.log('ScoreData', data);
+      setScoreData(data);
+      setGrammarModalVisible(true);
+    },
+    onError: err => {
+      console.log('Error', err);
+      Alert.alert(err.message);
+    },
+  });
+
+  const plagiarismCheckMutation = useMutation({
+    mutationKey: ['check-plagiarism-improvement-in-review-state'],
+    mutationFn: async () => {
+      const res = await axios.post(CHECK_PLAGIARISM, {
+        text: htmlContent,
+      });
+
+      return res.data.corrected as PlagiarismResponse;
+    },
+
+    onSuccess: data => {
+      // onRefresh();
+      //console.log('ScoreData', data);
+      setPlagrisedData(data);
+      setPlagModalVisible(true);
+    },
+    onError: err => {
+      console.log('Error', err);
+      Alert.alert(err.message);
+    },
+  });
+
   useEffect(() => {
     if (htmlContent) {
       setWebViewHeight(htmlContent.length);
@@ -348,6 +434,8 @@ const ImprovementReviewScreen = ({
   };
   */
   if (
+    grammarCheckMutation.isPending ||
+    plagiarismCheckMutation.isPending ||
     discardImprovementPBMutation.isPending ||
     discardImprovementMutation.isPending ||
     publishImprovementMutation.isPending ||
@@ -404,6 +492,7 @@ const ImprovementReviewScreen = ({
             <TouchableOpacity
               onPress={() => {
                 // Grammar checker
+                grammarCheckMutation.mutate();
               }}
               style={[
                 styles.playButton,
@@ -419,6 +508,7 @@ const ImprovementReviewScreen = ({
             <TouchableOpacity
               onPress={() => {
                 // Palagrism Checker
+                plagiarismCheckMutation.mutate();
               }}
               style={[
                 styles.plaButton,
@@ -667,6 +757,18 @@ const ImprovementReviewScreen = ({
           dismiss={() => {
             setDiscardModalVisible(false);
           }}
+        />
+
+         <ScorecardModal
+          isVisible={grammarModalVisible}
+          onClose={onGrammarModalClose}
+          data={scoreData}
+        />
+
+        <PlagiarismModal
+          isVisible={plagModalVisible}
+          onClose={onPlagiarismModalClose}
+          data={plagrisedData}
         />
       </ScrollView>
     </View>

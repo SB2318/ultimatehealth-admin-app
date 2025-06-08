@@ -19,6 +19,7 @@ import {
   Admin,
   Comment,
   ScoreData,
+  PlagiarismResponse,
 } from '../type';
 import Feather from 'react-native-vector-icons/Feather';
 import Entypo from 'react-native-vector-icons/Entypo';
@@ -30,6 +31,7 @@ import WebView from 'react-native-webview';
 import {hp, wp} from '../helper/Metric';
 import {
   CHECK_GRAMMAR,
+  CHECK_PLAGIARISM,
   DISCARD_ARTICLE,
   GET_ARTICLE_BY_ID,
   GET_ARTICLE_CONTENT,
@@ -47,6 +49,7 @@ import CommentCardItem from './CommentCardItem';
 import DiscardReasonModal from '../components/DiscardReasonModal';
 import Loader from '../components/Loader';
 import ScorecardModal from '../components/ScoreCardModal';
+import PlagiarismModal from '../components/PlagiarismModal';
 
 const ReviewScreen = ({route}: ReviewScreenProp) => {
   const {articleId, destination, recordId} = route.params;
@@ -56,11 +59,18 @@ const ReviewScreen = ({route}: ReviewScreenProp) => {
   const [webviewHeight, setWebViewHeight] = useState(0);
   const [discardModalVisible, setDiscardModalVisible] = useState(false);
   const [grammarModalVisible, setGrammarModalVisible] = useState(false);
+  const [plagModalVisible, setPlagModalVisible] = useState(false);
   const [scoreData, setScoreData] = useState<ScoreData>({
     score: 0,
     corrected: false,
     correction_percentage: 0,
     approved: false,
+  });
+
+  const [plagrisedData, setPlagrisedData] = useState<PlagiarismResponse>({
+    plagiarised_percentage: 0,
+    plagiarised_text: '',
+    source_title: '',
   });
 
   const socket = useSocket();
@@ -82,6 +92,15 @@ const ReviewScreen = ({route}: ReviewScreenProp) => {
       approved: false,
     });
     setGrammarModalVisible(false);
+  };
+
+  const onPlagiarismModalClose = () => {
+    setPlagrisedData({
+      plagiarised_percentage: 0,
+      plagiarised_text: '',
+      source_title: '',
+    });
+    setPlagModalVisible(false);
   };
 
   function editorInitializedCallback() {
@@ -246,6 +265,28 @@ const ReviewScreen = ({route}: ReviewScreenProp) => {
       Alert.alert(err.message);
     },
   });
+
+  const plagiarismCheckMutation = useMutation({
+    mutationKey: ['check-plagiarism-in-review-state'],
+    mutationFn: async () => {
+      const res = await axios.post(CHECK_PLAGIARISM, {
+        text: htmlContent,
+      });
+
+      return res.data.corrected as PlagiarismResponse;
+    },
+
+    onSuccess: data => {
+      // onRefresh();
+      //console.log('ScoreData', data);
+      setPlagrisedData(data);
+      setPlagModalVisible(true);
+    },
+    onError: err => {
+      console.log('Error', err);
+      Alert.alert(err.message);
+    },
+  });
   useEffect(() => {
     if (htmlContent) {
       /*
@@ -304,7 +345,14 @@ const ReviewScreen = ({route}: ReviewScreenProp) => {
   };
   */
 
-  if (grammarCheckMutation.isPending || discardArticleMutation.isPending || publishArticleMutation.isPending) {
+ // console.log("htmlContent", htmlContent);
+
+  if (
+    plagiarismCheckMutation.isPending ||
+    grammarCheckMutation.isPending ||
+    discardArticleMutation.isPending ||
+    publishArticleMutation.isPending
+  ) {
     return <Loader />;
   }
 
@@ -375,6 +423,7 @@ const ReviewScreen = ({route}: ReviewScreenProp) => {
               <TouchableOpacity
                 onPress={() => {
                   // Palagrism Checker
+                  plagiarismCheckMutation.mutate();
                 }}
                 style={[
                   styles.plaButton,
@@ -589,6 +638,12 @@ const ReviewScreen = ({route}: ReviewScreenProp) => {
           onClose={onGrammarModalClose}
           data={scoreData}
         />
+
+        <PlagiarismModal
+          isVisible={plagModalVisible}
+          onClose={onPlagiarismModalClose}
+          data={plagrisedData}
+        />
       </ScrollView>
     </View>
   );
@@ -623,7 +678,7 @@ const styles = StyleSheet.create({
     padding: 14,
     position: 'absolute',
     bottom: -25,
-    marginHorizontal:57,
+    marginHorizontal: 57,
     right: 160,
     borderRadius: 50,
   },
@@ -633,7 +688,7 @@ const styles = StyleSheet.create({
     position: 'absolute',
     bottom: -25,
     right: 110,
-    marginHorizontal:35,
+    marginHorizontal: 35,
     borderRadius: 50,
   },
 
@@ -642,7 +697,7 @@ const styles = StyleSheet.create({
     position: 'absolute',
     bottom: -25,
     right: 60,
-    marginHorizontal:19,
+    marginHorizontal: 19,
     borderRadius: 50,
   },
 
@@ -651,7 +706,7 @@ const styles = StyleSheet.create({
     position: 'absolute',
     bottom: -25,
     right: 10,
-    marginHorizontal:5,
+    marginHorizontal: 5,
     borderRadius: 50,
   },
   contentContainer: {

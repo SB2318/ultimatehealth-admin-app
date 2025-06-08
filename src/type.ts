@@ -302,3 +302,15 @@ export type ScoreCardProps ={
   onClose: ()=>void;
   data: ScoreData;
 }
+
+export type PlagiarismResponse = {
+  plagiarised_percentage: number;
+  plagiarised_text: string;
+  source_title: string;
+}
+
+export type PlagiarismProps = {
+ isVisible: boolean;
+ onClose: ()=> void;
+ data: PlagiarismResponse;
+}

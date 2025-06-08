@@ -39,6 +39,7 @@ const PUBLISH_IMPROVEMENT_POCKETBASE = `${Config.BASE_URL}/publish-improvement-f
 const DELETE_IMPROVEMENT_RECORD_PB = `${Config.BASE_URL}/delete-improvement`;
 // For verification related POST and GET request, send isAdmin in request body and query.
 const CHECK_GRAMMAR = `${Config.CONTENT_CHECKER_URL}/grammar/check-grammar`;
+const CHECK_PLAGIARISM = `${Config.CONTENT_CHECKER_URL}/plagiarism/check`;
 export {
     LOGIN_API,
     REGISTRATION_API,
@@ -77,5 +78,6 @@ export {
     GET_IMPROVEMENT_CONTENT,
     PUBLISH_IMPROVEMENT_POCKETBASE,
     DELETE_IMPROVEMENT_RECORD_PB,
-    CHECK_GRAMMAR
+    CHECK_GRAMMAR,
+    CHECK_PLAGIARISM
 }

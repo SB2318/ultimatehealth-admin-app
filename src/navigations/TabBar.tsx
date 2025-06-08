@@ -7,7 +7,7 @@ import {PRIMARY_COLOR} from '../helper/Theme';
 import { useFocusEffect } from '@react-navigation/native';
 import { useQuery } from '@tanstack/react-query';
 import axios from 'axios';
-import { EC2_BASE_URL } from '../helper/APIUtils';
+import Config from 'react-native-config';
 import { useSelector } from 'react-redux';
 
 const TabBar = ({state, descriptors, navigation}: any) => {
@@ -22,7 +22,7 @@ const TabBar = ({state, descriptors, navigation}: any) => {
             throw new Error('No token found');
           }
           const response = await axios.get(
-            `${EC2_BASE_URL}/notification/unread-count?role=1`,
+            `${Config.BASE_URL}/notification/unread-count?role=1`,
             {
               //headers: {
               //  Authorization: `Bearer ${user_token}`,

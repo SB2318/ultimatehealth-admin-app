@@ -13,7 +13,6 @@ import {useMutation, useQuery} from '@tanstack/react-query';
 import {BUTTON_COLOR, ON_PRIMARY_COLOR, PRIMARY_COLOR} from '../helper/Theme';
 import AntDesign from 'react-native-vector-icons/AntDesign';
 import MaterialIcon from 'react-native-vector-icons/MaterialIcons';
-import {useSafeAreaInsets} from 'react-native-safe-area-context';
 import {ArticleData, ReviewScreenProp, Admin, Comment} from '../type';
 import Feather from 'react-native-vector-icons/Feather';
 import Entypo from 'react-native-vector-icons/Entypo';
@@ -26,8 +25,8 @@ import {hp, wp} from '../helper/Metric';
 import {
   DISCARD_ARTICLE,
   GET_ARTICLE_BY_ID,
+  GET_ARTICLE_CONTENT,
   GET_PROFILE_API,
-  GET_STORAGE_DATA,
   PUBLISH_ARTICLE,
 } from '../helper/APIUtils';
 import axios from 'axios';
@@ -37,13 +36,12 @@ import {useSocket} from '../components/SocketContext';
 import {setUserHandle} from '../stores/UserSlice';
 import {actions, RichEditor, RichToolbar} from 'react-native-pell-rich-editor';
 import {createFeebackHTMLStructure, StatusEnum} from '../helper/Utils';
-import ReviewItem from '../components/ReviewCard';
 import CommentCardItem from './CommentCardItem';
 import DiscardReasonModal from '../components/DiscardReasonModal';
 import Loader from '../components/Loader';
 
 const ReviewScreen = ({route}: ReviewScreenProp) => {
-  const {articleId, destination} = route.params;
+  const {articleId, destination, recordId} = route.params;
   const {user_id} = useSelector((state: any) => state.user);
   const RichText = useRef();
   const [feedback, setFeedback] = useState('');
@@ -76,6 +74,17 @@ const ReviewScreen = ({route}: ReviewScreenProp) => {
       return response.data.article as ArticleData;
     },
   });
+
+   const {data: htmlContent} = useQuery({
+    queryKey: ['get-article-content'],
+    queryFn: async () => {
+      const response = await axios.get(`${GET_ARTICLE_CONTENT}/${recordId}`);
+      //console.log('HTML RES', response.data);
+      return response.data.htmlContent as string;
+    },
+  });
+
+   const noDataHtml = '<p>No Data found</p>';
 
   const {data: user} = useQuery({
     queryKey: ['get-my-profile'],
@@ -193,7 +202,8 @@ const ReviewScreen = ({route}: ReviewScreenProp) => {
     },
   });
   useEffect(() => {
-    if (article) {
+    if (htmlContent) {
+      /*
       let source = article?.content?.endsWith('.html')
         ? {uri: `${GET_STORAGE_DATA}/${article.content}`}
         : {html: article?.content};
@@ -207,8 +217,12 @@ const ReviewScreen = ({route}: ReviewScreenProp) => {
       };
 
       fetchContentLength();
+      */
+     setWebViewHeight(htmlContent.length);
+    }else{
+      setWebViewHeight(noDataHtml.length)
     }
-  }, [article]);
+  }, [htmlContent]);
 
   // console.log('author id', authorId);
 
@@ -224,11 +238,10 @@ const ReviewScreen = ({route}: ReviewScreenProp) => {
       document.head.appendChild(style);
     `;
 
-  const contentSource = article?.content?.endsWith('.html')
-    ? {uri: `${GET_STORAGE_DATA}/${article.content}`}
-    : {html: article?.content};
 
-  // eslint-disable-next-line @typescript-eslint/no-shadow
+
+ 
+    /*
   const getContentLength = async (contentSource: {
     uri?: string;
     html?: string;
@@ -247,6 +260,7 @@ const ReviewScreen = ({route}: ReviewScreenProp) => {
     }
     return 0;
   };
+  */
 
 
   if(discardArticleMutation.isPending || publishArticleMutation.isPending){
@@ -381,7 +395,7 @@ const ReviewScreen = ({route}: ReviewScreenProp) => {
               ref={webViewRef}
               originWhitelist={['*']}
               injectedJavaScript={cssCode}
-              source={contentSource}
+              source={{html: htmlContent? htmlContent: noDataHtml}}
               textZoom={100}
             />
           </View>

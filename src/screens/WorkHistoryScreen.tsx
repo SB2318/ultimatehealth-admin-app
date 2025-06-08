@@ -66,6 +66,7 @@ export default function WorkHistoryScreen({
               articleId: Number(item._id),
               authorId: item.authorId,
               destination: item.status,
+              recordId: item.pb_recordId
             });
           }}
         />

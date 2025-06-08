@@ -17,6 +17,7 @@ export type RootStackParamList = {
     articleId: number;
     authorId: string;
     destination: string;
+    recordId: string;
   };
   EditProfile: undefined;
   LogoutScreen: {profile_image: string; username: string};
@@ -25,6 +26,8 @@ export type RootStackParamList = {
     requestId: string;
     authorId: string;
     destination: string;
+    recordId: string;
+    articleRecordId: string
   };
   ChangesHistoryScreen:{
     requestId: string;
@@ -67,29 +70,36 @@ export type EditRequest = {
   created_at: Date;
   discardReason: string;
   last_updated: Date;
-
+  pb_recordId: string;
+  article_recordId: string;
 };
- export type ArticleData = {
-   _id: string;
-   title: string;
-   description: string;
-   authorName: string;
-   authorId: string;
-   content: string;
-   summary: string;
-   tags: Category[];
-   lastUpdated: string;
-   imageUtils: string[];
-   viewCount: number;
-   viewUsers: [];
-   repostUsers: string[];
-   likeCount: number;
-   likedUsers: [];
-   savedUsers: string[];
-   mentionedUsers: [];
-   status: string;
-   reviewer_id: string | null;
- };
+ 
+export type ArticleData = {
+  _id: string;
+  title: string;
+  authorName: string;
+  description: string;
+  authorId:  string;
+  content: string;
+  summary: string;
+  tags: Category[];
+  lastUpdated: string;
+  imageUtils: string[];
+  viewCount: number;
+  //viewUsers: User[];
+  repostUsers: string[];
+  likeCount: number;
+ // likedUsers: User[];
+  savedUsers: string[];
+  //mentionedUsers: User[];
+  assigned_date: string | null;
+  discardReason: string;
+  status: string;
+  reviewer_id: string | null | undefined;
+  //contributors: User[];
+  pb_recordId: string;
+};
+
 
  export type Category = {
    __v: number;
@@ -273,3 +283,9 @@ export type Comment = {
   isReview: Boolean;
   isNote: Boolean;
 };
+
+export type PocketBaseResponse = {
+  message: string;
+  html_file: string;
+  recordId: string;
+}

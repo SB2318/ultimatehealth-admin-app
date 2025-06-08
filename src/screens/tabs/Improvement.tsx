@@ -28,7 +28,13 @@ import {useSelector} from 'react-redux';
 export default function Imrovement({
   handleNav,
 }: {
-  handleNav: (requestId: string, authorId: string, destination: string) => void;
+  handleNav: (
+    requestId: string,
+    authorId: string,
+    destination: string,
+    recordId: string,
+    articleRecordId: string
+  ) => void;
 }) {
   const [refreshing, setRefreshing] = useState<boolean>(false);
   const [selectedCardId, setSelectedCardId] = useState<string>('');
@@ -192,12 +198,19 @@ export default function Imrovement({
             //  authorId: item.authorId,
             //  destination: item.status,
             //});
-            handleNav(item._id, item.article.authorId, item.status);
+            handleNav(item._id, item.article.authorId, item.status, item.pb_recordId, item.article_recordId);
           }}
         />
       );
     },
-    [discardImprovementMutation, handleNav, pickImprovementMutation, selectedCardId, unassignFromImprovementMutation, user_id],
+    [
+      discardImprovementMutation,
+      handleNav,
+      pickImprovementMutation,
+      selectedCardId,
+      unassignFromImprovementMutation,
+      user_id,
+    ],
   );
 
   if (

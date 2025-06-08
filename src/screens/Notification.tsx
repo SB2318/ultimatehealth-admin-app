@@ -10,7 +10,7 @@ import {NotificationProps, NotificationD} from '../type';
 import {ON_PRIMARY_COLOR, PRIMARY_COLOR} from '../helper/Theme';
 import NotificationItem from '../components/NotificationItem';
 import Snackbar from 'react-native-snackbar';
-import {EC2_BASE_URL} from '../helper/APIUtils';
+import Config from 'react-native-config';
 import {useMutation, useQuery} from '@tanstack/react-query';
 import {useSelector} from 'react-redux';
 import {useEffect, useState} from 'react';
@@ -34,7 +34,7 @@ export default function Notification({navigation}: NotificationProps) {
           throw new Error('No token found');
         }
         const response = await axios.get(
-          `${EC2_BASE_URL}/notifications?role=1`,
+          `${Config.BASE_URL}/notifications?role=1`,
           {
            // headers: {
             //  Authorization: `Bearer ${user_token}`,
@@ -59,7 +59,7 @@ export default function Notification({navigation}: NotificationProps) {
         return;
       }
       const res = await axios.put(
-        `${EC2_BASE_URL}/notifications/mark-as-read`,
+        `${Config.BASE_URL}/notifications/mark-as-read`,
         {
             role: 1
         },
@@ -98,7 +98,7 @@ export default function Notification({navigation}: NotificationProps) {
         return;
       }
       const res = await axios.delete(
-        `${EC2_BASE_URL}/notification/${id}`,
+        `${Config.BASE_URL}/notification/${id}`,
 
         {
          // headers: {

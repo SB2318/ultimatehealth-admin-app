@@ -14,7 +14,13 @@ import {BUTTON_COLOR, ON_PRIMARY_COLOR, PRIMARY_COLOR} from '../helper/Theme';
 import AntDesign from 'react-native-vector-icons/AntDesign';
 import MaterialIcon from 'react-native-vector-icons/MaterialIcons';
 import {useSafeAreaInsets} from 'react-native-safe-area-context';
-import {Admin, Comment, ImprovementScreenProp, EditRequest} from '../type';
+import {
+  Admin,
+  Comment,
+  ImprovementScreenProp,
+  EditRequest,
+  PocketBaseResponse,
+} from '../type';
 import Feather from 'react-native-vector-icons/Feather';
 import Entypo from 'react-native-vector-icons/Entypo';
 import Ionicons from 'react-native-vector-icons/Ionicons';
@@ -24,11 +30,14 @@ import {useDispatch, useSelector} from 'react-redux';
 import WebView from 'react-native-webview';
 import {hp, wp} from '../helper/Metric';
 import {
+  DELETE_IMPROVEMENT_RECORD_PB,
   DISCARD_IMPROVEMENT,
   GET_IMPROVEMENT_BY_ID,
+  GET_IMPROVEMENT_CONTENT,
   GET_PROFILE_API,
-  GET_STORAGE_DATA,
   PUBLISH_ARTICLE,
+  PUBLISH_IMPROVEMENT,
+  PUBLISH_IMPROVEMENT_POCKETBASE,
 } from '../helper/APIUtils';
 import axios from 'axios';
 
@@ -37,7 +46,6 @@ import {useSocket} from '../components/SocketContext';
 import {setUserHandle} from '../stores/UserSlice';
 import {actions, RichEditor, RichToolbar} from 'react-native-pell-rich-editor';
 import {createFeebackHTMLStructure, StatusEnum} from '../helper/Utils';
-import ReviewItem from '../components/ReviewCard';
 import CommentCardItem from './CommentCardItem';
 import DiscardReasonModal from '../components/DiscardReasonModal';
 import Loader from '../components/Loader';
@@ -48,12 +56,14 @@ const ImprovementReviewScreen = ({
   route,
 }: ImprovementScreenProp) => {
   const insets = useSafeAreaInsets();
-  const {requestId, authorId, destination} = route.params;
+  const {requestId, authorId, destination, recordId, articleRecordId} =
+    route.params;
   const {user_id} = useSelector((state: any) => state.user);
   const RichText = useRef();
   const [feedback, setFeedback] = useState('');
   const [webviewHeight, setWebViewHeight] = useState(0);
   const [discardModalVisible, setDiscardModalVisible] = useState(false);
+  const [discardReason, setDiscardReason] = useState<string>('');
 
   const socket = useSocket();
   const dispatch = useDispatch();
@@ -86,6 +96,22 @@ const ImprovementReviewScreen = ({
       return response.data as EditRequest;
     },
   });
+
+  const {data: htmlContent} = useQuery({
+    queryKey: ['get-improvement-content'],
+    queryFn: async () => {
+      let url = '';
+      if (recordId) {
+        url = `${GET_IMPROVEMENT_CONTENT}?articleRecordId=${articleRecordId}`;
+      } else {
+        url = `${GET_IMPROVEMENT_CONTENT}?recordid=${recordId}&articleRecordId=${articleRecordId}`;
+      }
+      const response = await axios.get(url);
+      return response.data.htmlContent as string;
+    },
+  });
+
+  const noDataHtml = '<p>No Data found</p>';
 
   const {data: user} = useQuery({
     queryKey: ['get-my-profile'],
@@ -144,8 +170,6 @@ const ImprovementReviewScreen = ({
     };
   }, [socket, requestId, destination]);
 
-  const commentTests: any[] = [];
-
   const discardImprovementMutation = useMutation({
     mutationKey: ['discard-improvement-in-review-state'],
     mutationFn: async ({
@@ -177,18 +201,52 @@ const ImprovementReviewScreen = ({
     },
   });
 
+  const discardImprovementPBMutation = useMutation({
+    mutationKey: ['discard-improvement-from-pb'],
+    mutationFn: async () => {
+      const res = await axios.delete(
+        `${DELETE_IMPROVEMENT_RECORD_PB}/${recordId}`,
+      );
+      return res.data as {message: string; status: boolean};
+    },
+
+    onSuccess: data => {
+      if (data && data.status) {
+        discardImprovementMutation.mutate({
+          requestId: requestId,
+          discardReason: discardReason,
+        });
+      } else {
+        Snackbar.show({
+          text: data.message,
+          duration: Snackbar.LENGTH_SHORT,
+        });
+      }
+
+      // onRefresh();
+    },
+
+    onError: err => {
+      console.log(err);
+      Alert.alert('Try again');
+    },
+  });
+
   const publishImprovementMutation = useMutation({
     mutationKey: ['publish-improvement-in-review-state'],
     mutationFn: async ({
       requestId,
       reviewer_id,
+      content,
     }: {
       requestId: string;
       reviewer_id: string;
+      content: string;
     }) => {
-      const res = await axios.post(PUBLISH_ARTICLE, {
+      const res = await axios.post(PUBLISH_IMPROVEMENT, {
         requestId: requestId,
         reviewer_id: reviewer_id,
+        content: content,
       });
 
       return res.data as any;
@@ -203,25 +261,46 @@ const ImprovementReviewScreen = ({
       Alert.alert(err.message);
     },
   });
+
+  const publishImprovementInPBMutation = useMutation({
+    mutationKey: ['publish-improvement-in-pocketbase'],
+    mutationFn: async () => {
+      const res = await axios.post(PUBLISH_IMPROVEMENT_POCKETBASE, {
+        record_id: recordId,
+        article_id: articleRecordId,
+      });
+
+      return res.data as PocketBaseResponse;
+    },
+
+    onSuccess: d => {
+      // onRefresh();
+      if (d.html_file) {
+        publishImprovementMutation.mutate({
+          requestId: improvement ? improvement._id : '0',
+          reviewer_id: user_id,
+          content: d.html_file,
+        });
+      } else {
+        Snackbar.show({
+          text: 'Failed to publish changes',
+          duration: Snackbar.LENGTH_SHORT,
+        });
+      }
+    },
+    onError: err => {
+      console.log('Error', err);
+      Alert.alert(err.message);
+    },
+  });
+
   useEffect(() => {
-    if (improvement && improvement.article) {
-      let source = improvement.edited_content
-        ? improvement?.edited_content?.endsWith('.html')
-          ? {uri: `${GET_STORAGE_DATA}/${improvement.edited_content}`}
-          : {html: improvement?.edited_content}
-        : improvement?.article.content?.endsWith('.html')
-        ? {uri: `${GET_STORAGE_DATA}/${improvement?.article.content}`}
-        : {html: improvement?.article.content};
-
-      const fetchContentLength = async () => {
-        const length = await getContentLength(source);
-        console.log("Webview length", length);
-        setWebViewHeight(length);
-      };
-
-      fetchContentLength();
+    if (htmlContent) {
+      setWebViewHeight(htmlContent.length);
+    } else {
+      setWebViewHeight(noDataHtml.length);
     }
-  }, [improvement]);
+  }, [htmlContent]);
 
   const cssCode = `
       const style = document.createElement('style');
@@ -235,6 +314,7 @@ const ImprovementReviewScreen = ({
       document.head.appendChild(style);
     `;
 
+  /*
   let contentSource = improvement?.edited_content
     ? improvement?.edited_content?.endsWith('.html')
       ? {uri: `${GET_STORAGE_DATA}/${improvement.edited_content}`}
@@ -242,9 +322,12 @@ const ImprovementReviewScreen = ({
     : improvement?.article.content?.endsWith('.html')
     ? {uri: `${GET_STORAGE_DATA}/${improvement?.article.content}`}
     : {html: `${improvement?.article.content}`};
+    */
 
   //console.log("Content source", contentSource);
   // eslint-disable-next-line @typescript-eslint/no-shadow
+
+  /*
   const getContentLength = async (contentSource: {
     uri?: string;
     html?: string;
@@ -263,10 +346,12 @@ const ImprovementReviewScreen = ({
     }
     return 0;
   };
-
+  */
   if (
+    discardImprovementPBMutation.isPending ||
     discardImprovementMutation.isPending ||
-    publishImprovementMutation.isPending
+    publishImprovementMutation.isPending ||
+    publishImprovementInPBMutation.isPending
   ) {
     return <Loader />;
   }
@@ -353,10 +438,7 @@ const ImprovementReviewScreen = ({
             <TouchableOpacity
               onPress={() => {
                 // Publish article
-                publishImprovementMutation.mutate({
-                  requestId: improvement ? improvement._id : '0',
-                  reviewer_id: user_id,
-                });
+                publishImprovementInPBMutation.mutate();
               }}
               style={[
                 styles.pubButton,
@@ -395,7 +477,7 @@ const ImprovementReviewScreen = ({
               style={{
                 padding: 7,
                 //width: '99%',
-                height: webviewHeight-3000,
+                height: webviewHeight - 3000,
                 // flex:7,
                 justifyContent: 'center',
                 alignItems: 'center',
@@ -403,7 +485,7 @@ const ImprovementReviewScreen = ({
               ref={webViewRef}
               originWhitelist={['*']}
               injectedJavaScript={cssCode}
-              source={contentSource}
+              source={{html: htmlContent ? htmlContent : noDataHtml}}
               textZoom={100}
             />
           </View>
@@ -425,12 +507,13 @@ const ImprovementReviewScreen = ({
                   articleId: Number(improvement.article._id),
                   authorId: improvement.article.authorId,
                   destination: StatusEnum.PUBLISHED,
+                  recordId: improvement.article_recordId,
                 });
-              }else{
+              } else {
                 Snackbar.show({
-                  text:"Article Not found, Try again!",
+                  text: 'Article Not found, Try again!',
                   duration: Snackbar.LENGTH_SHORT,
-                })
+                });
               }
             }}>
             <Text style={styles.submitButtonText}>See old article</Text>
@@ -442,11 +525,11 @@ const ImprovementReviewScreen = ({
             style={{...styles.submitButton2, backgroundColor: 'red'}}
             onPress={() => {
               // detect content loss api integration
-             if(improvement){
-                navigation.navigate('ChangesHistoryScreen',{
-                requestId: improvement._id,
-              });
-             }
+              if (improvement) {
+                navigation.navigate('ChangesHistoryScreen', {
+                  requestId: improvement._id,
+                });
+              }
             }}>
             <Text style={styles.submitButtonText}>Detect Content Loss</Text>
           </TouchableOpacity>
@@ -565,26 +648,20 @@ const ImprovementReviewScreen = ({
             </View>
           )}
 
-     
-         {
-          comments && (
-            <View style={{padding: wp(4), marginTop: hp(4.5)}}>
+        {comments && (
+          <View style={{padding: wp(4), marginTop: hp(4.5)}}>
             {comments?.map((item, index) => (
               <CommentCardItem key={index} item={item} />
             ))}
           </View>
-          )
-         }
-        
+        )}
 
         <DiscardReasonModal
           visible={discardModalVisible}
           callback={(reason: string) => {
             //onclick(item, 1, reason);
-            discardImprovementMutation.mutate({
-              requestId: improvement ? improvement._id : '0',
-              discardReason: reason,
-            });
+            setDiscardReason(reason);
+            discardImprovementPBMutation.mutate();
             setDiscardModalVisible(false);
           }}
           dismiss={() => {

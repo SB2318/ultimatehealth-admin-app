@@ -11,7 +11,6 @@ import {FAB} from 'react-native-paper';
 import {
   ARTICLE_TAGS_API,
   DISCARD_ARTICLE,
-  EC2_BASE_URL,
   GET_AVILABLE_ARTICLES_API,
   GET_INPROGRESS_ARTICLES_API,
   PICK_ARTICLE,
@@ -25,6 +24,7 @@ import {hp} from '../helper/Metric';
 import FilterModal from '../components/FilterModal';
 import Loader from '../components/Loader';
 import Snackbar from 'react-native-snackbar';
+import Config from 'react-native-config';
 import {BottomSheetModal} from '@gorhom/bottom-sheet';
 import {
   setFilteredAvailableArticles,
@@ -66,7 +66,7 @@ export default function HomeScreen({navigation}: ArticleProps) {
 
   const getAllCategories = async () => {
     const {data: categoryData} = await axios.get(
-      `${EC2_BASE_URL + ARTICLE_TAGS_API}`,
+      `${Config.BASE_URL + ARTICLE_TAGS_API}`,
     );
     if (
       selectedTags === undefined ||
@@ -405,6 +405,7 @@ export default function HomeScreen({navigation}: ArticleProps) {
               articleId: Number(item._id),
               authorId: item.authorId,
               destination: item.status,
+              recordId: item.pb_recordId
             });
           }}
         />
@@ -431,12 +432,17 @@ export default function HomeScreen({navigation}: ArticleProps) {
     requestId: string,
     authorId: string,
     destination: string,
+    recordId: string,
+    articleRecordId: string
   ) => {
     
     navigation.navigate('ImprovementReviewScreen', {
       requestId: requestId,
       authorId: authorId,
       destination: destination,
+      recordId: recordId,
+      articleRecordId: recordId
+
     });
   };
 

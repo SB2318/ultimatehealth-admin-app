@@ -13,7 +13,7 @@ const ScorecardModal = ({isVisible, onClose, data}: ScoreCardProps) => {
 
   return (
     <Modal
-      animationType="slide"
+      animationType="fade"
       transparent={true}
       visible={isVisible}
       onDismiss={onClose}>
@@ -60,10 +60,18 @@ const ScorecardModal = ({isVisible, onClose, data}: ScoreCardProps) => {
 };
 
 const styles = StyleSheet.create({
+
+   overlay: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+  }, 
   modalWrapper: {
     alignItems: 'center',
     justifyContent: 'center',
     flex: 1,
+     backgroundColor: 'rgba(0, 0, 0, 0.5)',
   },
   modalContent: {
     width: hp(45),

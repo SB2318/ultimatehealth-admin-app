@@ -20,6 +20,7 @@ import {
   Comment,
   ScoreData,
   PlagiarismResponse,
+  CopyrightCheckerResponse,
 } from '../type';
 import Feather from 'react-native-vector-icons/Feather';
 import Entypo from 'react-native-vector-icons/Entypo';
@@ -50,6 +51,7 @@ import DiscardReasonModal from '../components/DiscardReasonModal';
 import Loader from '../components/Loader';
 import ScorecardModal from '../components/ScoreCardModal';
 import PlagiarismModal from '../components/PlagiarismModal';
+import CopyrightCheckerModal from '../components/CopyrightCheckerModal';
 
 const ReviewScreen = ({route}: ReviewScreenProp) => {
   const {articleId, destination, recordId} = route.params;
@@ -60,6 +62,11 @@ const ReviewScreen = ({route}: ReviewScreenProp) => {
   const [discardModalVisible, setDiscardModalVisible] = useState(false);
   const [grammarModalVisible, setGrammarModalVisible] = useState(false);
   const [plagModalVisible, setPlagModalVisible] = useState(false);
+  
+  const [copyRightResults, setCopyRightResults] = useState<CopyrightCheckerResponse[]>([]);
+  const [copyrightModalVisible, setCopyrightModalVisible] = useState<boolean>(false);
+  const [copyrightProgressVisible, setCopyrightProgressVisible] = useState<boolean>(false);
+
   const [scoreData, setScoreData] = useState<ScoreData>({
     score: 0,
     corrected: false,
@@ -102,6 +109,12 @@ const ReviewScreen = ({route}: ReviewScreenProp) => {
     });
     setPlagModalVisible(false);
   };
+
+  const onCopyrightModalClose = ()=>{
+    setCopyRightResults([]);
+    setCopyrightModalVisible(false);
+    setCopyrightProgressVisible(false);
+  }
 
   function editorInitializedCallback() {
     RichText.current?.registerToolbar(function (_items) {});
@@ -273,7 +286,8 @@ const ReviewScreen = ({route}: ReviewScreenProp) => {
         text: htmlContent,
       });
 
-      return res.data.corrected as PlagiarismResponse;
+      console.log("data", res.data.data);
+      return res.data.data as PlagiarismResponse;
     },
 
     onSuccess: data => {
@@ -348,6 +362,7 @@ const ReviewScreen = ({route}: ReviewScreenProp) => {
  // console.log("htmlContent", htmlContent);
 
   if (
+    copyrightProgressVisible ||
     plagiarismCheckMutation.isPending ||
     grammarCheckMutation.isPending ||
     discardArticleMutation.isPending ||
@@ -380,7 +395,7 @@ const ReviewScreen = ({route}: ReviewScreenProp) => {
               onPress={() => {
                 // Image copyright checker
               }}>
-              <MaterialIcon name="plagiarism" size={30} color={PRIMARY_COLOR} />
+              <MaterialIcon name="plagiarism" size={36} color={PRIMARY_COLOR} />
             </TouchableOpacity>
           )}
 
@@ -644,6 +659,12 @@ const ReviewScreen = ({route}: ReviewScreenProp) => {
           onClose={onPlagiarismModalClose}
           data={plagrisedData}
         />
+
+        <CopyrightCheckerModal
+          isVisible={copyrightModalVisible}
+          onClose={onCopyrightModalClose}
+          data ={copyRightResults}
+          />
       </ScrollView>
     </View>
   );

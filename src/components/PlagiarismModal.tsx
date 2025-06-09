@@ -14,9 +14,7 @@ const PlagiarismModal = ({ isVisible, onClose, data }:PlagiarismProps) => {
         <View style={styles.modal}>
           <View style={styles.header}>
             <Text style={styles.title}>Plagiarism Check Result</Text>
-            <TouchableOpacity onPress={onClose}>
-              <Text style={styles.close}>×</Text>
-            </TouchableOpacity>
+            
           </View>
           <View style={styles.body}>
             <Text style={styles.text}>

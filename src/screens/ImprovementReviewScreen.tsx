@@ -22,6 +22,7 @@ import {
   PocketBaseResponse,
   PlagiarismResponse,
   ScoreData,
+  CopyrightCheckerResponse,
 } from '../type';
 import Feather from 'react-native-vector-icons/Feather';
 import Entypo from 'react-native-vector-icons/Entypo';
@@ -55,6 +56,7 @@ import Loader from '../components/Loader';
 import Snackbar from 'react-native-snackbar';
 import PlagiarismModal from '../components/PlagiarismModal';
 import ScorecardModal from '../components/ScoreCardModal';
+import CopyrightCheckerModal from '../components/CopyrightCheckerModal';
 
 const ImprovementReviewScreen = ({
   navigation,
@@ -70,20 +72,28 @@ const ImprovementReviewScreen = ({
   const [discardModalVisible, setDiscardModalVisible] = useState(false);
   const [discardReason, setDiscardReason] = useState<string>('');
 
-    const [grammarModalVisible, setGrammarModalVisible] = useState(false);
-    const [plagModalVisible, setPlagModalVisible] = useState(false);
-    const [scoreData, setScoreData] = useState<ScoreData>({
-      score: 0,
-      corrected: false,
-      correction_percentage: 0,
-      approved: false,
-    });
-  
-    const [plagrisedData, setPlagrisedData] = useState<PlagiarismResponse>({
-      plagiarised_percentage: 0,
-      plagiarised_text: '',
-      source_title: '',
-    });
+  const [grammarModalVisible, setGrammarModalVisible] = useState(false);
+  const [plagModalVisible, setPlagModalVisible] = useState(false);
+  const [scoreData, setScoreData] = useState<ScoreData>({
+    score: 0,
+    corrected: false,
+    correction_percentage: 0,
+    approved: false,
+  });
+
+  const [plagrisedData, setPlagrisedData] = useState<PlagiarismResponse>({
+    plagiarised_percentage: 0,
+    plagiarised_text: '',
+    source_title: '',
+  });
+
+  const [copyRightResults, setCopyRightResults] = useState<
+    CopyrightCheckerResponse[]
+  >([]);
+  const [copyrightModalVisible, setCopyrightModalVisible] =
+    useState<boolean>(false);
+  const [copyrightProgressVisible, setCopyrightProgressVisible] =
+    useState<boolean>(false);
 
   const socket = useSocket();
   const dispatch = useDispatch();
@@ -150,8 +160,7 @@ const ImprovementReviewScreen = ({
     dispatch(setUserHandle(user.user_handle));
   }
 
-
-   const onGrammarModalClose = () => {
+  const onGrammarModalClose = () => {
     setScoreData({
       score: 0,
       corrected: false,
@@ -170,6 +179,11 @@ const ImprovementReviewScreen = ({
     setPlagModalVisible(false);
   };
 
+  const onCopyrightModalClose = () => {
+    setCopyRightResults([]);
+    setCopyrightModalVisible(false);
+    setCopyrightProgressVisible(false);
+  };
 
   useEffect(() => {
     if (destination !== StatusEnum.UNASSIGNED) {
@@ -335,8 +349,7 @@ const ImprovementReviewScreen = ({
     },
   });
 
-
-   const grammarCheckMutation = useMutation({
+  const grammarCheckMutation = useMutation({
     mutationKey: ['check-grammar-improvement-in-review-state'],
     mutationFn: async () => {
       const res = await axios.post(CHECK_GRAMMAR, {
@@ -759,7 +772,7 @@ const ImprovementReviewScreen = ({
           }}
         />
 
-         <ScorecardModal
+        <ScorecardModal
           isVisible={grammarModalVisible}
           onClose={onGrammarModalClose}
           data={scoreData}
@@ -769,6 +782,12 @@ const ImprovementReviewScreen = ({
           isVisible={plagModalVisible}
           onClose={onPlagiarismModalClose}
           data={plagrisedData}
+        />
+
+        <CopyrightCheckerModal
+          isVisible={copyrightModalVisible}
+          onClose={onCopyrightModalClose}
+          data={copyRightResults}
         />
       </ScrollView>
     </View>

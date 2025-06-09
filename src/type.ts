@@ -314,3 +314,20 @@ export type PlagiarismProps = {
  onClose: ()=> void;
  data: PlagiarismResponse;
 }
+
+export type CopyrightCheckerResponse = {
+    copyrighted_content: CopyRightContent,
+    copyright_found: boolean
+}
+
+export type CopyRightContent = {
+   text: string;
+   confidence: string;
+   image_url: string;
+}
+
+export type CopyrightCheckerProps = {
+   isVisible: boolean;
+   onClose: ()=> void;
+   data: CopyrightCheckerResponse[];
+}

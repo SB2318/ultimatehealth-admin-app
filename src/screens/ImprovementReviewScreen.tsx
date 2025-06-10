@@ -49,7 +49,7 @@ import {useSocket} from '../components/SocketContext';
 
 import {setUserHandle} from '../stores/UserSlice';
 import {actions, RichEditor, RichToolbar} from 'react-native-pell-rich-editor';
-import {createFeebackHTMLStructure, StatusEnum} from '../helper/Utils';
+import {checkImageCopyright, createFeebackHTMLStructure, StatusEnum} from '../helper/Utils';
 import CommentCardItem from './CommentCardItem';
 import DiscardReasonModal from '../components/DiscardReasonModal';
 import Loader from '../components/Loader';
@@ -179,11 +179,46 @@ const ImprovementReviewScreen = ({
     setPlagModalVisible(false);
   };
 
+
   const onCopyrightModalClose = () => {
     setCopyRightResults([]);
     setCopyrightModalVisible(false);
     setCopyrightProgressVisible(false);
   };
+
+   const handleCheckCopyright = () => {
+      if (improvement && improvement.imageUtils) {
+        Alert.alert(
+          'Image Copyright Check',
+          'Image copyright check might take some time. Would you like to continue?',
+          [
+            {
+              text: 'Cancel',
+              style: 'cancel',
+            },
+            {
+              text: 'OK',
+              onPress: async () => {
+                try {
+                  setCopyrightProgressVisible(true);
+  
+                  const data = await checkImageCopyright(improvement.imageUtils);
+                  setCopyRightResults(data);
+  
+                  setCopyrightProgressVisible(false);
+                  setCopyrightModalVisible(true);
+                } catch (error) {
+                  console.error('Error during copyright check:', error);
+  
+                  setCopyrightProgressVisible(false);
+                }
+              },
+            },
+          ],
+          {cancelable: true},
+        );
+      }
+    };
 
   useEffect(() => {
     if (destination !== StatusEnum.UNASSIGNED) {
@@ -447,6 +482,7 @@ const ImprovementReviewScreen = ({
   };
   */
   if (
+    copyrightProgressVisible ||
     grammarCheckMutation.isPending ||
     plagiarismCheckMutation.isPending ||
     discardImprovementPBMutation.isPending ||
@@ -479,9 +515,7 @@ const ImprovementReviewScreen = ({
 
           <TouchableOpacity
             style={styles.topIcon}
-            onPress={() => {
-              // Image copyright checker
-            }}>
+            onPress={handleCheckCopyright}>
             <MaterialIcon name="plagiarism" size={30} color={PRIMARY_COLOR} />
           </TouchableOpacity>
 

@@ -1,74 +1,76 @@
-import AsyncStorage from "@react-native-async-storage/async-storage";
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import axios from 'axios';
+import {CHECK_IMAGE_COPYRIGHT} from './APIUtils';
+import {CopyrightCheckerResponse} from '../type';
 
 // Async Storage for get Item
 export const retrieveItem = async (key: string) => {
-    try {
-      const value = await AsyncStorage.getItem(key);
-      return value;
-    } catch (e) {
-      // error reading value
-      console.log('Error reading value', e);
-    }
-  };
-  
-  // Async Storage Store Item
-  export const storeItem = async (key: string, value: string) => {
-    try {
-      await AsyncStorage.setItem(key, value);
-      // console.log(`Value saved for key : ${key}`, value);
-    } catch (e) {
-      console.log('Async Storage Data error', e);
-    }
-  };
-  
-  // Async storage remove item
-  
-  export const removeItem = async (key:string) => {
-    try {
-      await AsyncStorage.removeItem(key);
-    } catch (error) {
-      console.error('Error removing item:', error);
-    }
-  };
-  
-  export const clearStorage = async () => {
-    try {
-      await AsyncStorage.clear();
-      //navigation.navigate('LoginScreen');
-    } catch (error) {
-      console.error('Error removing item:', error);
-    }
-  };
-
-  export const KEYS = {
-    USER_ID: 'USER_ID',
-    USER_TOKEN: 'USER_TOKEN',
-    USER_TOKEN_EXPIRY_DATE: 'USER_TOKEN_EXPIRY_DATE',
-    VULTR_CHAT_MODEL: 'zephyr-7b-beta-f32',
-    VULTR_COLLECTION: 'care_companion',
-    USER_HANDLE: 'USER_HANDLE'
-  };
-  export const StatusEnum = {
-    UNASSIGNED: 'unassigned', // can't change
-    IN_PROGRESS: 'in-progress', // can't change
-    REVIEW_PENDING: 'review-pending', // can't change
-    PUBLISHED: 'published',
-    DISCARDED: 'discarded', // can't change
-    AWAITING_USER: 'awaiting-user',
-  };
-  export function formatCount(count: number) {
-    if (count < 1000) {
-      return count.toString();
-    } else if (count < 1000000) {
-      return Math.floor(count / 1000) + 'k';
-    } else {
-      return Math.floor(count / 1000000) + 'M';
-    }
+  try {
+    const value = await AsyncStorage.getItem(key);
+    return value;
+  } catch (e) {
+    // error reading value
+    console.log('Error reading value', e);
   }
+};
 
- export const createFeebackHTMLStructure = (feedback: string)=>{
-  
-    return  `<!DOCTYPE html>
+// Async Storage Store Item
+export const storeItem = async (key: string, value: string) => {
+  try {
+    await AsyncStorage.setItem(key, value);
+    // console.log(`Value saved for key : ${key}`, value);
+  } catch (e) {
+    console.log('Async Storage Data error', e);
+  }
+};
+
+// Async storage remove item
+
+export const removeItem = async (key: string) => {
+  try {
+    await AsyncStorage.removeItem(key);
+  } catch (error) {
+    console.error('Error removing item:', error);
+  }
+};
+
+export const clearStorage = async () => {
+  try {
+    await AsyncStorage.clear();
+    //navigation.navigate('LoginScreen');
+  } catch (error) {
+    console.error('Error removing item:', error);
+  }
+};
+
+export const KEYS = {
+  USER_ID: 'USER_ID',
+  USER_TOKEN: 'USER_TOKEN',
+  USER_TOKEN_EXPIRY_DATE: 'USER_TOKEN_EXPIRY_DATE',
+  VULTR_CHAT_MODEL: 'zephyr-7b-beta-f32',
+  VULTR_COLLECTION: 'care_companion',
+  USER_HANDLE: 'USER_HANDLE',
+};
+export const StatusEnum = {
+  UNASSIGNED: 'unassigned', // can't change
+  IN_PROGRESS: 'in-progress', // can't change
+  REVIEW_PENDING: 'review-pending', // can't change
+  PUBLISHED: 'published',
+  DISCARDED: 'discarded', // can't change
+  AWAITING_USER: 'awaiting-user',
+};
+export function formatCount(count: number) {
+  if (count < 1000) {
+    return count.toString();
+  } else if (count < 1000000) {
+    return Math.floor(count / 1000) + 'k';
+  } else {
+    return Math.floor(count / 1000000) + 'M';
+  }
+}
+
+export const createFeebackHTMLStructure = (feedback: string) => {
+  return `<!DOCTYPE html>
    <html>
    <head>
    <style>
@@ -155,4 +157,25 @@ export const retrieveItem = async (key: string) => {
    <hr>
    </body>
    `;
-   }
+};
+
+export const checkImageCopyright = async (imageUrls: string[]) => {
+  let results: CopyrightCheckerResponse[] = [];
+
+  for (const url of imageUrls) {
+    if (url) {
+      const response = await axios.post(CHECK_IMAGE_COPYRIGHT, {
+        image_url: url,
+      });
+
+      if (response.data.data) {
+        
+        const res: CopyrightCheckerResponse = response.data.data;
+        res.image_url = url;
+
+        results.push(res);
+      }
+    }
+  }
+  return results;
+};

@@ -6,8 +6,10 @@ import {
   TouchableOpacity,
   StyleSheet,
   Dimensions,
+  Image,
 } from 'react-native';
 import {CopyrightCheckerProps, CopyrightCheckerResponse} from '../type';
+import React from 'react';
 
 const screenWidth = Dimensions.get('window').width;
 
@@ -17,28 +19,36 @@ export default function CopyrightCheckerModal({
   data,
 }: CopyrightCheckerProps) {
   const renderItem = ({item}: {item: CopyrightCheckerResponse}) => {
-    const {copyrighted_content, copyright_found} = item;
+    const {copyrighted_content, copyright_found, image_url} = item;
 
     return (
       <View style={styles.card}>
         <Text style={styles.imageTitle}>
-          Image: {copyrighted_content.image_url.split('/').pop()}
+          Image: {image_url.split('/').pop()}
         </Text>
         <Image
-          source={{uri: copyrighted_content.image_url}}
+          source={{uri: image_url}}
           style={styles.image}
           resizeMode="cover"
         />
         {copyright_found ? (
           <View style={styles.resultContainer}>
             <Text style={styles.foundText}>⚠️ Copyrighted Content Found</Text>
-            <Text style={styles.contentText}>
-              Text: {copyrighted_content.text}
-            </Text>
-            <Text style={styles.confidenceText}>
-              Confidence:{' '}
-              {parseFloat(copyrighted_content.confidence).toFixed(2)}
-            </Text>
+
+            {copyrighted_content.length > 0 ? (
+              copyrighted_content.map((it, idx) => (
+                <React.Fragment key={idx}>
+                  <Text style={styles.contentText}>Text: {it.text}</Text>
+                  <Text style={styles.confidenceText}>
+                    Confidence: {parseFloat(it.confidence).toFixed(2)}
+                  </Text>
+                </React.Fragment>
+              ))
+            ) : (
+              <Text style={styles.noContent}>
+                No copyrighted content found.
+              </Text>
+            )}
           </View>
         ) : (
           <Text style={styles.noContent}>✅ No Copyright Detected</Text>
@@ -83,7 +93,7 @@ const styles = StyleSheet.create({
   },
   modalContainer: {
     backgroundColor: '#fff',
-    width: screenWidth * 0.9,
+    width: screenWidth * 0.95,
     borderRadius: 10,
     padding: 20,
     maxHeight: '80%',
@@ -142,14 +152,18 @@ const styles = StyleSheet.create({
   },
   closeButton: {
     marginTop: 10,
+    width: screenWidth*0.5,
     backgroundColor: '#007bff',
-    padding: 10,
+    padding: 14,
     borderRadius: 8,
+    justifyContent:"center",
+    alignItems:"center",
     alignSelf: 'center',
   },
   closeButtonText: {
     color: '#fff',
     fontWeight: '600',
+    fontSize:16,
   },
 
   emptyContainer: {

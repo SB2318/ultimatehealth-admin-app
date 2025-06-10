@@ -45,7 +45,11 @@ import {useSocket} from '../components/SocketContext';
 
 import {setUserHandle} from '../stores/UserSlice';
 import {actions, RichEditor, RichToolbar} from 'react-native-pell-rich-editor';
-import {createFeebackHTMLStructure, StatusEnum} from '../helper/Utils';
+import {
+  checkImageCopyright,
+  createFeebackHTMLStructure,
+  StatusEnum,
+} from '../helper/Utils';
 import CommentCardItem from './CommentCardItem';
 import DiscardReasonModal from '../components/DiscardReasonModal';
 import Loader from '../components/Loader';
@@ -62,10 +66,14 @@ const ReviewScreen = ({route}: ReviewScreenProp) => {
   const [discardModalVisible, setDiscardModalVisible] = useState(false);
   const [grammarModalVisible, setGrammarModalVisible] = useState(false);
   const [plagModalVisible, setPlagModalVisible] = useState(false);
-  
-  const [copyRightResults, setCopyRightResults] = useState<CopyrightCheckerResponse[]>([]);
-  const [copyrightModalVisible, setCopyrightModalVisible] = useState<boolean>(false);
-  const [copyrightProgressVisible, setCopyrightProgressVisible] = useState<boolean>(false);
+
+  const [copyRightResults, setCopyRightResults] = useState<
+    CopyrightCheckerResponse[]
+  >([]);
+  const [copyrightModalVisible, setCopyrightModalVisible] =
+    useState<boolean>(false);
+  const [copyrightProgressVisible, setCopyrightProgressVisible] =
+    useState<boolean>(false);
 
   const [scoreData, setScoreData] = useState<ScoreData>({
     score: 0,
@@ -110,12 +118,45 @@ const ReviewScreen = ({route}: ReviewScreenProp) => {
     setPlagModalVisible(false);
   };
 
-  const onCopyrightModalClose = ()=>{
+  const onCopyrightModalClose = () => {
     setCopyRightResults([]);
     setCopyrightModalVisible(false);
     setCopyrightProgressVisible(false);
-  }
+  };
 
+  const handleCheckCopyright = () => {
+    if (article && article.imageUtils) {
+      Alert.alert(
+        'Image Copyright Check',
+        'Image copyright check might take some time. Would you like to continue?',
+        [
+          {
+            text: 'Cancel',
+            style: 'cancel',
+          },
+          {
+            text: 'OK',
+            onPress: async () => {
+              try {
+                setCopyrightProgressVisible(true);
+
+                const data = await checkImageCopyright(article.imageUtils);
+                setCopyRightResults(data);
+
+                setCopyrightProgressVisible(false);
+                setCopyrightModalVisible(true);
+              } catch (error) {
+                console.error('Error during copyright check:', error);
+
+                setCopyrightProgressVisible(false);
+              }
+            },
+          },
+        ],
+        {cancelable: true},
+      );
+    }
+  };
   function editorInitializedCallback() {
     RichText.current?.registerToolbar(function (_items) {});
   }
@@ -286,7 +327,7 @@ const ReviewScreen = ({route}: ReviewScreenProp) => {
         text: htmlContent,
       });
 
-      console.log("data", res.data.data);
+      console.log('data', res.data.data);
       return res.data.data as PlagiarismResponse;
     },
 
@@ -359,7 +400,7 @@ const ReviewScreen = ({route}: ReviewScreenProp) => {
   };
   */
 
- // console.log("htmlContent", htmlContent);
+  // console.log("htmlContent", htmlContent);
 
   if (
     copyrightProgressVisible ||
@@ -392,9 +433,7 @@ const ReviewScreen = ({route}: ReviewScreenProp) => {
           {destination !== StatusEnum.PUBLISHED && (
             <TouchableOpacity
               style={styles.topIcon}
-              onPress={() => {
-                // Image copyright checker
-              }}>
+              onPress={handleCheckCopyright}>
               <MaterialIcon name="plagiarism" size={36} color={PRIMARY_COLOR} />
             </TouchableOpacity>
           )}
@@ -663,8 +702,8 @@ const ReviewScreen = ({route}: ReviewScreenProp) => {
         <CopyrightCheckerModal
           isVisible={copyrightModalVisible}
           onClose={onCopyrightModalClose}
-          data ={copyRightResults}
-          />
+          data={copyRightResults}
+        />
       </ScrollView>
     </View>
   );

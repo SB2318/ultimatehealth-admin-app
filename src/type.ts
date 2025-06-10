@@ -72,6 +72,7 @@ export type EditRequest = {
   last_updated: Date;
   pb_recordId: string;
   article_recordId: string;
+  imageUtils: string[];
 };
  
 export type ArticleData = {
@@ -316,14 +317,14 @@ export type PlagiarismProps = {
 }
 
 export type CopyrightCheckerResponse = {
-    copyrighted_content: CopyRightContent,
-    copyright_found: boolean
+    copyrighted_content: CopyRightContent[],
+    copyright_found: boolean,
+    image_url: string;
 }
 
 export type CopyRightContent = {
    text: string;
    confidence: string;
-   image_url: string;
 }
 
 export type CopyrightCheckerProps = {

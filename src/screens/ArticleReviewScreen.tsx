@@ -56,6 +56,7 @@ import Loader from '../components/Loader';
 import ScorecardModal from '../components/ScoreCardModal';
 import PlagiarismModal from '../components/PlagiarismModal';
 import CopyrightCheckerModal from '../components/CopyrightCheckerModal';
+import Snackbar from 'react-native-snackbar';
 
 const ReviewScreen = ({route}: ReviewScreenProp) => {
   const {articleId, destination, recordId} = route.params;
@@ -140,14 +141,19 @@ const ReviewScreen = ({route}: ReviewScreenProp) => {
               try {
                 setCopyrightProgressVisible(true);
 
-                const data = await checkImageCopyright(article.imageUtils);
-                setCopyRightResults(data);
 
+                const data = await checkImageCopyright(article.imageUtils);
+                console.log("DSAE", data)
+                setCopyRightResults(data);
+              
                 setCopyrightProgressVisible(false);
                 setCopyrightModalVisible(true);
               } catch (error) {
-                console.error('Error during copyright check:', error);
-
+                console.log('Error during copyright check:', error);
+                Snackbar.show({
+                  text:"Network error occurs during copyright check, try again!",
+                  duration: Snackbar.LENGTH_SHORT,
+                })
                 setCopyrightProgressVisible(false);
               }
             },

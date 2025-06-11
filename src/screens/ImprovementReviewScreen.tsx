@@ -49,7 +49,11 @@ import {useSocket} from '../components/SocketContext';
 
 import {setUserHandle} from '../stores/UserSlice';
 import {actions, RichEditor, RichToolbar} from 'react-native-pell-rich-editor';
-import {checkImageCopyright, createFeebackHTMLStructure, StatusEnum} from '../helper/Utils';
+import {
+  checkImageCopyright,
+  createFeebackHTMLStructure,
+  StatusEnum,
+} from '../helper/Utils';
 import CommentCardItem from './CommentCardItem';
 import DiscardReasonModal from '../components/DiscardReasonModal';
 import Loader from '../components/Loader';
@@ -179,46 +183,49 @@ const ImprovementReviewScreen = ({
     setPlagModalVisible(false);
   };
 
-
   const onCopyrightModalClose = () => {
     setCopyRightResults([]);
     setCopyrightModalVisible(false);
     setCopyrightProgressVisible(false);
   };
 
-   const handleCheckCopyright = () => {
-      if (improvement && improvement.imageUtils) {
-        Alert.alert(
-          'Image Copyright Check',
-          'Image copyright check might take some time. Would you like to continue?',
-          [
-            {
-              text: 'Cancel',
-              style: 'cancel',
+  const handleCheckCopyright = () => {
+    if (improvement && improvement.imageUtils) {
+      Alert.alert(
+        'Image Copyright Check',
+        'Image copyright check might take some time. Would you like to continue?',
+        [
+          {
+            text: 'Cancel',
+            style: 'cancel',
+          },
+          {
+            text: 'OK',
+            onPress: async () => {
+              try {
+                setCopyrightProgressVisible(true);
+
+                const data = await checkImageCopyright(improvement.imageUtils);
+                setCopyRightResults(data);
+
+                setCopyrightProgressVisible(false);
+                setCopyrightModalVisible(true);
+              } catch (error) {
+                console.log('Error during copyright check:', error);
+
+                Snackbar.show({
+                  text: 'Network error occurs during copyright check, try again!',
+                  duration: Snackbar.LENGTH_SHORT,
+                });
+                setCopyrightProgressVisible(false);
+              }
             },
-            {
-              text: 'OK',
-              onPress: async () => {
-                try {
-                  setCopyrightProgressVisible(true);
-  
-                  const data = await checkImageCopyright(improvement.imageUtils);
-                  setCopyRightResults(data);
-  
-                  setCopyrightProgressVisible(false);
-                  setCopyrightModalVisible(true);
-                } catch (error) {
-                  console.error('Error during copyright check:', error);
-  
-                  setCopyrightProgressVisible(false);
-                }
-              },
-            },
-          ],
-          {cancelable: true},
-        );
-      }
-    };
+          },
+        ],
+        {cancelable: true},
+      );
+    }
+  };
 
   useEffect(() => {
     if (destination !== StatusEnum.UNASSIGNED) {

@@ -17,6 +17,7 @@ import { useQuery } from '@tanstack/react-query';
 import axios from 'axios';
 import { GET_COMPLETED_TASK_API } from '../helper/APIUtils';
 import Loader from '../components/Loader';
+import { StatusEnum } from '../helper/Utils';
 
 export default function WorkHistoryScreen({
   navigation,
@@ -62,12 +63,17 @@ export default function WorkHistoryScreen({
             // TODO: handle card click if needed
           }}
           onNavigate={item => {
-            navigation.navigate('ArticleReviewScreen', {
+            
+            if(item?.status === StatusEnum.DISCARDED){
+              return;
+            }else{
+              navigation.navigate('ArticleReviewScreen', {
               articleId: Number(item._id),
               authorId: item.authorId,
               destination: item.status,
               recordId: item.pb_recordId
             });
+            }
           }}
         />
       );

@@ -19,7 +19,8 @@ export default function CopyrightCheckerModal({
   data,
 }: CopyrightCheckerProps) {
   const renderItem = ({item}: {item: CopyrightCheckerResponse}) => {
-    const {copyrighted_content, copyright_found, image_url} = item;
+    const {copyrighted_content, copyright_found, image_url, extracted_text} =
+      item;
 
     return (
       <View style={styles.card}>
@@ -35,6 +36,9 @@ export default function CopyrightCheckerModal({
           <View style={styles.resultContainer}>
             <Text style={styles.foundText}>⚠️ Copyrighted Content Found</Text>
 
+            <Text style={styles.contentText}>
+              Extracted Text: {extracted_text}
+            </Text>
             {copyrighted_content.length > 0 ? (
               copyrighted_content.map((it, idx) => (
                 <React.Fragment key={idx}>
@@ -45,13 +49,29 @@ export default function CopyrightCheckerModal({
                 </React.Fragment>
               ))
             ) : (
-              <Text style={styles.noContent}>
-                No copyrighted content found.
-              </Text>
+              <>
+                <Text style={styles.noContent}>
+                  No copyrighted content found.
+                </Text>
+                <Text style={styles.contentText}>
+                  Extracted Text: {extracted_text}
+                </Text>
+              </>
             )}
           </View>
         ) : (
-          <Text style={styles.noContent}>✅ No Copyright Detected</Text>
+          <React.Fragment>
+            <Text style={styles.noContent}>✅ No Copyright Detected</Text>
+
+            <View style={styles.extractionSection}>
+              <Text style={styles.extractionLabel}>
+                📝 Extracted Information:
+              </Text>
+              <Text style={styles.extractedText}>
+                {extracted_text || 'N/A'}
+              </Text>
+            </View>
+          </React.Fragment>
         )}
       </View>
     );
@@ -61,6 +81,13 @@ export default function CopyrightCheckerModal({
       <View style={styles.overlay}>
         <View style={styles.modalContainer}>
           <Text style={styles.modalTitle}>Copyright Checker Results</Text>
+
+          <Text style={styles.disclaimerText}>
+            ⚠️ Disclaimer: The copyright check is based on information we found from
+  the image. If you notice any mismatch or have a more accurate result,
+  please rely on your judgment. Final selection is always your own
+  responsibility.
+          </Text>
 
           {data.length === 0 ? (
             <View style={styles.emptyContainer}>
@@ -139,6 +166,7 @@ const styles = StyleSheet.create({
   },
   contentText: {
     color: '#333',
+    fontWeight: '500',
   },
   confidenceText: {
     color: '#666',
@@ -152,18 +180,18 @@ const styles = StyleSheet.create({
   },
   closeButton: {
     marginTop: 10,
-    width: screenWidth*0.5,
+    width: screenWidth * 0.5,
     backgroundColor: '#007bff',
     padding: 14,
     borderRadius: 8,
-    justifyContent:"center",
-    alignItems:"center",
+    justifyContent: 'center',
+    alignItems: 'center',
     alignSelf: 'center',
   },
   closeButtonText: {
     color: '#fff',
     fontWeight: '600',
-    fontSize:16,
+    fontSize: 16,
   },
 
   emptyContainer: {
@@ -174,6 +202,28 @@ const styles = StyleSheet.create({
   emptyText: {
     color: '#888',
     fontSize: 16,
+    fontStyle: 'italic',
+  },
+  extractionSection: {
+    marginTop: 8,
+    backgroundColor: '#eef6ff',
+    padding: 8,
+    borderRadius: 6,
+  },
+  extractionLabel: {
+    fontWeight: '600',
+    color: '#0056b3',
+    marginBottom: 4,
+  },
+  extractedText: {
+    color: '#333',
+    fontSize: 14,
+  },
+  disclaimerText: {
+    fontSize: 16,
+    color: '#333',
+    //textAlign: 'center',
+    marginVertical: 10,
     fontStyle: 'italic',
   },
 });

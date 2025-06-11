@@ -320,6 +320,7 @@ export type CopyrightCheckerResponse = {
     copyrighted_content: CopyRightContent[],
     copyright_found: boolean,
     image_url: string;
+    extracted_text: string;
 }
 
 export type CopyRightContent = {

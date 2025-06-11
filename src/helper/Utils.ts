@@ -1,6 +1,6 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import axios from 'axios';
-import {CHECK_IMAGE_COPYRIGHT} from './APIUtils';
+import {CHECK_IMAGE_COPYRIGHT, GET_IMAGE} from './APIUtils';
 import {CopyrightCheckerResponse} from '../type';
 
 // Async Storage for get Item
@@ -163,10 +163,14 @@ export const checkImageCopyright = async (imageUrls: string[]) => {
   let results: CopyrightCheckerResponse[] = [];
 
   for (const url of imageUrls) {
+  
     if (url) {
       const response = await axios.post(CHECK_IMAGE_COPYRIGHT, {
-        image_url: url,
+        image_url: url.includes(`${GET_IMAGE}`)? url: `${GET_IMAGE}/${url}`,
       });
+
+      console.log("image_url", url.includes(`${GET_IMAGE}`)? url: `${GET_IMAGE}/${url}`)
+      console.log("Response", response.data.data);
 
       if (response.data.data) {
         

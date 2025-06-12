@@ -41,6 +41,12 @@ const DELETE_IMPROVEMENT_RECORD_PB = `${Config.BASE_URL}/delete-improvement`;
 const CHECK_GRAMMAR = `${Config.CONTENT_CHECKER_URL}/grammar/check-grammar`;
 const CHECK_PLAGIARISM = `${Config.CONTENT_CHECKER_URL}/plagiarism/check`;
 const CHECK_IMAGE_COPYRIGHT = `${Config.CONTENT_CHECKER_URL}/copyright/check-image-copyright`;
+
+// Report related
+const GET_PENDING_REPORTS = `${Config.BASE_URL}/report/pending-reports`;
+const GET_ASSIGNED_REPORTS = `${Config.BASE_URL}/report/all-assigned-reports`;
+const GET_REPORT_REASONS = `${Config.BASE_URL}/report/reasons`;
+
 export {
     LOGIN_API,
     REGISTRATION_API,
@@ -81,5 +87,8 @@ export {
     DELETE_IMPROVEMENT_RECORD_PB,
     CHECK_GRAMMAR,
     CHECK_PLAGIARISM,
-    CHECK_IMAGE_COPYRIGHT
+    CHECK_IMAGE_COPYRIGHT,
+    GET_ASSIGNED_REPORTS,
+    GET_PENDING_REPORTS,
+    GET_REPORT_REASONS
 }

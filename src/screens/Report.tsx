@@ -1,5 +1,5 @@
 import {View, Text, StyleSheet} from 'react-native';
-import {BUTTON_COLOR, ON_PRIMARY_COLOR} from '../helper/Theme';
+import {BUTTON_COLOR, ON_PRIMARY_COLOR, PRIMARY_COLOR} from '../helper/Theme';
 import {useRef} from 'react';
 import {Tabs, MaterialTabBar} from 'react-native-collapsible-tab-view';
 import {useSelector} from 'react-redux';
@@ -7,6 +7,11 @@ import {useCallback} from 'react';
 import {useSafeAreaInsets} from 'react-native-safe-area-context';
 import {hp} from '../helper/Metric';
 import {BottomSheetModal} from '@gorhom/bottom-sheet';
+import { GET_ASSIGNED_REPORTS, GET_PENDING_REPORTS } from '../helper/APIUtils';
+import { useQuery } from '@tanstack/react-query';
+import axios from 'axios';
+import { Report } from '../type';
+import ReportCard from '../components/ReportCard';
 
 export default function HomeScreen() {
   const {user_id} = useSelector((state: any) => state.user);
@@ -20,13 +25,58 @@ export default function HomeScreen() {
     bottomSheetModalRef.current?.present();
   }, []);
 
+  
+  const {
+    data: pendingReports,
+    refetch: pendingReportFetch,
+    isLoading: isPendingReportLoading,
+  } = useQuery({
+    queryKey: ['get-pending-reports'],
+    queryFn: async () => {
+      const response = await axios.get(`${GET_PENDING_REPORTS}`);
+      //let d = response.data as ArticleData[];
+      //updateAvailableArticles(d);
+      return response.data as Report[];
+    },
+  });
+
+  console.log("Pending Reports", pendingReports);
+  const {
+    data: assignedReports,
+    refetch: refetchAssignReports,
+    isLoading: isRefetchAssignReportLoading,
+  } = useQuery({
+    queryKey: ['get-assigned-reports'],
+    queryFn: async () => {
+      const response = await axios.get(
+        `${GET_ASSIGNED_REPORTS}`,
+      );
+      
+      return response.data as Report[];
+    },
+  });
+
+   const {
+    data: reportReasons,
+    refetch: refetchReportRefetch,
+    isLoading: reportReasonLoading,
+  } = useQuery({
+    queryKey: ['get-report-reasons'],
+    queryFn: async () => {
+      const response = await axios.get(
+        `${GET_ASSIGNED_REPORTS}`,
+      );
+      return response.data as Report[];
+    },
+  });
+
   const renderTabBar = props => {
     return (
       <MaterialTabBar
         {...props}
         indicatorStyle={styles.indicatorStyle}
         style={styles.tabBarStyle}
-        activeColor={BUTTON_COLOR}
+        activeColor={PRIMARY_COLOR}
         inactiveColor="#9098A3"
         labelStyle={styles.labelStyle}
         contentContainerStyle={styles.contentContainerStyle}
@@ -49,15 +99,23 @@ export default function HomeScreen() {
           </Tabs.Tab>
 
           <Tabs.Tab name="Pending">
-            <Tabs.ScrollView contentContainerStyle={styles.nocontainer}>
-              <Text style={styles.text}>Pending Report</Text>
-            </Tabs.ScrollView>
+              <Tabs.FlatList
+        data={pendingReports}
+        keyExtractor={(item) => item._id}
+        renderItem={({ item }) => <ReportCard report={item} />}
+        contentContainerStyle={styles.container}
+        showsVerticalScrollIndicator={false}
+      />
           </Tabs.Tab>
 
           <Tabs.Tab name="Assigned">
-            <Tabs.ScrollView contentContainerStyle={styles.nocontainer}>
-              <Text style={styles.text}>Assigned Report</Text>
-            </Tabs.ScrollView>
+              <Tabs.FlatList
+        data={assignedReports}
+        keyExtractor={(item) => item._id}
+        renderItem={({ item }) => <ReportCard report={item} />}
+        contentContainerStyle={styles.container}
+        showsVerticalScrollIndicator={false}
+      />
           </Tabs.Tab>
         </Tabs.Container>
 
@@ -93,7 +151,7 @@ export default function HomeScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#0CAFFF',
+   // backgroundColor: '#0CAFFF',
   },
   innerContainer: {
     flex: 1,
@@ -134,7 +192,7 @@ const styles = StyleSheet.create({
   },
   labelStyle: {
     fontWeight: '600',
-    fontSize: 17,
+    fontSize: 16,
     color: 'black',
     textTransform: 'capitalize',
   },

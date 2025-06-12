@@ -333,3 +333,29 @@ export type CopyrightCheckerProps = {
    onClose: ()=> void;
    data: CopyrightCheckerResponse[];
 }
+
+
+
+export type Report = {
+   _id: string;
+   admin_id: string | null;
+   action_taken: string;
+   articleId: ArticleData;
+   commentId: Comment;
+   reportedBy: User;
+   convictId: User;
+   reasonId: Reason;
+   last_action_date: Date;
+   created_at: Date;
+   convict_statement: string | null;
+}
+
+export type User = {
+  user_name: string;
+}
+
+export type Reason = {
+  _id: string;
+  reason: string;
+  status: string;
+}

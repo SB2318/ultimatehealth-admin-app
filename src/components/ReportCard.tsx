@@ -1,14 +1,22 @@
 import React from 'react';
-import { View, Text, StyleSheet } from 'react-native';
-import { Report } from '../type';
+import {View, Text, StyleSheet, TouchableOpacity} from 'react-native';
+import {Report, reportActionEnum} from '../type';
 import moment from 'moment';
+import {BUTTON_COLOR} from '../helper/Theme';
 
-
-
-const ReportCard = ({ report }:{report: Report}) => {
+export type ReportCardProps = {
+  report: Report;
+  onViewContent: (report: Report) => {};
+  onTakeActionReport: (report: Report) => {};
+};
+const ReportCard = ({
+  report,
+  onViewContent,
+  onTakeActionReport,
+}: ReportCardProps) => {
   return (
     <View style={styles.card}>
-      <Text style={styles.header}>Report ID: {report._id}</Text>
+      <Text style={styles.header}>Report #{report._id}</Text>
 
       <View style={styles.section}>
         <Text style={styles.label}>Reported By:</Text>
@@ -31,33 +39,42 @@ const ReportCard = ({ report }:{report: Report}) => {
       </View>
 
       <View style={styles.section}>
-        <Text style={styles.label}>Convict Statement:</Text>
-        <Text style={styles.value}>{report.convict_statement || 'No statement'}</Text>
-      </View>
-
-      <View style={styles.section}>
-        <Text style={styles.label}>Comment ID:</Text>
-        <Text style={styles.value}>{report.commentId  || 'N/A'}</Text>
-      </View>
-
-      <View style={styles.section}>
-        <Text style={styles.label}>Admin ID:</Text>
-        <Text style={styles.value}>{report.admin_id || 'Unassigned'}</Text>
-      </View>
-
-      <View style={styles.section}>
-        <Text style={styles.label}>Article ID:</Text>
-        <Text style={styles.value}>{report.articleId._id}</Text>
-      </View>
-
-        <View style={styles.section}>
-        <Text style={styles.label}>Created At:</Text>
-        <Text style={styles.value}>{moment(report.created_at).format('LL')}</Text>
+        <Text style={styles.label}>Reported At:</Text>
+        <Text style={styles.value}>
+          {moment(report.created_at).format('LL')}
+        </Text>
       </View>
 
       <View style={styles.section}>
         <Text style={styles.label}>Last Action Date:</Text>
-        <Text style={styles.value}>{moment(report.last_action_date).format('LL')}</Text>
+        <Text style={styles.value}>
+          {moment(report.last_action_date).format('LL')}
+        </Text>
+      </View>
+
+      {/* Buttons Section */}
+      <View style={styles.buttonContainer}>
+        <TouchableOpacity
+          style={styles.buttonSecondary}
+          onPress={() => {
+            onViewContent(report);
+          }}>
+          <Text style={styles.buttonText}>View Content</Text>
+        </TouchableOpacity>
+
+        
+
+        <TouchableOpacity
+          style={styles.buttonPrimary}
+          onPress={() => {
+            onTakeActionReport(report);
+          }}>
+          <Text style={styles.buttonText}>
+            {report.action_taken === reportActionEnum.PENDING
+              ? 'Take over report'
+              : 'Take action'}
+          </Text>
+        </TouchableOpacity>
       </View>
     </View>
   );
@@ -66,31 +83,62 @@ const ReportCard = ({ report }:{report: Report}) => {
 const styles = StyleSheet.create({
   card: {
     backgroundColor: '#fff',
-    borderRadius: 10,
-    padding: 16,
-    marginVertical: 10,
-    marginHorizontal: 20,
-    elevation: 3,
+    borderRadius: 12,
+    padding: 18,
+    marginVertical: 12,
+    marginHorizontal: 10,
+    elevation: 2,
     shadowColor: '#000',
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
+    shadowOpacity: 0.05,
+    shadowRadius: 3,
   },
   header: {
-    fontSize: 18,
-    fontWeight: '600',
-    marginBottom: 12,
-    color: '#333',
+    fontSize: 20,
+    fontWeight: '700',
+    marginBottom: 16,
+    color: '#222',
   },
   section: {
-    marginBottom: 8,
+    marginBottom: 10,
+    flexDirection: 'row',
+    justifyContent: 'space-between',
   },
   label: {
-    fontWeight: '500',
+    fontWeight: '600',
     color: '#555',
   },
   value: {
+    color: '#111',
     fontSize: 15,
-    color: '#222',
+    maxWidth: '60%',
+    textAlign: 'right',
+  },
+  buttonContainer: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginTop: 20,
+  },
+  buttonPrimary: {
+    backgroundColor: BUTTON_COLOR,
+    paddingVertical: 10,
+    paddingHorizontal: 14,
+    borderRadius: 6,
+    flex: 1,
+    marginLeft: 5,
+  },
+  buttonSecondary: {
+    backgroundColor: '#6c757d',
+    paddingVertical: 10,
+    paddingHorizontal: 14,
+    borderRadius: 6,
+    flex: 1,
+    marginRight: 5,
+  },
+  buttonText: {
+    color: '#fff',
+    fontWeight: '600',
+    fontSize: 14,
+    textAlign: 'center',
   },
 });
 

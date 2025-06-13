@@ -17,6 +17,7 @@ import WorkHistoryScreen from '../screens/WorkHistoryScreen';
 import ImprovementReviewScreen from '../screens/ImprovementReviewScreen';
 import ChangesHistoryScreen from '../screens/ChangesHistoryScreen';
 import { PRIMARY_COLOR } from '../helper/Theme';
+import CommentScreen from '../screens/CommentScreen';
 
 const Stack = createStackNavigator<RootStackParamList>();
 
@@ -98,6 +99,25 @@ const StackNavigation = () => {
         })}
       />
 
+       <Stack.Screen
+        name="CommentScreen"
+        component={CommentScreen}
+        options={({navigation}) => ({
+          headerShown: true,
+          headerTitle: '',
+          headerTransparent: true,
+          headerBackTitleVisible: false,
+          headerLeft: () => (
+            <TouchableOpacity
+              style={styles.headerLeftButtonCommentScreen}
+              onPress={() => {
+                navigation.goBack();
+              }}>
+              <FontAwesome6 size={25} name="arrow-left" color={PRIMARY_COLOR} />
+            </TouchableOpacity>
+          ),
+        })}
+      />
        <Stack.Screen
         name="ChangesHistoryScreen"
         component={ChangesHistoryScreen}

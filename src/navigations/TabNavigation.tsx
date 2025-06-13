@@ -8,7 +8,7 @@ import AntDesign from 'react-native-vector-icons/AntDesign';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 import {TouchableOpacity, View} from 'react-native';
 import {TabParamList} from '../type';
-import {ON_PRIMARY_COLOR, PRIMARY_COLOR} from '../helper/Theme';
+import {ON_PRIMARY_COLOR} from '../helper/Theme';
 import Podcast from '../screens/Podcast';
 import Notification from '../screens/Notification';
 import Report from '../screens/Report';

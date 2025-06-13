@@ -46,6 +46,7 @@ const CHECK_IMAGE_COPYRIGHT = `${Config.CONTENT_CHECKER_URL}/copyright/check-ima
 const GET_PENDING_REPORTS = `${Config.BASE_URL}/report/pending-reports`;
 const GET_ASSIGNED_REPORTS = `${Config.BASE_URL}/report/all-assigned-reports`;
 const GET_REPORT_REASONS = `${Config.BASE_URL}/report/reasons`;
+const PICK_REPORT = `${Config.BASE_URL}/report/pick-report-for-investigation`;
 
 export {
     LOGIN_API,
@@ -90,5 +91,6 @@ export {
     CHECK_IMAGE_COPYRIGHT,
     GET_ASSIGNED_REPORTS,
     GET_PENDING_REPORTS,
-    GET_REPORT_REASONS
+    GET_REPORT_REASONS,
+    PICK_REPORT
 }

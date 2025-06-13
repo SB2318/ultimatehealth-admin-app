@@ -1,4 +1,4 @@
-import {View, Text, StyleSheet} from 'react-native';
+import {View, Text, StyleSheet, Alert} from 'react-native';
 import {BUTTON_COLOR, ON_PRIMARY_COLOR, PRIMARY_COLOR} from '../helper/Theme';
 import {useRef} from 'react';
 import {Tabs, MaterialTabBar} from 'react-native-collapsible-tab-view';
@@ -7,15 +7,20 @@ import {useCallback} from 'react';
 import {useSafeAreaInsets} from 'react-native-safe-area-context';
 import {hp} from '../helper/Metric';
 import {BottomSheetModal} from '@gorhom/bottom-sheet';
-import { GET_ASSIGNED_REPORTS, GET_PENDING_REPORTS } from '../helper/APIUtils';
-import { useQuery } from '@tanstack/react-query';
+import {
+  GET_ASSIGNED_REPORTS,
+  GET_PENDING_REPORTS,
+  PICK_REPORT,
+} from '../helper/APIUtils';
+import {useMutation, useQuery} from '@tanstack/react-query';
 import axios from 'axios';
-import { Report } from '../type';
+import {Report, reportActionEnum} from '../type';
 import ReportCard from '../components/ReportCard';
+import Snackbar from 'react-native-snackbar';
+import Loader from '../components/Loader';
 
-export default function HomeScreen() {
+export default function ReportScreen({navigation}) {
   const {user_id} = useSelector((state: any) => state.user);
- 
 
   //const bottomBarHeight = useBottomTabBarHeight();
   const bottomSheetModalRef = useRef<BottomSheetModal>(null);
@@ -25,7 +30,6 @@ export default function HomeScreen() {
     bottomSheetModalRef.current?.present();
   }, []);
 
-  
   const {
     data: pendingReports,
     refetch: pendingReportFetch,
@@ -40,7 +44,7 @@ export default function HomeScreen() {
     },
   });
 
-  console.log("Pending Reports", pendingReports);
+  //console.log('Pending Reports', pendingReports);
   const {
     data: assignedReports,
     refetch: refetchAssignReports,
@@ -48,27 +52,87 @@ export default function HomeScreen() {
   } = useQuery({
     queryKey: ['get-assigned-reports'],
     queryFn: async () => {
-      const response = await axios.get(
-        `${GET_ASSIGNED_REPORTS}`,
-      );
-      
+      const response = await axios.get(`${GET_ASSIGNED_REPORTS}`);
+
       return response.data as Report[];
     },
   });
 
-   const {
+  const {
     data: reportReasons,
-    refetch: refetchReportRefetch,
+    refetch: refetchReportReasons,
     isLoading: reportReasonLoading,
   } = useQuery({
     queryKey: ['get-report-reasons'],
     queryFn: async () => {
-      const response = await axios.get(
-        `${GET_ASSIGNED_REPORTS}`,
-      );
+      const response = await axios.get(`${GET_PENDING_REPORTS}`);
       return response.data as Report[];
     },
   });
+
+  const takeOverReportMutation = useMutation({
+    mutationKey: ['takeOverReport'],
+    mutationFn: async (reportId: string) => {
+      const res = await axios.post(`${PICK_REPORT}`, {
+        reportId: reportId,
+      });
+
+      return res.data as any;
+    },
+    onSuccess: () => {
+      Snackbar.show({
+        text: 'Report taken over successfully',
+        duration: Snackbar.LENGTH_SHORT,
+      });
+      pendingReportFetch();
+    },
+
+    onError: err => {
+      Snackbar.show({
+        text: 'Failed to take over report',
+        duration: Snackbar.LENGTH_SHORT,
+      });
+      console.log('Report taken over report', err);
+    },
+  });
+
+  const onViewContent = (report: Report) => {
+    if (report.commentId) {
+      navigation.navigate('CommentScreen', {
+        articleId: report.articleId._id,
+        commentId: report.commentId._id,
+      });
+    } else {
+      navigation.navigate('ArticleReviewScreen', {
+        articleId: Number(report.articleId._id),
+        authorId: report.articleId.authorId,
+        destination: report.articleId.status,
+        recordId: report.articleId.pb_recordId,
+      });
+    }
+  };
+
+  const onTakeActionReport = (report: Report) => {
+    if (report.action_taken === reportActionEnum.PENDING) {
+      Alert.alert(
+        'Take Over Report',
+        'Are you sure you want to take over this report? Once you do, you are expected to complete the action.',
+        [
+          {
+            text: 'Cancel',
+            style: 'cancel',
+          },
+          {
+            text: 'Confirm',
+            onPress: () => takeOverReportMutation.mutate(report._id),
+            style: 'destructive',
+          },
+        ],
+      );
+    } else {
+      // Take action on assign report frontend part --> upcoming
+    }
+  };
 
   const renderTabBar = props => {
     return (
@@ -84,10 +148,19 @@ export default function HomeScreen() {
     );
   };
 
+  if (
+    isPendingReportLoading ||
+    isRefetchAssignReportLoading ||
+    reportReasonLoading ||
+    takeOverReportMutation.isPending
+  ) {
+    return <Loader />;
+  }
+
+  
   return (
     <View style={styles.container}>
       <View style={[styles.innerContainer, {paddingTop: insets.top}]}>
-     
         <Tabs.Container
           //initialIndex={0}
           renderTabBar={renderTabBar}
@@ -99,28 +172,37 @@ export default function HomeScreen() {
           </Tabs.Tab>
 
           <Tabs.Tab name="Pending">
+            <View style={{flex: 1}}>
               <Tabs.FlatList
-        data={pendingReports}
-        keyExtractor={(item) => item._id}
-        renderItem={({ item }) => <ReportCard report={item} />}
-        contentContainerStyle={styles.container}
-        showsVerticalScrollIndicator={false}
-      />
+                data={pendingReports}
+                keyExtractor={item => item._id}
+                renderItem={({item}) => (
+                  <ReportCard
+                    report={item}
+                    onTakeActionReport={onTakeActionReport}
+                    onViewContent={onViewContent}
+                  />
+                )}
+                //contentContainerStyle={styles.container}
+                showsVerticalScrollIndicator={false}
+              />
+            </View>
           </Tabs.Tab>
 
           <Tabs.Tab name="Assigned">
+            <View style={{flex: 1}}>
               <Tabs.FlatList
-        data={assignedReports}
-        keyExtractor={(item) => item._id}
-        renderItem={({ item }) => <ReportCard report={item} />}
-        contentContainerStyle={styles.container}
-        showsVerticalScrollIndicator={false}
-      />
+                data={assignedReports}
+                keyExtractor={item => item._id}
+                renderItem={({item}) => <ReportCard report={item} />}
+                //contentContainerStyle={styles.container}
+                showsVerticalScrollIndicator={false}
+              />
+            </View>
           </Tabs.Tab>
         </Tabs.Container>
 
-       {
-        /**
+        {/**
          * 
          *  <FilterModal
           bottomSheetModalRef={bottomSheetModalRef}
@@ -141,8 +223,7 @@ export default function HomeScreen() {
             handlePresentModalPress();
           }}
         />
-         */
-       }
+         */}
       </View>
     </View>
   );
@@ -151,13 +232,14 @@ export default function HomeScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-   // backgroundColor: '#0CAFFF',
+    backgroundColor: ON_PRIMARY_COLOR,
   },
   innerContainer: {
     flex: 1,
+    marginBottom: hp(10),
   },
   tabsContainer: {
-    backgroundColor: 'white',
+    // backgroundColor: 'white',
     overflow: 'hidden',
   },
   image: {

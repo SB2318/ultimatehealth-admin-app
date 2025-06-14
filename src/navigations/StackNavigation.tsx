@@ -18,6 +18,7 @@ import ImprovementReviewScreen from '../screens/ImprovementReviewScreen';
 import ChangesHistoryScreen from '../screens/ChangesHistoryScreen';
 import { PRIMARY_COLOR } from '../helper/Theme';
 import CommentScreen from '../screens/CommentScreen';
+import ReportAction from '../screens/ReportAction';
 
 const Stack = createStackNavigator<RootStackParamList>();
 
@@ -124,6 +125,28 @@ const StackNavigation = () => {
         options={({navigation}) => ({
           headerShown: true,
           title: 'Changes History',
+          headerTitleAlign:"center",
+          headerBackTitleVisible: false,
+          headerShadowVisible: false,
+          headerLeft: () => (
+            <TouchableOpacity
+              style={styles.profileScreenHeaderLeftButton}
+              onPress={() => {
+                navigation.goBack();
+              }}>
+              <FontAwesome6 size={25} name="arrow-left" color={PRIMARY_COLOR} />
+            </TouchableOpacity>
+          ),
+        })}
+      />
+
+
+        <Stack.Screen
+        name="ReportActionScreen"
+        component={ReportAction}
+        options={({navigation}) => ({
+          headerShown: true,
+          title: 'Take action',
           headerTitleAlign:"center",
           headerBackTitleVisible: false,
           headerShadowVisible: false,

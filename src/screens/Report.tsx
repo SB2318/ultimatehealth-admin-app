@@ -1,23 +1,33 @@
-import {View, Text, StyleSheet, Alert} from 'react-native';
+import {
+  View,
+  Text,
+  StyleSheet,
+  Alert,
+  Image,
+  TouchableOpacity,
+  FlatList,
+} from 'react-native';
 import {BUTTON_COLOR, ON_PRIMARY_COLOR, PRIMARY_COLOR} from '../helper/Theme';
-import {useRef} from 'react';
+import React, {useRef} from 'react';
 import {Tabs, MaterialTabBar} from 'react-native-collapsible-tab-view';
 import {useSelector} from 'react-redux';
 import {useCallback} from 'react';
 import {useSafeAreaInsets} from 'react-native-safe-area-context';
-import {hp} from '../helper/Metric';
+import {hp, wp} from '../helper/Metric';
 import {BottomSheetModal} from '@gorhom/bottom-sheet';
 import {
   GET_ASSIGNED_REPORTS,
   GET_PENDING_REPORTS,
+  GET_REPORT_REASONS,
   PICK_REPORT,
 } from '../helper/APIUtils';
 import {useMutation, useQuery} from '@tanstack/react-query';
 import axios from 'axios';
-import {Report, reportActionEnum} from '../type';
+import {Reason, Report, reportActionEnum} from '../type';
 import ReportCard from '../components/ReportCard';
 import Snackbar from 'react-native-snackbar';
 import Loader from '../components/Loader';
+import ReasonItemCard from '../components/ReasonItemCard';
 
 export default function ReportScreen({navigation}) {
   const {user_id} = useSelector((state: any) => state.user);
@@ -58,6 +68,8 @@ export default function ReportScreen({navigation}) {
     },
   });
 
+  // console.log("Assigned Reports", assignedReports);
+
   const {
     data: reportReasons,
     refetch: refetchReportReasons,
@@ -65,10 +77,12 @@ export default function ReportScreen({navigation}) {
   } = useQuery({
     queryKey: ['get-report-reasons'],
     queryFn: async () => {
-      const response = await axios.get(`${GET_PENDING_REPORTS}`);
+      const response = await axios.get(`${GET_REPORT_REASONS}`);
       return response.data as Report[];
     },
   });
+
+  // console.log("Report reaons", reportReasons)
 
   const takeOverReportMutation = useMutation({
     mutationKey: ['takeOverReport'],
@@ -85,6 +99,7 @@ export default function ReportScreen({navigation}) {
         duration: Snackbar.LENGTH_SHORT,
       });
       pendingReportFetch();
+      refetchAssignReports();
     },
 
     onError: err => {
@@ -130,7 +145,10 @@ export default function ReportScreen({navigation}) {
         ],
       );
     } else {
-      // Take action on assign report frontend part --> upcoming
+      navigation.navigate('ReportActionScreen', {
+        reportId: report._id,
+        report_admin_id: report.admin_id,
+      });
     }
   };
 
@@ -157,7 +175,6 @@ export default function ReportScreen({navigation}) {
     return <Loader />;
   }
 
-  
   return (
     <View style={styles.container}>
       <View style={[styles.innerContainer, {paddingTop: insets.top}]}>
@@ -166,9 +183,36 @@ export default function ReportScreen({navigation}) {
           renderTabBar={renderTabBar}
           containerStyle={styles.tabsContainer}>
           <Tabs.Tab name="Reasons">
-            <Tabs.ScrollView contentContainerStyle={styles.nocontainer}>
-              <Text style={styles.text}>Reasons</Text>
-            </Tabs.ScrollView>
+            <View style={{flex: 1}}>
+              <View style={styles.reasonTabContainer}>
+                <TouchableOpacity style={styles.addButton} onPress={() => {}}>
+                  <Text style={styles.addButtonText}>+ Add New Reason</Text>
+                </TouchableOpacity>
+
+                <Tabs.FlatList
+                  data={reportReasons ? reportReasons : []}
+                  keyExtractor={item => item._id}
+                  renderItem={({item}: {item: Reason}) => (
+                    <ReasonItemCard
+                      reason={item}
+                      onEdit={() => {}}
+                      onDelete={() => {}}
+                    />
+                  )}
+                  contentContainerStyle={styles.list}
+                  showsVerticalScrollIndicator={false}
+                  ListEmptyComponent={
+                    <View style={styles.emptyContainer}>
+                      <Image
+                        source={require('../../assets/identify-audience.png')}
+                        style={styles.image}
+                      />
+                      <Text style={styles.message}>No reason found</Text>
+                    </View>
+                  }
+                />
+              </View>
+            </View>
           </Tabs.Tab>
 
           <Tabs.Tab name="Pending">
@@ -177,12 +221,22 @@ export default function ReportScreen({navigation}) {
                 data={pendingReports}
                 keyExtractor={item => item._id}
                 renderItem={({item}) => (
+                  // eslint-disable-next-line react/react-in-jsx-scope
                   <ReportCard
                     report={item}
                     onTakeActionReport={onTakeActionReport}
                     onViewContent={onViewContent}
                   />
                 )}
+                ListEmptyComponent={
+                  <View style={styles.emptyContainer}>
+                    <Image
+                      source={require('../../assets/identify-audience.png')}
+                      style={styles.image}
+                    />
+                    <Text style={styles.message}>No report found</Text>
+                  </View>
+                }
                 //contentContainerStyle={styles.container}
                 showsVerticalScrollIndicator={false}
               />
@@ -194,7 +248,22 @@ export default function ReportScreen({navigation}) {
               <Tabs.FlatList
                 data={assignedReports}
                 keyExtractor={item => item._id}
-                renderItem={({item}) => <ReportCard report={item} />}
+                renderItem={({item}) => (
+                  <ReportCard
+                    report={item}
+                    onViewContent={onViewContent}
+                    onTakeActionReport={onTakeActionReport}
+                  />
+                )}
+                ListEmptyComponent={
+                  <View style={styles.emptyContainer}>
+                    <Image
+                      source={require('../../assets/identify-audience.png')}
+                      style={styles.image}
+                    />
+                    <Text style={styles.message}>No Report Found</Text>
+                  </View>
+                }
                 //contentContainerStyle={styles.container}
                 showsVerticalScrollIndicator={false}
               />
@@ -321,5 +390,33 @@ const styles = StyleSheet.create({
   text: {
     fontSize: 20,
     color: '#000',
+  },
+
+  reasonTabContainer: {
+    paddingHorizontal: wp(2),
+    paddingTop: hp(2),
+    backgroundColor: '#F9FAFB',
+    flex: 0,
+    width: '100%',
+    justifyContent: 'center',
+  },
+
+  addButton: {
+    backgroundColor: BUTTON_COLOR,
+    paddingVertical: hp(1.5),
+    borderRadius: 10,
+    alignItems: 'center',
+    marginTop: hp(7),
+  },
+
+  addButtonText: {
+    color: 'white',
+    fontSize: 16,
+    fontWeight: '600',
+  },
+  list: {
+    paddingBottom: hp(5),
+    paddingTop: hp(1),
+    gap: hp(1.5),
   },
 });

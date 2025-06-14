@@ -14,6 +14,14 @@ const ReportCard = ({
   onViewContent,
   onTakeActionReport,
 }: ReportCardProps) => {
+  const resolutions = [
+    reportActionEnum.RESOLVED,
+    reportActionEnum.DISMISSED,
+    reportActionEnum.IGNORE,
+    reportActionEnum.WARN_CONVICT,
+    reportActionEnum.REMOVE_CONTENT,
+    reportActionEnum.BLOCK_CONVICT,
+  ];
   return (
     <View style={styles.card}>
       <Text style={styles.header}>Report #{report._id}</Text>
@@ -62,8 +70,6 @@ const ReportCard = ({
           <Text style={styles.buttonText}>View Content</Text>
         </TouchableOpacity>
 
-        
-
         <TouchableOpacity
           style={styles.buttonPrimary}
           onPress={() => {
@@ -72,7 +78,7 @@ const ReportCard = ({
           <Text style={styles.buttonText}>
             {report.action_taken === reportActionEnum.PENDING
               ? 'Take over report'
-              : 'Take action'}
+              : resolutions.includes(report.action_taken as reportActionEnum) ? 'Take action further': 'Take action'}
           </Text>
         </TouchableOpacity>
       </View>

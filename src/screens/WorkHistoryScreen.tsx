@@ -1,27 +1,22 @@
 import React, {useCallback, useState} from 'react';
-import {View, Text, StyleSheet} from 'react-native';
+import {View, Text, StyleSheet, Image} from 'react-native';
 import {MaterialTabBar, Tabs} from 'react-native-collapsible-tab-view';
-import {
-  PRIMARY_COLOR,
-  ON_PRIMARY_COLOR,
-  BUTTON_COLOR,
-} from '../helper/Theme';
+import {PRIMARY_COLOR, ON_PRIMARY_COLOR, BUTTON_COLOR} from '../helper/Theme';
 import {useSafeAreaInsets} from 'react-native-safe-area-context';
-import {ArticleData, WorkHistoryProps} from '../type';
+import {ArticleData, Report, WorkHistoryProps} from '../type';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import {FAB} from 'react-native-paper';
 import ReviewCard from '../components/ReviewCard';
 import {hp} from '../helper/Metric';
-import { useSelector } from 'react-redux';
-import { useQuery } from '@tanstack/react-query';
+import {useSelector} from 'react-redux';
+import {useQuery} from '@tanstack/react-query';
 import axios from 'axios';
-import { GET_COMPLETED_TASK_API } from '../helper/APIUtils';
+import {GET_ASSIGNED_REPORTS, GET_COMPLETED_TASK_API} from '../helper/APIUtils';
 import Loader from '../components/Loader';
-import { StatusEnum } from '../helper/Utils';
+import {StatusEnum} from '../helper/Utils';
+import ReportCard from '../components/ReportCard';
 
-export default function WorkHistoryScreen({
-  navigation,
-}: WorkHistoryProps) {
+export default function WorkHistoryScreen({navigation}: WorkHistoryProps) {
   //const bottomBarHeight = useBottomTabBarHeight();
   const {user_token, user_id} = useSelector((state: any) => state.user);
   const insets = useSafeAreaInsets();
@@ -43,13 +38,52 @@ export default function WorkHistoryScreen({
       return response.data as ArticleData[];
     },
   });
- 
 
+  const {
+    data: assignedReports,
+    refetch: refetchAssignReports,
+    isLoading: isRefetchAssignReportLoading,
+  } = useQuery({
+    queryKey: ['get-assigned-reports'],
+    queryFn: async () => {
+      const response = await axios.get(
+        `${GET_ASSIGNED_REPORTS}?isCompleted=${true}`,
+      );
+
+      return response.data as Report[];
+    },
+  });
 
   const onRefresh = () => {
     setRefreshing(true);
-     refetchCompletedArticles();
+    refetchCompletedArticles();
+    refetchAssignReports();
     setRefreshing(false);
+  };
+
+  const onViewContent = (report: Report) => {
+    if (report.commentId) {
+      navigation.navigate('CommentScreen', {
+        articleId: Number(report.articleId._id),
+        commentId: report.commentId._id,
+      });
+    } else {
+      navigation.navigate('ArticleReviewScreen', {
+        articleId: Number(report.articleId._id),
+        authorId: report.articleId.authorId,
+        destination: report.articleId.status,
+        recordId: report.articleId.pb_recordId,
+      });
+    }
+  };
+
+  const onTakeActionReport = (report: Report) => {
+    if (report) {
+      navigation.navigate('ReportActionScreen', {
+        reportId: report._id,
+        report_admin_id: report.admin_id ?? '',
+      });
+    }
   };
 
   const renderItem = useCallback(
@@ -63,16 +97,15 @@ export default function WorkHistoryScreen({
             // TODO: handle card click if needed
           }}
           onNavigate={item => {
-            
-            if(item?.status === StatusEnum.DISCARDED){
+            if (item?.status === StatusEnum.DISCARDED) {
               return;
-            }else{
+            } else {
               navigation.navigate('ArticleReviewScreen', {
-              articleId: Number(item._id),
-              authorId: item.authorId,
-              destination: item.status,
-              recordId: item.pb_recordId
-            });
+                articleId: Number(item._id),
+                authorId: item.authorId,
+                destination: item.status,
+                recordId: item.pb_recordId,
+              });
             }
           }}
         />
@@ -80,11 +113,10 @@ export default function WorkHistoryScreen({
     },
     [navigation, selectedCardId, setSelectedCardId],
   );
-  
-  if(isCompletedArticleLoading){
-    return <Loader/>
-}
 
+  if (isCompletedArticleLoading || isRefetchAssignReportLoading) {
+    return <Loader />;
+  }
 
   const renderTabBar = props => {
     return (
@@ -109,11 +141,7 @@ export default function WorkHistoryScreen({
           {/* Tab 2 */}
           <Tabs.Tab name={'Articles'}>
             <Tabs.FlatList
-              data={
-                completedArticles
-                  ? completedArticles
-                  : []
-              }
+              data={completedArticles ? completedArticles : []}
               renderItem={renderItem}
               showsVerticalScrollIndicator={false}
               contentContainerStyle={[
@@ -151,23 +179,30 @@ export default function WorkHistoryScreen({
             />
           </Tabs.Tab>
           <Tabs.Tab name={'Reports'}>
-            <Tabs.FlatList
-              data={[]}
-              renderItem={renderItem}
-              showsVerticalScrollIndicator={false}
-              contentContainerStyle={[
-                styles.flatListContentContainer,
-                {paddingBottom: 15},
-              ]}
-              keyExtractor={item => item?._id}
-              refreshing={refreshing}
-              onRefresh={onRefresh}
-              ListEmptyComponent={
-                <View style={styles.emptyContainer}>
-                  <Text style={styles.message}>No Reports Found</Text>
-                </View>
-              }
-            />
+            <View style={{flex: 1}}>
+              <Tabs.FlatList
+                data={assignedReports}
+                keyExtractor={item => item._id}
+                renderItem={({item}) => (
+                  <ReportCard
+                    report={item}
+                    onViewContent={onViewContent}
+                    onTakeActionReport={onTakeActionReport}
+                  />
+                )}
+                ListEmptyComponent={
+                  <View style={styles.emptyContainer}>
+                    <Image
+                      source={require('../../assets/identify-audience.png')}
+                      style={styles.image}
+                    />
+                    <Text style={styles.message}>No Report Found</Text>
+                  </View>
+                }
+                //contentContainerStyle={styles.container}
+                showsVerticalScrollIndicator={false}
+              />
+            </View>
           </Tabs.Tab>
         </Tabs.Container>
       </View>
@@ -260,5 +295,12 @@ const styles = StyleSheet.create({
     bottom: 20,
     borderRadius: hp(20),
     backgroundColor: BUTTON_COLOR, // Customize color
+  },
+  image: {
+    height: 160,
+    width: 160,
+    borderRadius: 80,
+    resizeMode: 'cover',
+    marginBottom: hp(4),
   },
 });

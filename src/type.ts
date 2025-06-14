@@ -34,6 +34,10 @@ export type RootStackParamList = {
     articleId: number;
     commentId: string;
   };
+  ReportActionScreen:{
+    reportId: string;
+    report_admin_id: string;
+  }
 };
 
 export type Admin = {
@@ -207,6 +211,11 @@ export type ReviewScreenProp = StackScreenProps<
   'ArticleReviewScreen'
 >;
 
+export type  ReportActionScreenProp = StackScreenProps<
+  RootStackParamList,
+  'ReportActionScreen'
+>;
+
 export type ImprovementScreenProp = StackScreenProps<
   RootStackParamList,
   'ImprovementReviewScreen'
@@ -330,8 +339,6 @@ export type CopyrightCheckerProps = {
   data: CopyrightCheckerResponse[];
 };
 
-
-
 export enum reportActionEnum {
   PENDING = 'Pending',
   RESOLVED = 'Resolved',
@@ -348,6 +355,25 @@ export enum reportActionEnum {
   CONVICT_REQUEST_TO_RESTORE_CONTENT = 'CONVICT_REQUEST_TO_RESTORE_CONTENT',
   CONVICT_REQUEST_DISAPPROVED = 'CONVICT_REQUEST_DISAPPROVED',
 }
+
+export const reportActionMessages: Record<reportActionEnum, string> = {
+  [reportActionEnum.PENDING]: 'Marked the report as pending.',
+  [reportActionEnum.RESOLVED]: 'Marked the issue as resolved.',
+  [reportActionEnum.DISMISSED]: 'Dismissed the report.',
+  [reportActionEnum.WARN_CONVICT]: 'Issued a warning to the user.',
+  [reportActionEnum.REMOVE_CONTENT]: 'Removed the reported content.',
+  [reportActionEnum.EDIT_CONTENT]: 'Edited the reported content.',
+  [reportActionEnum.RESTORE_CONTENT]: 'Restored the previously removed content.',
+  [reportActionEnum.BLOCK_CONVICT]: 'Blocked the user from the platform.',
+  [reportActionEnum.BAN_CONVICT]: 'Banned the user permanently.',
+  [reportActionEnum.ESCALATED]: 'Escalated the report for further review.',
+  [reportActionEnum.INVESTIGATION]: 'Started an investigation on the report.',
+  [reportActionEnum.IGNORE]: 'Ignored the report.',
+  [reportActionEnum.CONVICT_REQUEST_TO_RESTORE_CONTENT]: 'Reviewed the user’s request to restore content.',
+  [reportActionEnum.CONVICT_REQUEST_DISAPPROVED]: 'Disapproved the user’s request for content restoration.',
+};
+
+
 
 export type Report = {
   _id: string;

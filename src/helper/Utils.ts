@@ -1,7 +1,7 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import axios from 'axios';
 import {CHECK_IMAGE_COPYRIGHT, GET_IMAGE} from './APIUtils';
-import {CopyrightCheckerResponse} from '../type';
+import {CopyrightCheckerResponse, reportActionEnum} from '../type';
 
 // Async Storage for get Item
 export const retrieveItem = async (key: string) => {
@@ -59,6 +59,7 @@ export const StatusEnum = {
   DISCARDED: 'discarded', // can't change
   AWAITING_USER: 'awaiting-user',
 };
+
 export function formatCount(count: number) {
   if (count < 1000) {
     return count.toString();

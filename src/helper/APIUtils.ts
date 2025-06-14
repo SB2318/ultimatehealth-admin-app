@@ -47,6 +47,7 @@ const GET_PENDING_REPORTS = `${Config.BASE_URL}/report/pending-reports`;
 const GET_ASSIGNED_REPORTS = `${Config.BASE_URL}/report/all-assigned-reports`;
 const GET_REPORT_REASONS = `${Config.BASE_URL}/report/reasons`;
 const PICK_REPORT = `${Config.BASE_URL}/report/pick-report-for-investigation`;
+const TAKE_ACTION_ON_REPORT = `${Config.BASE_URL}/report/take-admin-action`;
 
 export {
     LOGIN_API,
@@ -92,5 +93,6 @@ export {
     GET_ASSIGNED_REPORTS,
     GET_PENDING_REPORTS,
     GET_REPORT_REASONS,
-    PICK_REPORT
+    PICK_REPORT,
+    TAKE_ACTION_ON_REPORT
 }

@@ -1,4 +1,12 @@
-import {View, Text, StyleSheet, Image, Alert} from 'react-native';
+import React from 'react';
+import {
+  View,
+  Text,
+  StyleSheet,
+  Image,
+  Alert,
+  TouchableOpacity,
+} from 'react-native';
 import {BUTTON_COLOR, ON_PRIMARY_COLOR} from '../helper/Theme';
 import {useEffect, useRef} from 'react';
 import {Tabs, MaterialTabBar} from 'react-native-collapsible-tab-view';
@@ -20,7 +28,7 @@ import {useCallback, useState} from 'react';
 import {useFocusEffect} from '@react-navigation/native';
 import {useSafeAreaInsets} from 'react-native-safe-area-context';
 import ReviewCard from '../components/ReviewCard';
-import {hp} from '../helper/Metric';
+import {hp, wp} from '../helper/Metric';
 import FilterModal from '../components/FilterModal';
 import Loader from '../components/Loader';
 import Snackbar from 'react-native-snackbar';
@@ -36,6 +44,7 @@ import {
 } from '../stores/articleSlice';
 import HomeArticle from './tabs/HomeArticle';
 import Improvement from './tabs/Improvement';
+import TagItemCard from '../components/TagItemCard';
 
 export default function HomeScreen({navigation}: ArticleProps) {
   const {user_id} = useSelector((state: any) => state.user);
@@ -317,14 +326,14 @@ export default function HomeScreen({navigation}: ArticleProps) {
       : [];
 
     if (selectedTags.length > 0) {
-      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+
       filterdAvailable = filterdAvailable.filter(article =>
         selectedTags.some(tag =>
           article.tags.some(category => category.name === tag),
         ),
       );
 
-      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+
       filterProgress = filterProgress.filter(article =>
         selectedTags.some(tag =>
           article.tags.some(category => category.name === tag),
@@ -377,7 +386,7 @@ export default function HomeScreen({navigation}: ArticleProps) {
   const renderItem = useCallback(
     ({item}: {item: ArticleData}) => {
       return (
-        // eslint-disable-next-line react/react-in-jsx-scope
+
         <ReviewCard
           item={item}
           isSelected={selectedCardId === item._id}
@@ -405,13 +414,13 @@ export default function HomeScreen({navigation}: ArticleProps) {
               articleId: Number(item._id),
               authorId: item.authorId,
               destination: item.status,
-              recordId: item.pb_recordId
+              recordId: item.pb_recordId,
             });
           }}
         />
       );
     },
-    [discardArticleMutation, navigation, pickArticleMutation, selectedCardId],
+    [discardArticleMutation, navigation, pickArticleMutation, selectedCardId, unassignFromArticleMutation],
   );
 
   const onArticleRefresh = () => {
@@ -433,16 +442,14 @@ export default function HomeScreen({navigation}: ArticleProps) {
     authorId: string,
     destination: string,
     recordId: string,
-    articleRecordId: string
+    articleRecordId: string,
   ) => {
-    
     navigation.navigate('ImprovementReviewScreen', {
       requestId: requestId,
       authorId: authorId,
       destination: destination,
       recordId: recordId,
-      articleRecordId: recordId
-
+      articleRecordId: recordId,
     });
   };
 
@@ -473,6 +480,40 @@ export default function HomeScreen({navigation}: ArticleProps) {
           renderTabBar={renderTabBar}
           containerStyle={styles.tabsContainer}>
           {/* Tab 1 */}
+
+          <Tabs.Tab name="Tags">
+            <View style={{flex: 1}}>
+              <View style={styles.reasonTabContainer}>
+                <TouchableOpacity style={styles.addButton} onPress={() => {}}>
+                  <Text style={styles.addButtonText}>+ Add New Tag</Text>
+                </TouchableOpacity>
+
+                <Tabs.FlatList
+                  data={articleCategories ? articleCategories : []}
+                  keyExtractor={item => item._id}
+                  renderItem={({item}: {item: Category}) => (
+                    <TagItemCard
+                      reason={item}
+                      onEdit={() => {}}
+                      onDelete={() => {}}
+                    />
+                  )}
+                  contentContainerStyle={styles.list}
+                  showsVerticalScrollIndicator={false}
+                  ListEmptyComponent={
+                    <View style={styles.emptyContainer}>
+                      <Image
+                        source={require('../../assets/identify-audience.png')}
+                        style={styles.image}
+                      />
+
+                      <Text style={styles.message}>No tags found</Text>
+                    </View>
+                  }
+                />
+              </View>
+            </View>
+          </Tabs.Tab>
           <Tabs.Tab name="Articles">
             <HomeArticle
               availableArticle={filteredAvailableArticles}
@@ -485,7 +526,7 @@ export default function HomeScreen({navigation}: ArticleProps) {
 
           {/* Available Improvements articles */}
           <Tabs.Tab name="Improvements">
-            <Improvement handleNav ={handleImprovementReviewNav}/>
+            <Improvement handleNav={handleImprovementReviewNav} />
           </Tabs.Tab>
         </Tabs.Container>
 
@@ -559,7 +600,7 @@ const styles = StyleSheet.create({
   },
   labelStyle: {
     fontWeight: '600',
-    fontSize: 17,
+    fontSize: 14,
     color: 'black',
     textTransform: 'capitalize',
   },
@@ -595,5 +636,33 @@ const styles = StyleSheet.create({
     bottom: 60,
     borderRadius: hp(20),
     backgroundColor: BUTTON_COLOR,
+  },
+
+  reasonTabContainer: {
+    paddingHorizontal: wp(2),
+    paddingTop: hp(2),
+    backgroundColor: '#F9FAFB',
+    flex: 0,
+    width: '100%',
+    justifyContent: 'center',
+  },
+
+  addButton: {
+    backgroundColor: BUTTON_COLOR,
+    paddingVertical: hp(1.5),
+    borderRadius: 10,
+    alignItems: 'center',
+    marginTop: hp(7),
+  },
+
+  addButtonText: {
+    color: 'white',
+    fontSize: 16,
+    fontWeight: '600',
+  },
+  list: {
+    paddingBottom: hp(5),
+    paddingTop: hp(1),
+    gap: hp(1.5),
   },
 });

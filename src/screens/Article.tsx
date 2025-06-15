@@ -56,7 +56,7 @@ export default function HomeScreen({navigation}: ArticleProps) {
     selectedTags,
     sortType,
   } = useSelector((state: any) => state.article);
-  const [refreshing, setRefreshing] = useState<boolean>(false);
+  //const [refreshing, setRefreshing] = useState<boolean>(false);
   const [selectedCardId, setSelectedCardId] = useState<string>('');
   const dispatch = useDispatch();
   const [articleRefreshing, setArticleRefreshing] = useState<boolean>(false);
@@ -70,6 +70,7 @@ export default function HomeScreen({navigation}: ArticleProps) {
     CategoryType['name'][]
   >([]);
 
+  const [tagRefresh, setTagRefresh] = useState<boolean>(false);
   //const bottomBarHeight = useBottomTabBarHeight();
   const bottomSheetModalRef = useRef<BottomSheetModal>(null);
   const insets = useSafeAreaInsets();
@@ -96,6 +97,7 @@ export default function HomeScreen({navigation}: ArticleProps) {
     } else {
       //  setSelectedCategory(selectedTags[0]);
     }
+    // console.log("Article data", categoryData.length);
     setArticleCategories(categoryData);
     dispatch(setTags({tags: categoryData}));
   };
@@ -443,6 +445,11 @@ export default function HomeScreen({navigation}: ArticleProps) {
     setArticleRefreshing(false);
   };
 
+  const onTagRefresh = async () => {
+    setTagRefresh(true);
+    await getAllCategories();
+    setTagRefresh(false);
+  };
   useFocusEffect(
     useCallback(() => {
       availableAticleRefetch();
@@ -487,6 +494,7 @@ export default function HomeScreen({navigation}: ArticleProps) {
         name: name,
       });
 
+      //console.log("Tag res", res);
       return res.data as Category;
     },
     onSuccess: (data: Category) => {
@@ -549,7 +557,7 @@ export default function HomeScreen({navigation}: ArticleProps) {
     onError: error => {
       console.log(error);
       Snackbar.show({
-        text: 'Error deleting tag',
+        text: error.message,
         duration: Snackbar.LENGTH_SHORT,
       });
     },
@@ -589,6 +597,8 @@ export default function HomeScreen({navigation}: ArticleProps) {
                 <Tabs.FlatList
                   data={articleCategories ? articleCategories : []}
                   keyExtractor={item => item._id}
+                  refreshing={tagRefresh}
+                  onRefresh={onTagRefresh}
                   renderItem={({item}: {item: Category}) => (
                     <TagItemCard
                       reason={item}
@@ -607,7 +617,7 @@ export default function HomeScreen({navigation}: ArticleProps) {
                             },
                             {
                               text: 'Confirm',
-                              onPress: () => deleteTagMutation.mutate(item.id.toString()),
+                              onPress: () => deleteTagMutation.mutate(item._id),
                               style: 'destructive',
                             },
                           ],
@@ -798,7 +808,7 @@ const styles = StyleSheet.create({
     fontWeight: '600',
   },
   list: {
-    paddingBottom: hp(5),
+    paddingBottom: hp(15),
     paddingTop: hp(1),
     gap: hp(1.5),
   },

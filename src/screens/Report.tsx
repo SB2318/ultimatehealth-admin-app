@@ -5,10 +5,9 @@ import {
   Alert,
   Image,
   TouchableOpacity,
-  FlatList,
 } from 'react-native';
 import {BUTTON_COLOR, ON_PRIMARY_COLOR, PRIMARY_COLOR} from '../helper/Theme';
-import React, {useRef} from 'react';
+import React, {useRef, useState} from 'react';
 import {Tabs, MaterialTabBar} from 'react-native-collapsible-tab-view';
 import {useSelector} from 'react-redux';
 import {useCallback} from 'react';
@@ -16,10 +15,13 @@ import {useSafeAreaInsets} from 'react-native-safe-area-context';
 import {hp, wp} from '../helper/Metric';
 import {BottomSheetModal} from '@gorhom/bottom-sheet';
 import {
+  ADD_REASON,
+  DELETE_REASON,
   GET_ASSIGNED_REPORTS,
   GET_PENDING_REPORTS,
   GET_REPORT_REASONS,
   PICK_REPORT,
+  UPDATE_REASON,
 } from '../helper/APIUtils';
 import {useMutation, useQuery} from '@tanstack/react-query';
 import axios from 'axios';
@@ -28,6 +30,7 @@ import ReportCard from '../components/ReportCard';
 import Snackbar from 'react-native-snackbar';
 import Loader from '../components/Loader';
 import ReasonItemCard from '../components/ReasonItemCard';
+import AddTagModal from '../components/AddTagModal';
 
 export default function ReportScreen({navigation}) {
   const {user_id} = useSelector((state: any) => state.user);
@@ -35,11 +38,19 @@ export default function ReportScreen({navigation}) {
   //const bottomBarHeight = useBottomTabBarHeight();
   const bottomSheetModalRef = useRef<BottomSheetModal>(null);
   const insets = useSafeAreaInsets();
+  const [selectedReason, setSelectedReason] = useState<Reason | null>(null);
+  const [addTagModalVisible, setAddTagModalVisible] = useState<boolean>(false);
+  const [reasonRefresh, setReasonRefresh] = useState<boolean>(false);
+  const [reportRefresh, setReportRefresh] = useState<boolean>(false);
 
   const handlePresentModalPress = useCallback(() => {
     bottomSheetModalRef.current?.present();
   }, []);
 
+  const onAddTagModalClose = () => {
+    setAddTagModalVisible(false);
+    setSelectedReason(null);
+  };
   const {
     data: pendingReports,
     refetch: pendingReportFetch,
@@ -82,6 +93,18 @@ export default function ReportScreen({navigation}) {
     },
   });
 
+  const onReportRefresh = () => {
+    setReportRefresh(true);
+    refetchAssignReports();
+    pendingReportFetch();
+    setReportRefresh(false);
+  };
+
+  const onReportReasonRefresh = () => {
+    setReasonRefresh(true);
+    refetchReportReasons();
+    setReasonRefresh(false);
+  };
   // console.log("Report reaons", reportReasons)
 
   const takeOverReportMutation = useMutation({
@@ -152,6 +175,83 @@ export default function ReportScreen({navigation}) {
     }
   };
 
+  const addReasonMutation = useMutation({
+    mutationKey: ['add-reason-mutation-key'],
+    mutationFn: async (reason: string) => {
+      const res = await axios.post(`${ADD_REASON}`, {
+        reason: reason,
+      });
+
+      //console.log("Tag res", res);
+      return res.data as Reason;
+    },
+    onSuccess: (data: Reason) => {
+      //setArticleCategories(prev => [data, ...prev]);
+      refetchReportReasons();
+      Snackbar.show({
+        text: 'Reason added',
+        duration: Snackbar.LENGTH_SHORT,
+      });
+    },
+    onError: error => {
+      console.log(error);
+      Snackbar.show({
+        text: 'Error adding reason',
+        duration: Snackbar.LENGTH_SHORT,
+      });
+    },
+  });
+
+  const updateReasonMutation = useMutation({
+    mutationKey: ['update-reason-mutation-key'],
+    mutationFn: async ({reason, id}: {reason: string; id: string}) => {
+      const res = await axios.put(`${UPDATE_REASON}`, {
+        id: id,
+        reason: reason,
+      });
+
+      return res.data as Reason;
+    },
+    onSuccess: (data: Reason) => {
+      refetchReportReasons();
+      Snackbar.show({
+        text: 'Reason updated',
+        duration: Snackbar.LENGTH_SHORT,
+      });
+    },
+    onError: error => {
+      console.log(error);
+      Snackbar.show({
+        text: 'Error updating reason',
+        duration: Snackbar.LENGTH_SHORT,
+      });
+    },
+  });
+
+  const deleteReasonMutation = useMutation({
+    mutationKey: ['delete-reason-mutation-key'],
+    mutationFn: async (id: string) => {
+      const res = await axios.delete(`${DELETE_REASON}/${id}`);
+
+      return res.data.data as Reason;
+    },
+    onSuccess: (data: Reason) => {
+      refetchReportReasons();
+
+      Snackbar.show({
+        text: 'Reason deleted',
+        duration: Snackbar.LENGTH_SHORT,
+      });
+    },
+    onError: error => {
+      console.log(error);
+      Snackbar.show({
+        text: error.message,
+        duration: Snackbar.LENGTH_SHORT,
+      });
+    },
+  });
+
   const renderTabBar = props => {
     return (
       <MaterialTabBar
@@ -167,6 +267,9 @@ export default function ReportScreen({navigation}) {
   };
 
   if (
+    addReasonMutation.isPending ||
+    updateReasonMutation.isPending ||
+    deleteReasonMutation.isPending ||
     isPendingReportLoading ||
     isRefetchAssignReportLoading ||
     reportReasonLoading ||
@@ -185,18 +288,44 @@ export default function ReportScreen({navigation}) {
           <Tabs.Tab name="Reasons">
             <View style={{flex: 1}}>
               <View style={styles.reasonTabContainer}>
-                <TouchableOpacity style={styles.addButton} onPress={() => {}}>
+                <TouchableOpacity
+                  style={styles.addButton}
+                  onPress={() => {
+                    setAddTagModalVisible(true);
+                  }}>
                   <Text style={styles.addButtonText}>+ Add New Reason</Text>
                 </TouchableOpacity>
 
                 <Tabs.FlatList
                   data={reportReasons ? reportReasons : []}
                   keyExtractor={item => item._id}
+                  refreshing={reasonRefresh}
+                  onRefresh={onReportReasonRefresh}
                   renderItem={({item}: {item: Reason}) => (
                     <ReasonItemCard
                       reason={item}
-                      onEditAction={() => {}}
-                      onDeleteAction={() => {}}
+                      onEditAction={(item: Reason) => {
+                        setSelectedReason(item);
+                        setAddTagModalVisible(true);
+                      }}
+                      onDeleteAction={(item: Reason) => {
+                        Alert.alert(
+                          'Alert!',
+                          'Are you sure you want to delete this reason?',
+                          [
+                            {
+                              text: 'Cancel',
+                              style: 'cancel',
+                            },
+                            {
+                              text: 'Confirm',
+                              onPress: () =>
+                                deleteReasonMutation.mutate(item._id),
+                              style: 'destructive',
+                            },
+                          ],
+                        );
+                      }}
                     />
                   )}
                   contentContainerStyle={styles.list}
@@ -220,8 +349,9 @@ export default function ReportScreen({navigation}) {
               <Tabs.FlatList
                 data={pendingReports}
                 keyExtractor={item => item._id}
+                refreshing={reportRefresh}
+                onRefresh={onReportRefresh}
                 renderItem={({item}) => (
-                  // eslint-disable-next-line react/react-in-jsx-scope
                   <ReportCard
                     report={item}
                     onTakeActionReport={onTakeActionReport}
@@ -248,6 +378,8 @@ export default function ReportScreen({navigation}) {
               <Tabs.FlatList
                 data={assignedReports}
                 keyExtractor={item => item._id}
+                refreshing={reportRefresh}
+                onRefresh={onReportRefresh}
                 renderItem={({item}) => (
                   <ReportCard
                     report={item}
@@ -271,8 +403,27 @@ export default function ReportScreen({navigation}) {
           </Tabs.Tab>
         </Tabs.Container>
 
+        <AddTagModal
+          type={2}
+          reason={selectedReason}
+          tag={null}
+          visible={addTagModalVisible}
+          onTagChange={() => {}}
+          onReasonChange={(reason, name) => {
+            if (reason) {
+              updateReasonMutation.mutate({
+                reason: name,
+                id: reason._id,
+              });
+            } else {
+              addReasonMutation.mutate(name);
+            }
+          }}
+          onDismiss={onAddTagModalClose}
+        />
+
         {/**
-         * 
+         *
          *  <FilterModal
           bottomSheetModalRef={bottomSheetModalRef}
           categories={articleCategories}

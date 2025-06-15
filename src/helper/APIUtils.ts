@@ -52,6 +52,11 @@ const TAKE_ACTION_ON_REPORT = `${Config.BASE_URL}/report/take-admin-action`;
 // CATEGORY RELATED
 const HTTP_CATEGORY = `${Config.BASE_URL}/articles/tags`;
 
+// REASON RELATED
+const ADD_REASON = `${Config.BASE_URL}/report/add-reason`;
+const UPDATE_REASON = `${Config.BASE_URL}/report/update-reason`;
+const DELETE_REASON = `${Config.BASE_URL}/report/reason`;
+
 
 
 export {
@@ -101,4 +106,7 @@ export {
     PICK_REPORT,
     TAKE_ACTION_ON_REPORT,
     HTTP_CATEGORY,
+    ADD_REASON,
+    UPDATE_REASON,
+    DELETE_REASON,
 }

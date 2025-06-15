@@ -195,8 +195,8 @@ export default function ReportScreen({navigation}) {
                   renderItem={({item}: {item: Reason}) => (
                     <ReasonItemCard
                       reason={item}
-                      onEdit={() => {}}
-                      onDelete={() => {}}
+                      onEditAction={() => {}}
+                      onDeleteAction={() => {}}
                     />
                   )}
                   contentContainerStyle={styles.list}

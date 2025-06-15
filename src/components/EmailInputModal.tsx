@@ -54,7 +54,7 @@ export default function EmailInputModal({
 
   return (
     <Modal
-      animationType="slide"
+      animationType="fade"
       transparent={true}
       visible={visible}
       onDismiss={onDismiss}>

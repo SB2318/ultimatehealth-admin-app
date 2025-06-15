@@ -49,6 +49,11 @@ const GET_REPORT_REASONS = `${Config.BASE_URL}/report/reasons`;
 const PICK_REPORT = `${Config.BASE_URL}/report/pick-report-for-investigation`;
 const TAKE_ACTION_ON_REPORT = `${Config.BASE_URL}/report/take-admin-action`;
 
+// CATEGORY RELATED
+const HTTP_CATEGORY = `${Config.BASE_URL}/articles/tags`;
+
+
+
 export {
     LOGIN_API,
     REGISTRATION_API,
@@ -94,5 +99,6 @@ export {
     GET_PENDING_REPORTS,
     GET_REPORT_REASONS,
     PICK_REPORT,
-    TAKE_ACTION_ON_REPORT
+    TAKE_ACTION_ON_REPORT,
+    HTTP_CATEGORY,
 }

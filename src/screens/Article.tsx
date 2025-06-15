@@ -21,6 +21,7 @@ import {
   DISCARD_ARTICLE,
   GET_AVILABLE_ARTICLES_API,
   GET_INPROGRESS_ARTICLES_API,
+  HTTP_CATEGORY,
   PICK_ARTICLE,
   UNASSIGN_ARTICLE,
 } from '../helper/APIUtils';
@@ -45,6 +46,7 @@ import {
 import HomeArticle from './tabs/HomeArticle';
 import Improvement from './tabs/Improvement';
 import TagItemCard from '../components/TagItemCard';
+import AddTagModal from '../components/AddTagModal';
 
 export default function HomeScreen({navigation}: ArticleProps) {
   const {user_id} = useSelector((state: any) => state.user);
@@ -59,8 +61,11 @@ export default function HomeScreen({navigation}: ArticleProps) {
   const dispatch = useDispatch();
   const [articleRefreshing, setArticleRefreshing] = useState<boolean>(false);
   const [articleCategories, setArticleCategories] = useState<Category[]>([]);
-  const [selectedCategory, setSelectedCategory] = useState<string>('');
+  const [selectedCategory, setSelectedCategory] = useState<Category | null>(
+    null,
+  );
   const [sortingType, setSortingType] = useState<string>('');
+  const [addTagModalVisible, setAddTagModalVisible] = useState<boolean>(false);
   const [selectCategoryList, setSelectCategoryList] = useState<
     CategoryType['name'][]
   >([]);
@@ -87,9 +92,9 @@ export default function HomeScreen({navigation}: ArticleProps) {
           selectedTags: categoryData.map((category: Category) => category.name),
         }),
       );
-      setSelectedCategory(categoryData[0]?.name);
+      //setSelectedCategory(categoryData[0]?.name);
     } else {
-      setSelectedCategory(selectedTags[0]);
+      //  setSelectedCategory(selectedTags[0]);
     }
     setArticleCategories(categoryData);
     dispatch(setTags({tags: categoryData}));
@@ -204,6 +209,11 @@ export default function HomeScreen({navigation}: ArticleProps) {
       Alert.alert(err.message);
     },
   });
+
+  const onAddTagModalClose = () => {
+    setAddTagModalVisible(false);
+    setSelectedCategory(null);
+  };
 
   const handleCategorySelection = (category: CategoryType['name']) => {
     // Update Redux State
@@ -326,13 +336,11 @@ export default function HomeScreen({navigation}: ArticleProps) {
       : [];
 
     if (selectedTags.length > 0) {
-
       filterdAvailable = filterdAvailable.filter(article =>
         selectedTags.some(tag =>
           article.tags.some(category => category.name === tag),
         ),
       );
-
 
       filterProgress = filterProgress.filter(article =>
         selectedTags.some(tag =>
@@ -386,7 +394,6 @@ export default function HomeScreen({navigation}: ArticleProps) {
   const renderItem = useCallback(
     ({item}: {item: ArticleData}) => {
       return (
-
         <ReviewCard
           item={item}
           isSelected={selectedCardId === item._id}
@@ -420,7 +427,13 @@ export default function HomeScreen({navigation}: ArticleProps) {
         />
       );
     },
-    [discardArticleMutation, navigation, pickArticleMutation, selectedCardId, unassignFromArticleMutation],
+    [
+      discardArticleMutation,
+      navigation,
+      pickArticleMutation,
+      selectedCardId,
+      unassignFromArticleMutation,
+    ],
   );
 
   const onArticleRefresh = () => {
@@ -467,7 +480,88 @@ export default function HomeScreen({navigation}: ArticleProps) {
     );
   };
 
-  if (isAvailableArticleLoading || isProgressArticleLoading) {
+  const addTagMutation = useMutation({
+    mutationKey: ['add-tag-mutation-key'],
+    mutationFn: async (name: string) => {
+      const res = await axios.post(`${HTTP_CATEGORY}`, {
+        name: name,
+      });
+
+      return res.data as Category;
+    },
+    onSuccess: (data: Category) => {
+      setArticleCategories(prev => [data, ...prev]);
+      Snackbar.show({
+        text: 'Tag added',
+        duration: Snackbar.LENGTH_SHORT,
+      });
+    },
+    onError: error => {
+      console.log(error);
+      Snackbar.show({
+        text: 'Error adding tag',
+        duration: Snackbar.LENGTH_SHORT,
+      });
+    },
+  });
+
+  const updateTagMutation = useMutation({
+    mutationKey: ['update-tag-mutation-key'],
+    mutationFn: async ({name, id}: {name: string; id: string}) => {
+      const res = await axios.put(`${HTTP_CATEGORY}/${id}`, {
+        name: name,
+      });
+
+      return res.data as Category;
+    },
+    onSuccess: (data: Category) => {
+      setArticleCategories(prev =>
+        prev.map(item => (item.id === data.id ? data : item)),
+      );
+      Snackbar.show({
+        text: 'Tag added',
+        duration: Snackbar.LENGTH_SHORT,
+      });
+    },
+    onError: error => {
+      console.log(error);
+      Snackbar.show({
+        text: 'Error adding tag',
+        duration: Snackbar.LENGTH_SHORT,
+      });
+    },
+  });
+
+  const deleteTagMutation = useMutation({
+    mutationKey: ['delete-tag-mutation-key'],
+    mutationFn: async (id: string) => {
+      const res = await axios.delete(`${HTTP_CATEGORY}/${id}`);
+
+      return res.data.data as Category;
+    },
+    onSuccess: (data: Category) => {
+      setArticleCategories(prev => prev.filter(item => item.id !== data.id));
+      Snackbar.show({
+        text: 'Tag deleted',
+        duration: Snackbar.LENGTH_SHORT,
+      });
+    },
+    onError: error => {
+      console.log(error);
+      Snackbar.show({
+        text: 'Error deleting tag',
+        duration: Snackbar.LENGTH_SHORT,
+      });
+    },
+  });
+
+  if (
+    deleteTagMutation.isPending ||
+    updateTagMutation.isPending ||
+    addTagMutation.isPending ||
+    isAvailableArticleLoading ||
+    isProgressArticleLoading
+  ) {
     return <Loader />;
   }
 
@@ -484,7 +578,11 @@ export default function HomeScreen({navigation}: ArticleProps) {
           <Tabs.Tab name="Tags">
             <View style={{flex: 1}}>
               <View style={styles.reasonTabContainer}>
-                <TouchableOpacity style={styles.addButton} onPress={() => {}}>
+                <TouchableOpacity
+                  style={styles.addButton}
+                  onPress={() => {
+                    setAddTagModalVisible(true);
+                  }}>
                   <Text style={styles.addButtonText}>+ Add New Tag</Text>
                 </TouchableOpacity>
 
@@ -494,8 +592,27 @@ export default function HomeScreen({navigation}: ArticleProps) {
                   renderItem={({item}: {item: Category}) => (
                     <TagItemCard
                       reason={item}
-                      onEdit={() => {}}
-                      onDelete={() => {}}
+                      onEditAction={(item: Category) => {
+                        setSelectedCategory(item);
+                        setAddTagModalVisible(true);
+                      }}
+                      onDeleteAction={(item: Category) => {
+                        Alert.alert(
+                          'Alert!',
+                          'Are you sure you want to delete this category?',
+                          [
+                            {
+                              text: 'Cancel',
+                              style: 'cancel',
+                            },
+                            {
+                              text: 'Confirm',
+                              onPress: () => deleteTagMutation.mutate(item.id.toString()),
+                              style: 'destructive',
+                            },
+                          ],
+                        );
+                      }}
                     />
                   )}
                   contentContainerStyle={styles.list}
@@ -540,6 +657,26 @@ export default function HomeScreen({navigation}: ArticleProps) {
           setSortingType={setSortingType}
           sortingType={sortingType}
         />
+
+        <AddTagModal
+          type={1}
+          reason={null}
+          tag={selectedCategory}
+          visible={addTagModalVisible}
+          onTagChange={(tag, name) => {
+            if (tag) {
+              updateTagMutation.mutate({
+                name: name,
+                id: tag.id.toString(),
+              });
+            } else {
+              addTagMutation.mutate(name);
+            }
+          }}
+          onReasonChange={() => {}}
+          onDismiss={onAddTagModalClose}
+        />
+
         <FAB
           style={styles.fab}
           small

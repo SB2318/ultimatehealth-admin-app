@@ -33,6 +33,7 @@ local.properties
 .cxx/
 *.keystore
 !debug.keystore
+google-services.json
 .env
 
 # node.js
@@ -59,8 +60,7 @@ yarn-error.log
 # Ruby / CocoaPods
 **/Pods/
 /vendor/bundle/
-/src/hooks/FirebaseContext
-android/app/google-services.json
+
 # Temporary files created by Metro to check the health of the file watcher
 .metro-health-check*
 
@@ -74,3 +74,4 @@ android/app/google-services.json
 !.yarn/releases
 !.yarn/sdks
 !.yarn/versions
+

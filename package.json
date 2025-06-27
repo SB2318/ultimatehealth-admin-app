@@ -1,6 +1,6 @@
 {
-  "name": "UTH_Admin",
-  "version": "0.0.1",
+  "name": "UltimateHealth-Admin",
+  "version": "0.2.4",
   "private": true,
   "scripts": {
     "android": "react-native run-android",

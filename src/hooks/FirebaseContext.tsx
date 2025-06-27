@@ -4,16 +4,18 @@ import messaging from '@react-native-firebase/messaging'; // Correct import for 
 import { firebase } from '@react-native-firebase/messaging'; // Correct import for firebase
 
 
+import Config from 'react-native-config';
+// later progress more
 const androidConfig = {
-  clientId: '118169707984303342226',
-  appId: '1:790450439872:web:4d4b43199a7ab4b204cf2',
-  apiKey: 'AIzaSyBd2U6tv_g0NLI1lGIJDZcxBuVRQOk7Jeo',
-  databaseURL: 'https://ultimatehealth-41b71.firebaseio.com',
-  storageBucket: 'ultimatehealth-41b71.firebasestorage.app',
-  messagingSenderId: '790450439872',
-  projectId: 'ultimatehealth-41b71',
+  appId: `${Config.FIREBASE_APP_ID}`,
+  apiKey: `${Config.FIREBASE_API_KEY}`,
+  databaseURL: `${Config.FIREBASE_DATABASE_URL}`,
+  storageBucket: `${Config.FIREBASE_STORAGE_BUCKET}`,
+  messagingSenderId: `${Config.FIREBASE_SENDER_ID}`,
+  projectId: `${Config.FIREBASE_PROJECT_ID}`,
   persistence: true,
-  }
+};
+
 
 // Define the type for the FirebaseContext
 const FirebaseContext = createContext<{

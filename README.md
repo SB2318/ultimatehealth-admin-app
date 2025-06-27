@@ -2,6 +2,9 @@
 
 The admin app is the guardian of quality and compliance for the UltimateHealth platform. With smart moderation tools and seamless collaboration features, it ensures every published resource is accurate, respectful, and valuable to users around the world. 🌍💡
 
+
+[![Download Latest APK](https://drive.google.com/file/d/1fP7yrtD6NpeatRw5KvDUpiC8sWJpjr9_/view?usp=sharing)
+
 ### 🔧 Key Features:**
 
 **Interactive Article Review Workflow:**

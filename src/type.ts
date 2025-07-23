@@ -321,6 +321,32 @@ export type PlagiarismProps = {
   data: PlagiarismResponse;
 };
 
+export type PodcastData = {
+  _id: string;
+  user_id: User;
+  article_id: number;
+  title: string;
+  description: string;
+  audio_url: string;
+  cover_image: string;
+  duration: number;
+  tags: Category[];
+  likedUsers: User[];
+  savedUsers: User[];
+  viewUsers: User[];
+  discardReason: string;
+  is_removed: boolean;
+  mentionedUsers: User[];
+  reportId: string | null;
+  status: string;
+  admin_id: string | null;
+  updated_at: string;
+  filePath: string | undefined,
+  downloadAt: Date| null,
+  commentCount: number|0,
+  //podcasts: string[];
+};
+
 export type CopyrightCheckerResponse = {
   copyrighted_content: CopyRightContent[];
   copyright_found: boolean;

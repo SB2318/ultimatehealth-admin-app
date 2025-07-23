@@ -57,6 +57,8 @@ const ADD_REASON = `${Config.BASE_URL}/report/add-reason`;
 const UPDATE_REASON = `${Config.BASE_URL}/report/update-reason`;
 const DELETE_REASON = `${Config.BASE_URL}/report/reason`;
 
+const FETCH_AVAILABLE_PODCAST = `${Config.BASE_URL}/podcast-admin/available`;
+const FETCH_PROGRESS_PODCAST = `${Config.BASE_URL}/podcast-admin/all`;
 
 
 export {
@@ -109,4 +111,6 @@ export {
     ADD_REASON,
     UPDATE_REASON,
     DELETE_REASON,
-}
+    FETCH_AVAILABLE_PODCAST,
+    FETCH_PROGRESS_PODCAST,
+},

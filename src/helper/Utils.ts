@@ -184,3 +184,20 @@ export const checkImageCopyright = async (imageUrls: string[]) => {
   }
   return results;
 };
+
+export function msToTime(ms: number): string {
+  let totalSeconds = Math.floor(ms / 1000);
+  const hours = Math.floor(totalSeconds / 3600);
+  totalSeconds %= 3600;
+  const minutes = Math.floor(totalSeconds / 60);
+  const seconds = totalSeconds % 60;
+
+  const pad = (num: number): string => num.toString().padStart(2, '0');
+
+  let result =
+    hours >= 1
+      ? `${pad(hours)}h:${pad(minutes)}m`
+      : `${pad(minutes)}m:${pad(seconds)}s`;
+
+  return result;
+}

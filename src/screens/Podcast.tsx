@@ -8,15 +8,17 @@ import {hp, wp} from '../helper/Metric';
 import {useSafeAreaInsets} from 'react-native-safe-area-context';
 import PodcastCard from '../components/PodcastCard';
 import {msToTime} from '../helper/Utils';
-import {useState} from 'react';
 import {useQuery} from '@tanstack/react-query';
-import {FETCH_AVAILABLE_PODCAST, FETCH_PROGRESS_PODCAST} from '../helper/APIUtils';
+import {
+  FETCH_AVAILABLE_PODCAST,
+  FETCH_PROGRESS_PODCAST,
+} from '../helper/APIUtils';
 import axios from 'axios';
 
 export default function Podcast({navigation}: PodcastProps) {
   const insets = useSafeAreaInsets();
-  
 
+ 
   const {
     data: availablePodcasts,
     refetch: availablePodcastRefetch,
@@ -63,47 +65,54 @@ export default function Podcast({navigation}: PodcastProps) {
           containerStyle={styles.tabsContainer}>
           {/* Availables Tab */}
           <Tabs.Tab name="Availables">
-            <Tabs.FlatList
-              data={availablePodcasts ? availablePodcasts : []}
-              keyExtractor={(item, index) =>
-                item?._id?.toString() ?? index.toString()
-              }
-              refreshing={isAvailablePodcastLoading}
-              onRefresh={availablePodcastRefetch}
-              renderItem={({item}: {item: PodcastData}) => {
-                if (!item) {
-                  return null;
-                }
-                return (
-                  <PodcastCard
-                    id={item._id}
-                    title={item.title}
-                    tags={item.tags}
-                    host={item.user_id?.user_name ?? 'Unknown'}
-                    duration={msToTime(item.duration)}
-                    handleClick={() => {}}
-                    imageUri={item.cover_image}
-                  />
-                );
-              }}
-              contentContainerStyle={styles.list}
-              showsVerticalScrollIndicator={false}
-              ListEmptyComponent={
-                <View style={styles.emptyContainer}>
-                  <Image
-                    source={require('../../assets/identify-audience.png')}
-                    style={styles.image}
-                  />
-                  <Text style={styles.message}>
-                    No podcasts available for review
-                  </Text>
-                </View>
-              }
-            />
+            <View style={{flex: 1, marginTop: hp(7)}}>
+              <View style={styles.reasonTabContainer}>
+                <Tabs.FlatList
+                  data={availablePodcasts ? availablePodcasts : []}
+                  keyExtractor={(item, index) =>
+                    item?._id?.toString() ?? index.toString()
+                  }
+                  refreshing={isAvailablePodcastLoading}
+                  onRefresh={availablePodcastRefetch}
+                  renderItem={({item}: {item: PodcastData}) => {
+                    if (!item) {
+                      return null;
+                    }
+                    return (
+                      <PodcastCard
+                        id={item._id}
+                        title={item.title}
+                        tags={item.tags}
+                        host={item.user_id?.user_name ?? 'Unknown'}
+                        duration={msToTime(item.duration)}
+                        handleClick={() => {}}
+                        imageUri={item.cover_image}
+                        status={item.status}
+                      />
+                    );
+                  }}
+                  contentContainerStyle={styles.list}
+                  showsVerticalScrollIndicator={false}
+                  ListEmptyComponent={
+                    <View style={styles.emptyContainer}>
+                      <Image
+                        source={require('../../assets/identify-audience.png')}
+                        style={styles.image}
+                      />
+                      <Text style={styles.message}>
+                        No podcasts available for review
+                      </Text>
+                    </View>
+                  }
+                />
+              </View>
+            </View>
           </Tabs.Tab>
 
           {/* Inprogress Tab */}
           <Tabs.Tab name="Inprogress">
+           <View style={{flex: 1, marginTop: hp(7)}}>
+            <View style={styles.reasonTabContainer}>
             <Tabs.FlatList
               data={progressPodcasts ? progressPodcasts : []}
               keyExtractor={(item, index) =>
@@ -124,6 +133,7 @@ export default function Podcast({navigation}: PodcastProps) {
                     duration={msToTime(item.duration)}
                     handleClick={() => {}}
                     imageUri={item.cover_image}
+                    status={item.status}
                   />
                 );
               }}
@@ -141,6 +151,8 @@ export default function Podcast({navigation}: PodcastProps) {
                 </View>
               }
             />
+            </View>
+            </View>
           </Tabs.Tab>
         </Tabs.Container>
 
@@ -178,7 +190,8 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: ON_PRIMARY_COLOR,
+    // backgroundColor: ON_PRIMARY_COLOR,
+    backgroundColor: '#ffffff',
   },
   text: {
     fontSize: 20,
@@ -189,7 +202,7 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   tabsContainer: {
-    backgroundColor: 'white',
+    backgroundColor: '#ffffff',
     overflow: 'hidden',
   },
   image: {
@@ -202,11 +215,13 @@ const styles = StyleSheet.create({
   scrollViewContentContainer: {
     paddingHorizontal: 16,
     marginTop: 16,
-    backgroundColor: ON_PRIMARY_COLOR,
+    //backgroundColor: ON_PRIMARY_COLOR,
+    backgroundColor: '#ffffff',
   },
   flatListContentContainer: {
     paddingHorizontal: 16,
-    backgroundColor: ON_PRIMARY_COLOR,
+    // backgroundColor: ON_PRIMARY_COLOR,
+    backgroundColor: '#ffffff',
   },
 
   profileImage: {
@@ -220,11 +235,11 @@ const styles = StyleSheet.create({
     backgroundColor: 'white',
   },
   tabBarStyle: {
-    backgroundColor: 'white',
+    backgroundColor: '#ffffff',
   },
   labelStyle: {
     fontWeight: '600',
-    fontSize: 14,
+    fontSize: 16,
     color: 'black',
     textTransform: 'capitalize',
   },
@@ -236,6 +251,7 @@ const styles = StyleSheet.create({
     shadowOpacity: 0,
     shadowOffset: {width: 0, height: 0},
     shadowColor: 'white',
+    backgroundColor: '#ffffff',
   },
   message: {
     fontSize: 17,
@@ -265,7 +281,7 @@ const styles = StyleSheet.create({
   reasonTabContainer: {
     paddingHorizontal: wp(2),
     paddingTop: hp(2),
-    backgroundColor: '#F9FAFB',
+    backgroundColor: '#ffffff',
     flex: 0,
     width: '100%',
     justifyContent: 'center',

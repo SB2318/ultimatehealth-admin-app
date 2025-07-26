@@ -1,24 +1,29 @@
 import {Image, StyleSheet, Text, View} from 'react-native';
 import {PodcastData, PodcastProps} from '../type';
-import {BUTTON_COLOR, ON_PRIMARY_COLOR} from '../helper/Theme';
+import {BUTTON_COLOR} from '../helper/Theme';
 import {FAB} from 'react-native-paper';
 import AntDesign from 'react-native-vector-icons/AntDesign';
 import {MaterialTabBar, Tabs} from 'react-native-collapsible-tab-view';
 import {hp, wp} from '../helper/Metric';
 import {useSafeAreaInsets} from 'react-native-safe-area-context';
 import PodcastCard from '../components/PodcastCard';
-import {msToTime} from '../helper/Utils';
-import {useQuery} from '@tanstack/react-query';
+import {useMutation, useQuery} from '@tanstack/react-query';
 import {
+  APPROVE_PODCAST,
+  DISCARD_PODCAST,
   FETCH_AVAILABLE_PODCAST,
   FETCH_PROGRESS_PODCAST,
+  PICK_PODCAST,
 } from '../helper/APIUtils';
 import axios from 'axios';
+import {useState} from 'react';
+import Snackbar from 'react-native-snackbar';
+import Loader from '../components/Loader';
 
 export default function Podcast({navigation}: PodcastProps) {
   const insets = useSafeAreaInsets();
+  const [selectedPodcastId, setSelectedPodcastId] = useState<string>('');
 
- 
   const {
     data: availablePodcasts,
     refetch: availablePodcastRefetch,
@@ -43,6 +48,113 @@ export default function Podcast({navigation}: PodcastProps) {
     },
   });
 
+  const handlePodcastClick = (
+    item: PodcastData,
+    index: number,
+    reason: string,
+  ) => {
+    // 0 -> pick podcast
+    if (index === 0) {
+      pickPodcastMutation.mutate(item._id);
+    }
+    // 3 -> View podcast details
+    // 1 -> Discard podcast
+    if (index === 1) {
+      discardPodcastMutation.mutate({
+        id: item._id,
+        reason: reason,
+      });
+    }
+    // 2 -> Approve podcast
+    if (index === 2) {
+      approvePodcastMutation.mutate(item._id);
+    }
+  };
+
+  const pickPodcastMutation = useMutation({
+    mutationKey: ['pick-podcast-key'],
+    mutationFn: async (id: string) => {
+      const res = await axios.post(PICK_PODCAST, {
+        podcast_id: id,
+      });
+      return res.data.message as string;
+    },
+    onSuccess: data => {
+      Snackbar.show({
+        text: data,
+        duration: Snackbar.LENGTH_SHORT,
+      });
+      availablePodcastRefetch();
+    },
+
+    onError: err => {
+      console.log('Pick Podcast Error', err);
+      Snackbar.show({
+        text: 'Something went wrong, try again',
+        duration: Snackbar.LENGTH_SHORT,
+      });
+    },
+  });
+
+  const discardPodcastMutation = useMutation({
+    mutationKey: ['discard-podcast-mutation'],
+    mutationFn: async ({id, reason}: {id: string; reason: string}) => {
+      const res = await axios.post(DISCARD_PODCAST, {
+        podcast_id: id,
+        discardReason: reason,
+      });
+
+      return res.data.message as string;
+    },
+    onSuccess: data => {
+      Snackbar.show({
+        text: data,
+        duration: Snackbar.LENGTH_SHORT,
+      });
+      availablePodcastRefetch();
+      progressPodcastRefetch();
+    },
+
+    onError: err => {
+      console.log('Discard Podcast Error', err);
+      Snackbar.show({
+        text: 'Something went wrong, try again',
+        duration: Snackbar.LENGTH_SHORT,
+      });
+    },
+  });
+
+  const approvePodcastMutation = useMutation({
+    mutationKey: ['publish-podcast-mutation'],
+    mutationFn: async (id: string) => {
+      const res = await axios.post(APPROVE_PODCAST, {
+        podcast_id: id,
+      });
+
+      return res.data.message as string;
+    },
+    onSuccess: data => {
+      Snackbar.show({
+        text: data,
+        duration: Snackbar.LENGTH_SHORT,
+      });
+      availablePodcastRefetch();
+      progressPodcastRefetch();
+    },
+
+    onError: err => {
+      console.log('Discard Podcast Error', err);
+      Snackbar.show({
+        text: 'Something went wrong, try again',
+        duration: Snackbar.LENGTH_SHORT,
+      });
+    },
+  });
+
+  const onPodcastSelect = (id: string) => {
+    setSelectedPodcastId(id);
+  };
+
   const renderTabBar = props => {
     return (
       <MaterialTabBar
@@ -56,6 +168,14 @@ export default function Podcast({navigation}: PodcastProps) {
       />
     );
   };
+
+  if (
+    pickPodcastMutation.isPending ||
+    approvePodcastMutation.isPending ||
+    discardPodcastMutation.isPending
+  ) {
+    return <Loader />;
+  }
   return (
     <View style={styles.container}>
       <View style={[styles.innerContainer, {paddingTop: insets.top}]}>
@@ -80,14 +200,10 @@ export default function Podcast({navigation}: PodcastProps) {
                     }
                     return (
                       <PodcastCard
-                        id={item._id}
-                        title={item.title}
-                        tags={item.tags}
-                        host={item.user_id?.user_name ?? 'Unknown'}
-                        duration={msToTime(item.duration)}
-                        handleClick={() => {}}
-                        imageUri={item.cover_image}
-                        status={item.status}
+                        item={item}
+                        setSelectedCardId={onPodcastSelect}
+                        isSelected={selectedPodcastId === item._id}
+                        handleClick={handlePodcastClick}
                       />
                     );
                   }}
@@ -111,47 +227,43 @@ export default function Podcast({navigation}: PodcastProps) {
 
           {/* Inprogress Tab */}
           <Tabs.Tab name="Inprogress">
-           <View style={{flex: 1, marginTop: hp(7)}}>
-            <View style={styles.reasonTabContainer}>
-            <Tabs.FlatList
-              data={progressPodcasts ? progressPodcasts : []}
-              keyExtractor={(item, index) =>
-                item?._id?.toString() ?? index.toString()
-              }
-              refreshing={isProgressPodcastLoading}
-              onRefresh={progressPodcastRefetch}
-              renderItem={({item}: {item: PodcastData}) => {
-                if (!item) {
-                  return null;
-                }
-                return (
-                  <PodcastCard
-                    id={item._id}
-                    title={item.title}
-                    tags={item.tags}
-                    host={item.user_id?.user_name ?? 'Unknown'}
-                    duration={msToTime(item.duration)}
-                    handleClick={() => {}}
-                    imageUri={item.cover_image}
-                    status={item.status}
-                  />
-                );
-              }}
-              contentContainerStyle={styles.list}
-              showsVerticalScrollIndicator={false}
-              ListEmptyComponent={
-                <View style={styles.emptyContainer}>
-                  <Image
-                    source={require('../../assets/identify-audience.png')}
-                    style={styles.image}
-                  />
-                  <Text style={styles.message}>
-                    No podcasts available for review
-                  </Text>
-                </View>
-              }
-            />
-            </View>
+            <View style={{flex: 1, marginTop: hp(7)}}>
+              <View style={styles.reasonTabContainer}>
+                <Tabs.FlatList
+                  data={Array.isArray(progressPodcasts) ? progressPodcasts : []}
+                  keyExtractor={(item, index) =>
+                    item?._id?.toString() ?? `progress-${index}`
+                  }
+                  refreshing={isProgressPodcastLoading}
+                  onRefresh={progressPodcastRefetch}
+                  renderItem={({item}: {item: PodcastData}) => {
+                    if (!item) {
+                      return null;
+                    }
+                    return (
+                      <PodcastCard
+                        item={item}
+                        setSelectedCardId={onPodcastSelect}
+                        isSelected={selectedPodcastId === item._id}
+                        handleClick={handlePodcastClick}
+                      />
+                    );
+                  }}
+                  contentContainerStyle={styles.list}
+                  showsVerticalScrollIndicator={false}
+                  ListEmptyComponent={
+                    <View style={styles.emptyContainer}>
+                      <Image
+                        source={require('../../assets/identify-audience.png')}
+                        style={styles.image}
+                      />
+                      <Text style={styles.message}>
+                        No podcasts available for review
+                      </Text>
+                    </View>
+                  }
+                />
+              </View>
             </View>
           </Tabs.Tab>
         </Tabs.Container>

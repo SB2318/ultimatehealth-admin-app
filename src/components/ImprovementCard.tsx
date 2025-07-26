@@ -6,8 +6,8 @@ import {
     TouchableOpacity,
   } from 'react-native';
   import React, { useState } from 'react';
-  import {fp, hp} from '../helper/Metric';
-  import {ImprovementCardProps, ReviewCardProps} from '../type';
+  import {fp, hp, wp} from '../helper/Metric';
+  import {ImprovementCardProps} from '../type';
   import moment from 'moment';
   import {BUTTON_COLOR, PRIMARY_COLOR} from '../helper/Theme';
   import {StatusEnum} from '../helper/Utils';
@@ -137,6 +137,8 @@ import WebView from 'react-native-webview';
               <Animated.View style={[menuStyle, styles.shareIconContainer]}>
                 <ArticleFloatingMenu
                   items={item.status === StatusEnum.UNASSIGNED ? unAssignActions: progressActions}
+                  top={hp(2)}
+                  left={wp(2)}
                 />
               </Animated.View>
             )}

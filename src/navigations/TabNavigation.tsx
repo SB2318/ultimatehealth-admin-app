@@ -35,7 +35,7 @@ const TabNavigation = () => {
         name="Podcast"
         component={Podcast}
         options={{
-          headerShown: true,
+          headerShown: false,
           headerTransparent: true,
           headerTitleStyle: {
             color: 'white',

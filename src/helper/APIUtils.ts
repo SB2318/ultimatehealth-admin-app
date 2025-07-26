@@ -59,6 +59,10 @@ const DELETE_REASON = `${Config.BASE_URL}/report/reason`;
 
 const FETCH_AVAILABLE_PODCAST = `${Config.BASE_URL}/podcast-admin/available`;
 const FETCH_PROGRESS_PODCAST = `${Config.BASE_URL}/podcast-admin/all`;
+// Podcast Actions
+const PICK_PODCAST = `${Config.BASE_URL}/podcast-admin/pick`;
+const APPROVE_PODCAST = `${Config.BASE_URL}/podcast-admin/approve`;
+const DISCARD_PODCAST = `${Config.BASE_URL}/podcast-admin/discard`;
 
 
 export {
@@ -113,4 +117,7 @@ export {
     DELETE_REASON,
     FETCH_AVAILABLE_PODCAST,
     FETCH_PROGRESS_PODCAST,
+    PICK_PODCAST,
+    APPROVE_PODCAST,
+    DISCARD_PODCAST,
 };

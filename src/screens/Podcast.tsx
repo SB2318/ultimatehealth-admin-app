@@ -58,6 +58,9 @@ export default function Podcast({navigation}: PodcastProps) {
       pickPodcastMutation.mutate(item._id);
     }
     // 3 -> View podcast details
+    if(index === 3){
+      navigateToDetails(item._id);
+    }
     // 1 -> Discard podcast
     if (index === 1) {
       discardPodcastMutation.mutate({
@@ -70,6 +73,12 @@ export default function Podcast({navigation}: PodcastProps) {
       approvePodcastMutation.mutate(item._id);
     }
   };
+
+  const navigateToDetails = (id: string) =>{
+    navigation.navigate('PodcastDetail', {
+      trackId: id,
+    });
+  }
 
   const pickPodcastMutation = useMutation({
     mutationKey: ['pick-podcast-key'],

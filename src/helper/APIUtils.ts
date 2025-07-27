@@ -63,6 +63,7 @@ const FETCH_PROGRESS_PODCAST = `${Config.BASE_URL}/podcast-admin/all`;
 const PICK_PODCAST = `${Config.BASE_URL}/podcast-admin/pick`;
 const APPROVE_PODCAST = `${Config.BASE_URL}/podcast-admin/approve`;
 const DISCARD_PODCAST = `${Config.BASE_URL}/podcast-admin/discard`;
+const GET_PODCAST_DETAILS = `${Config.BASE_URL}/podcast/details`;
 
 
 export {
@@ -120,4 +121,5 @@ export {
     PICK_PODCAST,
     APPROVE_PODCAST,
     DISCARD_PODCAST,
+    GET_PODCAST_DETAILS,
 };

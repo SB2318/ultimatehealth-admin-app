@@ -6,8 +6,8 @@ import {BUTTON_COLOR} from '../helper/Theme';
 
 export type ReportCardProps = {
   report: Report;
-  onViewContent: (report: Report) => {};
-  onTakeActionReport: (report: Report) => {};
+  onViewContent: (report: Report) => void;
+  onTakeActionReport: (report: Report) => void;
 };
 const ReportCard = ({
   report,

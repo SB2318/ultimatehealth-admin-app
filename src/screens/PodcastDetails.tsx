@@ -9,7 +9,9 @@ import {
   ScrollView,
   Platform,
 } from 'react-native';
-import Ionicons from 'react-native-vector-icons/Ionicons';
+import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
+import AntDesign from 'react-native-vector-icons/AntDesign';
+
 import {PodcastData, PodcastDetailScreenProp} from '../type';
 import {BUTTON_COLOR, ON_PRIMARY_COLOR, PRIMARY_COLOR} from '../helper/Theme';
 import Slider from '@react-native-community/slider';
@@ -18,19 +20,23 @@ import TrackPlayer, {
   usePlaybackState,
   useProgress,
 } from 'react-native-track-player';
-import {useQuery} from '@tanstack/react-query';
+import {useMutation, useQuery} from '@tanstack/react-query';
 import axios from 'axios';
 import {
+  APPROVE_PODCAST,
+  DISCARD_PODCAST,
   GET_IMAGE,
   GET_PODCAST_DETAILS,
   GET_STORAGE_DATA,
+  PICK_PODCAST,
 } from '../helper/APIUtils';
 import {useSelector} from 'react-redux';
 import moment from 'moment';
-import { formatCount, StatusEnum} from '../helper/Utils';
 import Snackbar from 'react-native-snackbar';
 import {SafeAreaView, useSafeAreaInsets} from 'react-native-safe-area-context';
 import {hp} from '../helper/Metric';
+import {StatusEnum} from '../helper/Utils';
+import DiscardReasonModal from '../components/DiscardReasonModal';
 
 const PodcastDetail = ({navigation, route}: PodcastDetailScreenProp) => {
   //const [progress, setProgress] = useState(10);
@@ -38,9 +44,11 @@ const PodcastDetail = ({navigation, route}: PodcastDetailScreenProp) => {
   const {trackId} = route.params;
   const playbackState = usePlaybackState();
   const progress = useProgress();
-  const {user_token} = useSelector((state: any) => state.user);
+  const {user_token, user_id} = useSelector((state: any) => state.user);
   const {isConnected} = useSelector((state: any) => state.network);
   const [isExpanded, setIsExpanded] = useState<boolean>(false);
+  const [discardModalVisible, setDiscardModalVisible] =
+    useState<boolean>(false);
 
   const handleListenPress = async () => {
     const currentState = await TrackPlayer.getPlaybackState();
@@ -60,7 +68,7 @@ const PodcastDetail = ({navigation, route}: PodcastDetailScreenProp) => {
     }
   };
 
-  const {data: podcast} = useQuery({
+  const {data: podcast, refetch} = useQuery({
     queryKey: ['get-podcast-details'],
     queryFn: async () => {
       try {
@@ -94,8 +102,6 @@ const PodcastDetail = ({navigation, route}: PodcastDetailScreenProp) => {
     }
   }, [podcast, trackId]);
 
-
-
   useEffect(() => {
     addTrack();
     return () => {};
@@ -115,6 +121,83 @@ const PodcastDetail = ({navigation, route}: PodcastDetailScreenProp) => {
     }
   };
 
+  const pickPodcastMutation = useMutation({
+    mutationKey: ['pick-podcast-key'],
+    mutationFn: async (id: string) => {
+      const res = await axios.post(PICK_PODCAST, {
+        podcast_id: id,
+      });
+      return res.data.message as string;
+    },
+    onSuccess: data => {
+      Snackbar.show({
+        text: data,
+        duration: Snackbar.LENGTH_SHORT,
+      });
+      refetch();
+    },
+
+    onError: err => {
+      console.log('Pick Podcast Error', err);
+      Snackbar.show({
+        text: 'Something went wrong, try again',
+        duration: Snackbar.LENGTH_SHORT,
+      });
+    },
+  });
+
+  const discardPodcastMutation = useMutation({
+    mutationKey: ['discard-podcast-mutation'],
+    mutationFn: async ({id, reason}: {id: string; reason: string}) => {
+      const res = await axios.post(DISCARD_PODCAST, {
+        podcast_id: id,
+        discardReason: reason,
+      });
+
+      return res.data.message as string;
+    },
+    onSuccess: data => {
+      Snackbar.show({
+        text: data,
+        duration: Snackbar.LENGTH_SHORT,
+      });
+      refetch();
+    },
+
+    onError: err => {
+      console.log('Discard Podcast Error', err);
+      Snackbar.show({
+        text: 'Something went wrong, try again',
+        duration: Snackbar.LENGTH_SHORT,
+      });
+    },
+  });
+
+  const approvePodcastMutation = useMutation({
+    mutationKey: ['publish-podcast-mutation'],
+    mutationFn: async (id: string) => {
+      const res = await axios.post(APPROVE_PODCAST, {
+        podcast_id: id,
+      });
+
+      return res.data.message as string;
+    },
+    onSuccess: data => {
+      Snackbar.show({
+        text: data,
+        duration: Snackbar.LENGTH_SHORT,
+      });
+      refetch();
+    },
+
+    onError: err => {
+      console.log('Discard Podcast Error', err);
+      Snackbar.show({
+        text: 'Something went wrong, try again',
+        duration: Snackbar.LENGTH_SHORT,
+      });
+    },
+  });
 
   return (
     <SafeAreaView style={styles.container}>
@@ -185,8 +268,8 @@ const PodcastDetail = ({navigation, route}: PodcastDetailScreenProp) => {
         </View>
 
         <View style={styles.footerOptions}>
-         
-          <TouchableOpacity
+          {/**
+             * <TouchableOpacity
             style={styles.footerItem}
             onPress={() => {
               if (isConnected) {
@@ -207,7 +290,85 @@ const PodcastDetail = ({navigation, route}: PodcastDetailScreenProp) => {
             <Text style={styles.likeCount}>
               {podcast?.commentCount ? formatCount(podcast?.commentCount) : 0}
             </Text>
-          </TouchableOpacity> 
+          </TouchableOpacity>
+             */}
+
+          {podcast?.status === StatusEnum.REVIEW_PENDING && (
+            <TouchableOpacity
+              style={{...styles.footerItem, flexDirection: 'column'}}
+              onPress={() => {
+                if (isConnected) {
+                  if (pickPodcastMutation.isPending) {
+                    return;
+                  } else {
+                    pickPodcastMutation.mutate(podcast._id);
+                  }
+                } else {
+                  Snackbar.show({
+                    text: 'You are currently offline',
+                    duration: Snackbar.LENGTH_SHORT,
+                  });
+                }
+              }}>
+              <MaterialIcons name="task-alt" size={30} color="#008080" />
+
+              <Text style={{...styles.likeCount, color: '#008080'}}>Pick</Text>
+            </TouchableOpacity>
+          )}
+
+          {podcast?.status !== StatusEnum.REVIEW_PENDING &&
+            podcast?.status !== StatusEnum.PUBLISHED &&
+            podcast?.user_id._id === user_id && (
+              <TouchableOpacity
+                style={{...styles.footerItem, flexDirection: 'column'}}
+                onPress={() => {
+                  if (isConnected) {
+                    if (approvePodcastMutation.isPending) {
+                      return;
+                    } else {
+                      approvePodcastMutation.mutate(trackId);
+                    }
+                  } else {
+                    Snackbar.show({
+                      text: 'You are currently offline',
+                      duration: Snackbar.LENGTH_SHORT,
+                    });
+                  }
+                }}>
+                <MaterialIcons name="approval" size={30} color="#1E1E1E" />
+                <Text style={{...styles.likeCount, color: '#008080'}}>
+                  Approve
+                </Text>
+              </TouchableOpacity>
+            )}
+
+          {podcast?.status !== StatusEnum.PUBLISHED && (
+            <TouchableOpacity
+              style={{...styles.footerItem, flexDirection: 'column'}}
+              onPress={() => {
+                if (isConnected) {
+                  if (discardPodcastMutation.isPending) {
+                    return;
+                  } else {
+                    setDiscardModalVisible(true);
+                  }
+                } else {
+                  Snackbar.show({
+                    text: 'You are currently offline',
+                    duration: Snackbar.LENGTH_SHORT,
+                  });
+                }
+              }}>
+              <MaterialIcons
+                name="indeterminate-check-box"
+                size={29}
+                color="#DC143C"
+              />
+              <Text style={{...styles.likeCount, color: '#DC143C'}}>
+                Discard
+              </Text>
+            </TouchableOpacity>
+          )}
         </View>
 
         <Text style={styles.episodeTitle}>{podcast?.title}</Text>
@@ -241,7 +402,6 @@ const PodcastDetail = ({navigation, route}: PodcastDetailScreenProp) => {
           <Text style={styles.metaText}>
             {moment(podcast?.updated_at).format('MMMM Do YYYY, h:mm A')}
           </Text>
-         
         </View>
 
         <Slider
@@ -262,6 +422,21 @@ const PodcastDetail = ({navigation, route}: PodcastDetailScreenProp) => {
           <Text style={styles.time}>{formatTime(progress.position)}</Text>
           <Text style={styles.time}>{formatTime(progress.duration)}</Text>
         </View>
+
+        <DiscardReasonModal
+          visible={discardModalVisible}
+          callback={(reason: string) => {
+            //onclick(item, 1, reason);
+            discardPodcastMutation.mutate({
+              id: trackId,
+              reason: reason,
+            });
+            setDiscardModalVisible(false);
+          }}
+          dismiss={() => {
+            setDiscardModalVisible(false);
+          }}
+        />
 
         {playbackState.state === State.Buffering && (
           <Text style={styles.bufferingText}>⏳ Buffering... please wait</Text>
@@ -456,5 +631,6 @@ const styles = StyleSheet.create({
     marginLeft: 4,
     fontSize: 14,
     color: '#333',
+    fontWeight: '700',
   },
 });

@@ -142,7 +142,7 @@ const ProfileScreen = ({navigation}: ProfileScreenProps) => {
             </Tabs.ScrollView>
           </Tabs.Tab>
           {/* Tab 2 */}
-          <Tabs.Tab name="Improvements">
+          <Tabs.Tab name="Revisions">
            
           <Tabs.ScrollView
               automaticallyAdjustContentInsets={true}
@@ -150,6 +150,20 @@ const ProfileScreen = ({navigation}: ProfileScreenProps) => {
               contentContainerStyle={styles.scrollViewContentContainer}>
           <ActivityOverview
               ctype={2} 
+            />
+
+            </Tabs.ScrollView>
+          </Tabs.Tab>
+
+          {/* Tab 3 */}
+          <Tabs.Tab name="Podcasts">
+           
+          <Tabs.ScrollView
+              automaticallyAdjustContentInsets={true}
+              contentInsetAdjustmentBehavior="always"
+              contentContainerStyle={styles.scrollViewContentContainer}>
+           <ActivityOverview
+              ctype={4} 
             />
 
             </Tabs.ScrollView>

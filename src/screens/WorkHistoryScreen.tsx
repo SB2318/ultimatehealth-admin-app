@@ -3,7 +3,13 @@ import {View, Text, StyleSheet, Image} from 'react-native';
 import {MaterialTabBar, Tabs} from 'react-native-collapsible-tab-view';
 import {PRIMARY_COLOR, ON_PRIMARY_COLOR, BUTTON_COLOR} from '../helper/Theme';
 import {useSafeAreaInsets} from 'react-native-safe-area-context';
-import {ArticleData, Report, WorkHistoryProps} from '../type';
+import {
+  ArticleData,
+  EditRequest,
+  PodcastData,
+  Report,
+  WorkHistoryProps,
+} from '../type';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import {FAB} from 'react-native-paper';
 import ReviewCard from '../components/ReviewCard';
@@ -11,17 +17,35 @@ import {hp} from '../helper/Metric';
 import {useSelector} from 'react-redux';
 import {useQuery} from '@tanstack/react-query';
 import axios from 'axios';
-import {GET_ASSIGNED_REPORTS, GET_COMPLETED_TASK_API} from '../helper/APIUtils';
+import {
+  GET_ASSIGNED_REPORTS,
+  GET_COMPLETED_IMPROVEMENTS,
+  GET_COMPLETED_PODCAST,
+  GET_COMPLETED_TASK_API,
+} from '../helper/APIUtils';
 import Loader from '../components/Loader';
 import {StatusEnum} from '../helper/Utils';
 import ReportCard from '../components/ReportCard';
+import ImprovementCard from '../components/ImprovementCard';
+import PodcastCard from '../components/PodcastCard';
 
 export default function WorkHistoryScreen({navigation}: WorkHistoryProps) {
   //const bottomBarHeight = useBottomTabBarHeight();
   const {user_token, user_id} = useSelector((state: any) => state.user);
   const insets = useSafeAreaInsets();
-  const [refreshing, setRefreshing] = useState<boolean>(false);
   const [selectedCardId, setSelectedCardId] = useState<string>('');
+
+  const {
+    data: completedImprovements,
+    refetch: refetchCompletedImprovements,
+    isLoading: isCompletedImprovementLoading,
+  } = useQuery({
+    queryKey: ['get-publish-improvements'],
+    queryFn: async () => {
+      const response = await axios.get(`${GET_COMPLETED_IMPROVEMENTS}`);
+      return response.data as EditRequest[];
+    },
+  });
 
   const {
     data: completedArticles,
@@ -40,6 +64,18 @@ export default function WorkHistoryScreen({navigation}: WorkHistoryProps) {
   });
 
   const {
+    data: completedPodcasts,
+    refetch: refetchCompletedPodcasts,
+    isLoading: isCompletedPodcastLoading,
+  } = useQuery({
+    queryKey: ['get-publish-podcasts'],
+    queryFn: async () => {
+      const response = await axios.get(`${GET_COMPLETED_PODCAST}`);
+      return response.data as PodcastData[];
+    },
+  });
+
+  const {
     data: assignedReports,
     refetch: refetchAssignReports,
     isLoading: isRefetchAssignReportLoading,
@@ -53,13 +89,6 @@ export default function WorkHistoryScreen({navigation}: WorkHistoryProps) {
       return response.data as Report[];
     },
   });
-
-  const onRefresh = () => {
-    setRefreshing(true);
-    refetchCompletedArticles();
-    refetchAssignReports();
-    setRefreshing(false);
-  };
 
   const onViewContent = (report: Report) => {
     if (report.commentId) {
@@ -114,6 +143,54 @@ export default function WorkHistoryScreen({navigation}: WorkHistoryProps) {
     [navigation, selectedCardId, setSelectedCardId],
   );
 
+  const renderRevisionItem = useCallback(
+    ({item}: {item: EditRequest}) => {
+      return (
+        <ImprovementCard
+          item={item}
+          isSelected={selectedCardId === item._id}
+          setSelectedCardId={setSelectedCardId}
+          onClick={() => {
+
+          }}
+          onNavigate={item => {
+            if (item?.status === StatusEnum.DISCARDED) {
+              return;
+            } else {
+              navigation.navigate('ImprovementReviewScreen', {
+                requestId: item._id,
+                authorId: item.article.authorId,
+                destination: item.status,
+                recordId: item.pb_recordId,
+                articleRecordId: item.article_recordId,
+              });
+            }
+          }}
+        />
+      );
+    },
+    [navigation, selectedCardId, setSelectedCardId],
+  );
+
+  const renderPodcastItem = useCallback(
+    ({item}: {item: PodcastData}) => {
+      return (
+        <PodcastCard
+          item={item}
+          isSelected={selectedCardId === item._id}
+          setSelectedCardId={setSelectedCardId}
+          handleClick={() => {
+           navigation.navigate('PodcastDetail', {
+            trackId: item._id,
+           });
+          }}
+
+        />
+      );
+    },
+    [navigation, selectedCardId, setSelectedCardId],
+  );
+
   if (isCompletedArticleLoading || isRefetchAssignReportLoading) {
     return <Loader />;
   }
@@ -149,8 +226,8 @@ export default function WorkHistoryScreen({navigation}: WorkHistoryProps) {
                 {paddingBottom: 15},
               ]}
               keyExtractor={item => item?._id}
-              refreshing={refreshing}
-              onRefresh={onRefresh}
+              refreshing={isCompletedArticleLoading}
+              onRefresh={refetchCompletedArticles}
               ListEmptyComponent={
                 <View style={styles.emptyContainer}>
                   <Text style={styles.message}>No Article Found</Text>
@@ -159,21 +236,41 @@ export default function WorkHistoryScreen({navigation}: WorkHistoryProps) {
             />
           </Tabs.Tab>
 
-          <Tabs.Tab name={'Improvement'}>
+          <Tabs.Tab name={'Revisions'}>
             <Tabs.FlatList
-              data={[]}
-              renderItem={renderItem}
+              data={completedImprovements ? completedImprovements : []}
+              renderItem={renderRevisionItem}
               showsVerticalScrollIndicator={false}
               contentContainerStyle={[
                 styles.flatListContentContainer,
                 {paddingBottom: 15},
               ]}
               keyExtractor={item => item?._id}
-              refreshing={refreshing}
-              onRefresh={onRefresh}
+              refreshing={isCompletedImprovementLoading}
+              onRefresh={refetchCompletedImprovements}
               ListEmptyComponent={
                 <View style={styles.emptyContainer}>
-                  <Text style={styles.message}>No Article Found</Text>
+                  <Text style={styles.message}>No Revisions Found</Text>
+                </View>
+              }
+            />
+          </Tabs.Tab>
+
+          <Tabs.Tab name={'Podcasts'}>
+            <Tabs.FlatList
+              data={completedPodcasts ? completedPodcasts : []}
+              renderItem={renderPodcastItem}
+              showsVerticalScrollIndicator={false}
+              contentContainerStyle={[
+                styles.flatListContentContainer,
+                {paddingBottom: 15},
+              ]}
+              keyExtractor={item => item?._id}
+              refreshing={isCompletedPodcastLoading}
+              onRefresh={refetchCompletedPodcasts}
+              ListEmptyComponent={
+                <View style={styles.emptyContainer}>
+                  <Text style={styles.message}>No Podcasts Found</Text>
                 </View>
               }
             />
@@ -181,12 +278,14 @@ export default function WorkHistoryScreen({navigation}: WorkHistoryProps) {
           <Tabs.Tab name={'Reports'}>
             <View style={{flex: 1}}>
               <Tabs.FlatList
-                data={assignedReports}
+                data={assignedReports ? assignedReports : []}
                 keyExtractor={item => item._id}
                 renderItem={({item}) => (
                   <ReportCard
                     report={item}
-                    onViewContent={onViewContent}
+                    onViewContent={() => {
+                      onViewContent(item);
+                    }}
                     onTakeActionReport={onTakeActionReport}
                   />
                 )}

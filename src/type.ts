@@ -427,6 +427,7 @@ export type Report = {
 };
 
 export type User = {
+  _id: string;
   user_name: string;
   Profile_image: string;
   followers: string[];

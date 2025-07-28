@@ -37,6 +37,9 @@ export type RootStackParamList = {
   ReportActionScreen:{
     reportId: string;
     report_admin_id: string;
+  },
+  PodcastDetail:{
+    trackId: string;
   }
 };
 
@@ -198,7 +201,10 @@ export type NotificationProps = BottomTabScreenProps<
   'Notification'
 >;
 
-export type PodcastProps = BottomTabScreenProps<TabParamList, 'Podcast'>;
+export type PodcastProps = CompositeScreenProps<
+  BottomTabScreenProps<TabParamList, 'Podcast'>,
+  StackScreenProps<RootStackParamList, 'PodcastDetail'>
+>;
 
 export type ReportScreenProps = BottomTabScreenProps<TabParamList, 'Report'>;
 
@@ -236,6 +242,11 @@ export type LogoutScreenProp = StackScreenProps<
 export type SignUpScreenProp = StackScreenProps<
   RootStackParamList,
   'SignUpScreen'
+>;
+
+export type PodcastDetailScreenProp = StackScreenProps<
+  RootStackParamList,
+  'PodcastDetail'
 >;
 
 export type NewPasswordScreenProp = StackScreenProps<
@@ -416,7 +427,10 @@ export type Report = {
 };
 
 export type User = {
+  _id: string;
   user_name: string;
+  Profile_image: string;
+  followers: string[];
 };
 
 export type Reason = {

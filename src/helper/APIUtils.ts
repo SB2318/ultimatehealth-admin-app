@@ -31,6 +31,7 @@ const UNASSIGN_IMPROVEMENT = `${Config.BASE_URL}/admin/improvement/unassign-mode
 const DISCARD_IMPROVEMENT = `${Config.BASE_URL}/admin/discard-improvement`;
 const GET_IMPROVEMENT_BY_ID = `${Config.BASE_URL}/get-improvement`;
 const PUBLISH_IMPROVEMENT = `${Config.BASE_URL}/admin/publish-improvement`;
+const GET_COMPLETED_IMPROVEMENTS = `${Config.BASE_URL}/admin/publish-improvements`;
 const GET_CHANGES_HISTORY = `${Config.BASE_URL}/article/detect-content-loss`;
 
 const GET_ARTICLE_CONTENT = `${Config.BASE_URL}/articles/get-article-content`;
@@ -63,6 +64,8 @@ const FETCH_PROGRESS_PODCAST = `${Config.BASE_URL}/podcast-admin/all`;
 const PICK_PODCAST = `${Config.BASE_URL}/podcast-admin/pick`;
 const APPROVE_PODCAST = `${Config.BASE_URL}/podcast-admin/approve`;
 const DISCARD_PODCAST = `${Config.BASE_URL}/podcast-admin/discard`;
+const GET_PODCAST_DETAILS = `${Config.BASE_URL}/podcast/details`;
+const GET_COMPLETED_PODCAST = `${Config.BASE_URL}/podcast-admin/completed`;
 
 
 export {
@@ -98,6 +101,7 @@ export {
     DISCARD_IMPROVEMENT,
     GET_IMPROVEMENT_BY_ID,
     PUBLISH_IMPROVEMENT,
+    GET_COMPLETED_IMPROVEMENTS,
     GET_CHANGES_HISTORY,
     GET_ARTICLE_CONTENT,
     GET_IMPROVEMENT_CONTENT,
@@ -120,4 +124,7 @@ export {
     PICK_PODCAST,
     APPROVE_PODCAST,
     DISCARD_PODCAST,
+    GET_PODCAST_DETAILS,
+    GET_COMPLETED_PODCAST,
+
 };

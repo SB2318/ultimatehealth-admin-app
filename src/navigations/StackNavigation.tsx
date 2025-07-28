@@ -10,7 +10,7 @@ import { RootStackParamList } from '../type';
 import TabNavigation from './TabNavigation';
 import ArticleReviewScreen from '../screens/ArticleReviewScreen';
 import { StyleSheet, TouchableOpacity } from 'react-native';
-import FontAwesome6 from 'react-native-vector-icons/FontAwesome6';
+import FontAwesome from 'react-native-vector-icons/FontAwesome';
 import EditProfile from '../screens/EditProfile';
 import LogoutScreen from '../screens/auth/LogoutScreen';
 import WorkHistoryScreen from '../screens/WorkHistoryScreen';
@@ -19,6 +19,7 @@ import ChangesHistoryScreen from '../screens/ChangesHistoryScreen';
 import { PRIMARY_COLOR } from '../helper/Theme';
 import CommentScreen from '../screens/CommentScreen';
 import ReportAction from '../screens/ReportAction';
+import PodcastDetail from '../screens/PodcastDetails';
 
 const Stack = createStackNavigator<RootStackParamList>();
 
@@ -58,7 +59,7 @@ const StackNavigation = () => {
         options={{headerShown: false}}
       />
     
-    <Stack.Screen
+      <Stack.Screen
         name="ArticleReviewScreen"
         component={ArticleReviewScreen}
         options={({navigation}) => ({
@@ -73,11 +74,12 @@ const StackNavigation = () => {
               onPress={() => {
                 navigation.goBack();
               }}>
-              <FontAwesome6 size={25} name="arrow-left" color="white" />
+              <FontAwesome size={25} name="arrow-left" color="white" />
             </TouchableOpacity>
           ),
         })}
       />
+
 
       <Stack.Screen
         name="ImprovementReviewScreen"
@@ -94,7 +96,28 @@ const StackNavigation = () => {
               onPress={() => {
                 navigation.goBack();
               }}>
-              <FontAwesome6 size={25} name="arrow-left" color="white" />
+              <FontAwesome size={25} name="arrow-left" color="white" />
+            </TouchableOpacity>
+          ),
+        })}
+      />
+
+      <Stack.Screen
+        name="PodcastDetail"
+        component={PodcastDetail}
+        options={({navigation}) => ({
+          headerShown: true,
+          headerTitle: '',
+          headerTransparent: true,
+          headerBackTitleVisible: false,
+          // eslint-disable-next-line react/no-unstable-nested-components
+          headerLeft: () => (
+            <TouchableOpacity
+              style={styles.headerLeftButton}
+              onPress={() => {
+                navigation.goBack();
+              }}>
+              <FontAwesome size={25} name="arrow-left" color="white" />
             </TouchableOpacity>
           ),
         })}
@@ -114,7 +137,7 @@ const StackNavigation = () => {
               onPress={() => {
                 navigation.goBack();
               }}>
-              <FontAwesome6 size={25} name="arrow-left" color={PRIMARY_COLOR} />
+              <FontAwesome size={25} name="arrow-left" color={PRIMARY_COLOR} />
             </TouchableOpacity>
           ),
         })}
@@ -134,7 +157,7 @@ const StackNavigation = () => {
               onPress={() => {
                 navigation.goBack();
               }}>
-              <FontAwesome6 size={25} name="arrow-left" color={PRIMARY_COLOR} />
+              <FontAwesome size={25} name="arrow-left" color={PRIMARY_COLOR} />
             </TouchableOpacity>
           ),
         })}
@@ -156,7 +179,7 @@ const StackNavigation = () => {
               onPress={() => {
                 navigation.goBack();
               }}>
-              <FontAwesome6 size={25} name="arrow-left" color={PRIMARY_COLOR} />
+              <FontAwesome size={25} name="arrow-left" color={PRIMARY_COLOR} />
             </TouchableOpacity>
           ),
         })}
@@ -176,7 +199,7 @@ const StackNavigation = () => {
               onPress={() => {
                 navigation.goBack();
               }}>
-              <FontAwesome6 size={25} name="arrow-left" color="black" />
+              <FontAwesome size={25} name="arrow-left" color="black" />
             </TouchableOpacity>
           ),
         })}

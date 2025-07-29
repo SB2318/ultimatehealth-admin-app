@@ -24,6 +24,7 @@ const ProfileScreen = ({navigation}: ProfileScreenProps) => {
   );
   const dispatch = useDispatch();
 
+   console.log('User token', user_token);
 
   const {
     data: user,

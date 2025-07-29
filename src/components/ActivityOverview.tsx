@@ -16,24 +16,24 @@ import {
   import {
     GET_MONTHLY_CONTRIBUTION,
     GET_YEARLY_CONTRIBUTION,
-  
+
   } from '../helper/APIUtils';
- 
+
   import Loader from './Loader';
   import {useFocusEffect} from '@react-navigation/native';
-  
+
 
   const ActivityOverview = ({ctype}:{ctype:number}) => {
 
-    const {user_token, user_id} = useSelector((state: any) => state.user);
- 
+    const {user_token} = useSelector((state: any) => state.user);
+
     const [selectedMonth, setSelectedMonth] = useState<number>(
       new Date().getMonth(),
     );
     const [selectedYear, setSelectedYear] = useState<number>(new Date().getFullYear());
     const [isYearSelected, setYearChange] = useState<number>(-1);
-    const [isFocus, setIsFocus] = useState(false);
-  
+    //const [isFocus, setIsFocus] = useState(false);
+
     const monthlyDrops = [
       {label: 'Monthly', value: -1},
       {label: 'January', value: 0},
@@ -49,13 +49,13 @@ import {
       {label: 'November', value: 10},
       {label: 'December', value: 11},
     ];
-  
+
     const yearlyDrops = [
       {label: 'Yearly', value: -1},
       {label: '2024', value: 2024},
       {label: '2025', value: 2025},
     ];
-  
+
     // GET MONTHLY READ REPORT
     const {
       data: monthlyWriteReport,
@@ -67,8 +67,9 @@ import {
         try {
           // console.log('URL', url);
           const date = new Date();
-          const year = selectedYear !== -1 ? date.getFullYear(): selectedYear;
-          let url = `${GET_MONTHLY_CONTRIBUTION}?year=${year}&month=${selectedMonth}&cType=${ctype}`;
+          const year = selectedYear !== -1 ? date.getFullYear() : selectedYear;
+          const month = Number(selectedMonth) + 1;
+          let url = `${GET_MONTHLY_CONTRIBUTION}?year=${year}&month=${month}&cType=${ctype}`;
          // console.log("Month Url", url);
           const response = await axios.get(url, {
            // headers: {
@@ -76,7 +77,7 @@ import {
            // },
           });
          // console.log("Month response", response.data);
-         
+
           return response.data as lineDataItem[];
         } catch (err) {
           console.error('Error fetching articles writes monthly:', err);
@@ -84,7 +85,7 @@ import {
       },
       enabled: !!(user_token && selectedMonth !== -1),
     });
-  
+
     // GET YEARLY READ REPORT
     const {
       data: yearlyReadReport,
@@ -101,7 +102,7 @@ import {
             //  Authorization: `Bearer ${user_token}`,
            // },
           });
-  
+
          // console.log("Yearly response", response.data);
           return response.data as lineDataItem[];
         } catch (err) {
@@ -110,8 +111,8 @@ import {
       },
       enabled: !!(user_token && selectedYear !== -1),
     });
-  
- 
+
+
     useFocusEffect(
       useCallback(() => {
           refetchMonthWriteReport();
@@ -125,13 +126,13 @@ import {
     ) {
       <Loader />;
     }
-  
+
     /*
     const processData = data => {
       if (!data) {
         return [];
       }
-  
+
       console.log('data', data.map(item => ({
         value: item.value, // Ensure the value is an integer
         label: item.label,
@@ -141,9 +142,9 @@ import {
         label: item.label
       }));
     };
-  
+
  */
-  
+
     return (
       <ScrollView
         style={{
@@ -152,23 +153,23 @@ import {
           backgroundColor: ON_PRIMARY_COLOR,
         }}>
         <View style={styles.rowContainer}>
-         
-  
+
+
           <Text style={styles.btnText}>
             {moment(new Date()).format('DD MMM, YYYY')}
           </Text>
         </View>
-  
+
         <View style={styles.rowContainer}>
-          
-  
+
+
           <Dropdown
             style={{
               ...styles.button,
               backgroundColor: selectedMonth === -1 ? '#c1c1c1' : PRIMARY_COLOR,
             }}
             //placeholderStyle={styles.placeholderStyle}
-  
+
             data={monthlyDrops}
             labelField="label"
             valueField="value"
@@ -177,16 +178,20 @@ import {
               fontSize: 14,
             }}
             value={selectedMonth}
-            onFocus={() => setIsFocus(true)}
-            onBlur={() => setIsFocus(false)}
+            onFocus={() => {
+              // setIsFocus(true)
+            }}
+            onBlur={() => {
+              // setIsFocus(false)
+            }}
             onChange={item => {
               setSelectedMonth(item.value);
               // setSelectedDay(-1);
-              setSelectedYear(-1);
-              setIsFocus(false);
+              //setSelectedYear(-1);
+             // setIsFocus(false);
               setYearChange(-1);
               refetchMonthWriteReport();
-              
+
             }}
             placeholder={'Monthly'}
           />
@@ -202,22 +207,26 @@ import {
             valueField="value"
             //placeholder={!isFocus ? 'Select your role' : '...'}
             value={selectedYear}
-            onFocus={() => setIsFocus(true)}
-            onBlur={() => setIsFocus(false)}
+            onFocus={() => {
+
+            }}
+            onBlur={() => {
+
+            }}
             onChange={item => {
               setSelectedYear(item.value);
               // setSelectedDay(-1);
               setSelectedMonth(-1);
               setYearChange(0);
-              setIsFocus(false);
-  
-            
+             // setIsFocus(false);
+
+
             }}
             placeholder={'Yearly'}
           />
         </View>
-  
-      
+
+
         {selectedMonth !== -1 && (
           <View style={{marginTop: 10, flex: 1}}>
             <LineChart
@@ -233,11 +242,11 @@ import {
             <LineChart
               data2={yearlyReadReport?.map(item => ({
                       value: item.value,
-                      label: moment(item.month).format('MMM'),
+                      label: moment(item.label).format('MMM'),
                     }))
-                 
+
               }
-             
+
               areaChart
             />
           </View>
@@ -245,7 +254,7 @@ import {
       </ScrollView>
     );
   };
-  
+
   const styles = StyleSheet.create({
     rowContainer: {
       flex: 0,
@@ -255,7 +264,7 @@ import {
       justifyContent: 'space-between',
       alignItems: 'center',
     },
-  
+
     colContainer: {
       flex: 0,
       width: '100%',
@@ -264,7 +273,7 @@ import {
       justifyContent: 'space-between',
       alignItems: 'center',
     },
-  
+
     box: {
       width: '95%',
       // height: 120,
@@ -279,21 +288,21 @@ import {
       borderRadius: 8,
       //flexDirection: 'column',
     },
-  
+
     titleText: {
       fontSize: 16,
       color: 'black',
       marginVertical: 4,
       fontWeight: '600',
     },
-  
+
     valueText: {
       fontSize: 17,
       color: PRIMARY_COLOR,
       marginVertical: 4,
       fontWeight: '700',
     },
-  
+
     dropdown: {
       height: 30,
       width: '35%',
@@ -305,7 +314,7 @@ import {
       paddingRight: 2,
       marginStart: 4,
     },
-  
+
     button: {
       width: '40%',
       padding: 6,
@@ -327,11 +336,11 @@ import {
       maxHeight: 150,
       backgroundColor: '#E6E6E6',
       flexDirection: 'row',
-  
+
       marginVertical: 14,
       overflow: 'hidden',
       elevation: 4,
-  
+
       borderRadius: 12,
     },
     image: {
@@ -358,6 +367,5 @@ import {
       marginBottom: 3,
     },
   });
-  
+
   export default ActivityOverview;
-  

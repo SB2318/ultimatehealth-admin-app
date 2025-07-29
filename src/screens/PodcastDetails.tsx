@@ -173,9 +173,12 @@ const PodcastDetail = ({navigation, route}: PodcastDetailScreenProp) => {
     },
   });
 
+  //console.log("podcast id", trackId);
+ // console.log('headers', axios.defaults.headers);
   const approvePodcastMutation = useMutation({
     mutationKey: ['publish-podcast-mutation'],
     mutationFn: async (id: string) => {
+      
       const res = await axios.post(APPROVE_PODCAST, {
         podcast_id: id,
       });
@@ -191,7 +194,7 @@ const PodcastDetail = ({navigation, route}: PodcastDetailScreenProp) => {
     },
 
     onError: err => {
-      console.log('Discard Podcast Error', err);
+      console.log('Approve Podcast Error', err);
       Snackbar.show({
         text: 'Something went wrong, try again',
         duration: Snackbar.LENGTH_SHORT,
@@ -318,7 +321,7 @@ const PodcastDetail = ({navigation, route}: PodcastDetailScreenProp) => {
 
           {podcast?.status !== StatusEnum.REVIEW_PENDING &&
             podcast?.status !== StatusEnum.PUBLISHED &&
-            podcast?.user_id._id === user_id && (
+            podcast?.admin_id === user_id && (
               <TouchableOpacity
                 style={{...styles.footerItem, flexDirection: 'column'}}
                 onPress={() => {

@@ -207,7 +207,6 @@ const ActivityOverview = ({ctype}: {ctype: number}) => {
           placeholder={'Yearly'}
         />
       </View>
-
       {selectedMonth !== -1 && (
         <View style={{marginTop: 10, flex: 1}}>
           {/**

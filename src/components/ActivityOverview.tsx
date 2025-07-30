@@ -2,7 +2,7 @@ import {View, Text, StyleSheet, ScrollView} from 'react-native';
 import React, {useCallback, useState} from 'react';
 import {ON_PRIMARY_COLOR, PRIMARY_COLOR} from '../helper/Theme';
 import {Dropdown} from 'react-native-element-dropdown';
-import {lineDataItem} from 'react-native-gifted-charts';
+
 import {LineChart} from 'react-native-chart-kit';
 import {useQuery} from '@tanstack/react-query';
 import moment from 'moment';
@@ -16,6 +16,7 @@ import {
 
 import Loader from './Loader';
 import {useFocusEffect} from '@react-navigation/native';
+import { LineDataItem } from '../type';
 
 const ActivityOverview = ({ctype}: {ctype: number}) => {
   const {user_token} = useSelector((state: any) => state.user);
@@ -73,7 +74,7 @@ const ActivityOverview = ({ctype}: {ctype: number}) => {
         });
        // console.log('Month response', response.data);
 
-        return response.data as lineDataItem[];
+        return response.data as LineDataItem[];
       } catch (err) {
         console.error('Error fetching articles writes monthly:', err);
       }
@@ -98,7 +99,7 @@ const ActivityOverview = ({ctype}: {ctype: number}) => {
         });
 
         // console.log("Yearly response", response.data);
-        return response.data as lineDataItem[];
+        return response.data as LineDataItem[];
       } catch (err) {
         console.error('Error fetching articles reads yearly:', err);
       }

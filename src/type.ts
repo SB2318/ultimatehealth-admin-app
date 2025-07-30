@@ -440,3 +440,8 @@ export type Reason = {
   reason: string;
   status: string;
 };
+
+export type LineDataItem ={
+  label: string;
+  value: number;
+}

@@ -1,10 +1,5 @@
 import React, {useEffect, useRef, useState} from 'react';
-import {
-  View,
-  Text,
-  StyleSheet,
-  FlatList,
-} from 'react-native';
+import {View, Text, StyleSheet, FlatList} from 'react-native';
 import {CommentScreenProp} from '../type';
 import {PRIMARY_COLOR} from '../helper/Theme';
 //import io from 'socket.io-client';
@@ -13,17 +8,19 @@ import Loader from '../components/Loader';
 import CommentItem from '../components/CommentItem';
 import {useSocket} from '../components/SocketContext';
 
-
 const CommentScreen = ({navigation, route}: CommentScreenProp) => {
   const socket = useSocket();
-  const { commentId} = route.params;
+  const {commentId} = route.params;
   const [comments, setComments] = useState<Comment[]>([]);
   const flatListRef = useRef<FlatList<Comment>>(null);
 
   const [commentLoading, setCommentLoading] = useState<Boolean>(false);
 
   useEffect(() => {
-    socket.emit('fetch-comments', {articleId: route.params.articleId});
+    socket.emit('fetch-comments', {
+      articleId: route.params.podcastId ? null : route.params.articleId,
+      podcastId: route.params.podcastId,
+    });
 
     socket.on('connect', () => {
       console.log('connection established');
@@ -39,16 +36,15 @@ const CommentScreen = ({navigation, route}: CommentScreenProp) => {
 
     socket.on('fetch-comments', data => {
       // console.log('comment loaded');
-      if (data.articleId === route.params.articleId) {
+     // if (data.articleId === route.params.articleId) {
         setComments(data.comments);
-      }
+      //}
     });
 
     return () => {
       socket.off('fetch-comments');
-    
     };
-  }, [socket, route.params.articleId]);
+  }, [socket, route.params.articleId, route.params.podcastId]);
 
   if (commentLoading) {
     return <Loader />;

@@ -75,7 +75,7 @@ export default function WorkHistoryScreen({navigation}: WorkHistoryProps) {
     },
   });
 
-  
+
   const {
     data: assignedReports,
     refetch: refetchAssignReports,
@@ -96,6 +96,7 @@ export default function WorkHistoryScreen({navigation}: WorkHistoryProps) {
       navigation.navigate('CommentScreen', {
         articleId: Number(report.articleId._id),
         commentId: report.commentId._id,
+        podcastId: report.podcastId ? report.podcastId._id : null,
       });
     } else {
       navigation.navigate('ArticleReviewScreen', {

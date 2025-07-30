@@ -33,6 +33,7 @@ export type RootStackParamList = {
   CommentScreen: {
     articleId: number;
     commentId: string;
+    podcastId: string | null;
   };
   ReportActionScreen:{
     reportId: string;
@@ -417,6 +418,7 @@ export type Report = {
   admin_id: string | null;
   action_taken: string;
   articleId: ArticleData;
+  podcastId: PodcastData;
   commentId: Comment;
   reportedBy: User;
   convictId: User;

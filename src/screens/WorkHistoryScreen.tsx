@@ -75,6 +75,7 @@ export default function WorkHistoryScreen({navigation}: WorkHistoryProps) {
     },
   });
 
+
   const {
     data: assignedReports,
     refetch: refetchAssignReports,
@@ -95,6 +96,7 @@ export default function WorkHistoryScreen({navigation}: WorkHistoryProps) {
       navigation.navigate('CommentScreen', {
         articleId: Number(report.articleId._id),
         commentId: report.commentId._id,
+        podcastId: report.podcastId ? report.podcastId._id : null,
       });
     } else {
       navigation.navigate('ArticleReviewScreen', {
@@ -150,9 +152,7 @@ export default function WorkHistoryScreen({navigation}: WorkHistoryProps) {
           item={item}
           isSelected={selectedCardId === item._id}
           setSelectedCardId={setSelectedCardId}
-          onClick={() => {
-
-          }}
+          onClick={() => {}}
           onNavigate={item => {
             if (item?.status === StatusEnum.DISCARDED) {
               return;
@@ -180,11 +180,10 @@ export default function WorkHistoryScreen({navigation}: WorkHistoryProps) {
           isSelected={selectedCardId === item._id}
           setSelectedCardId={setSelectedCardId}
           handleClick={() => {
-           navigation.navigate('PodcastDetail', {
-            trackId: item._id,
-           });
+            navigation.navigate('PodcastDetail', {
+              trackId: item._id,
+            });
           }}
-
         />
       );
     },
@@ -229,14 +228,20 @@ export default function WorkHistoryScreen({navigation}: WorkHistoryProps) {
               refreshing={isCompletedArticleLoading}
               onRefresh={refetchCompletedArticles}
               ListEmptyComponent={
-                <View style={styles.emptyContainer}>
-                  <Text style={styles.message}>No Article Found</Text>
+             <View style={styles.emptyContainer}>
+                  <Image
+                    source={require('../../assets/identify-audience.png')}
+                    style={styles.image}
+                  />
+                  <Text style={styles.message}>
+                    No articles available
+                  </Text>
                 </View>
               }
             />
           </Tabs.Tab>
 
-          <Tabs.Tab name={'Revisions'}>
+          <Tabs.Tab name={'Revision'}>
             <Tabs.FlatList
               data={completedImprovements ? completedImprovements : []}
               renderItem={renderRevisionItem}
@@ -249,14 +254,20 @@ export default function WorkHistoryScreen({navigation}: WorkHistoryProps) {
               refreshing={isCompletedImprovementLoading}
               onRefresh={refetchCompletedImprovements}
               ListEmptyComponent={
-                <View style={styles.emptyContainer}>
-                  <Text style={styles.message}>No Revisions Found</Text>
+              <View style={styles.emptyContainer}>
+                  <Image
+                    source={require('../../assets/identify-audience.png')}
+                    style={styles.image}
+                  />
+                  <Text style={styles.message}>
+                    No revisions available
+                  </Text>
                 </View>
               }
             />
           </Tabs.Tab>
 
-          <Tabs.Tab name={'Podcasts'}>
+          <Tabs.Tab name={'Podcast'}>
             <Tabs.FlatList
               data={completedPodcasts ? completedPodcasts : []}
               renderItem={renderPodcastItem}
@@ -270,7 +281,13 @@ export default function WorkHistoryScreen({navigation}: WorkHistoryProps) {
               onRefresh={refetchCompletedPodcasts}
               ListEmptyComponent={
                 <View style={styles.emptyContainer}>
-                  <Text style={styles.message}>No Podcasts Found</Text>
+                  <Image
+                    source={require('../../assets/identify-audience.png')}
+                    style={styles.image}
+                  />
+                  <Text style={styles.message}>
+                    No podcasts available
+                  </Text>
                 </View>
               }
             />
@@ -290,13 +307,15 @@ export default function WorkHistoryScreen({navigation}: WorkHistoryProps) {
                   />
                 )}
                 ListEmptyComponent={
-                  <View style={styles.emptyContainer}>
-                    <Image
-                      source={require('../../assets/identify-audience.png')}
-                      style={styles.image}
-                    />
-                    <Text style={styles.message}>No Report Found</Text>
-                  </View>
+                <View style={styles.emptyContainer}>
+                  <Image
+                    source={require('../../assets/identify-audience.png')}
+                    style={styles.image}
+                  />
+                  <Text style={styles.message}>
+                    No report available
+                  </Text>
+                </View>
                 }
                 //contentContainerStyle={styles.container}
                 showsVerticalScrollIndicator={false}

@@ -139,6 +139,7 @@ export default function ReportScreen({navigation}) {
       navigation.navigate('CommentScreen', {
         articleId: report.articleId._id,
         commentId: report.commentId._id,
+        podcastId: report.podcastId ? report.podcastId._id : null,
       });
     } else {
       navigation.navigate('ArticleReviewScreen', {

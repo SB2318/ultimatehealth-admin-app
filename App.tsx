@@ -16,6 +16,11 @@ import {QueryClient, QueryClientProvider} from '@tanstack/react-query';
 import {FirebaseProvider} from './src/hooks/FirebaseContext';
 import {SocketProvider} from './src/components/SocketContext';
 import TrackPlayer, {Capability} from 'react-native-track-player';
+import PushNotification from 'react-native-push-notification';
+import messaging from '@react-native-firebase/messaging';
+import {addEventListener} from '@react-native-community/netinfo';
+import {setConnected} from './src/stores/NetworkSlice';
+import { useDispatch } from 'react-redux';
 
 const queryClient = new QueryClient();
 function App(): React.JSX.Element {
@@ -26,6 +31,7 @@ function App(): React.JSX.Element {
 
   //const BarStyle = Platform.OS === 'ios' ? 'dark-content' : 'light-content';
   //const navigationContainerRef = useRef();
+  const dispatch = useDispatch();
 
   useEffect(() => {
     return () => {
@@ -61,6 +67,77 @@ function App(): React.JSX.Element {
       TrackPlayer.reset();
     };
   }, []);
+
+   useEffect(() => {
+    PushNotification.configure({
+      onRegister: (token: any) => {
+        console.log('FCM Token:', token);
+      },
+
+      onNotification: () => {
+        // Handle notification action here
+      },
+      requestPermissions: true, // Automatically request permissions on iOS
+    });
+
+    // Create notification channels (Android specific)
+    PushNotification.createChannel(
+      {
+        channelId: 'default-channel',
+        channelName: 'Default Channel',
+        channelDescription: 'UltimateHealth Notifications',
+        playSound: true,
+        soundName: 'default',
+        importance: 4,
+        vibrate: true,
+      },
+      (created: any) => console.log(`createChannel returned '${created}'`),
+    );
+    const unsubscribe = messaging().onMessage(async remoteMessage => {
+      console.log(
+        'Foreground notification received from message:',
+        remoteMessage,
+      );
+      //const data = remoteMessage.data;
+      // handleNotification(data);
+
+      PushNotification.localNotification({
+        channelId: 'default-channel',
+        title: remoteMessage?.notification?.title,
+        message: remoteMessage?.notification?.body,
+        playSound: true,
+        soundName: 'default',
+        priority: 'high',
+        visibility: 'public',
+      });
+    });
+
+    messaging().setBackgroundMessageHandler(async remoteMessage => {
+      console.log('Background notification received:', remoteMessage); 
+     // const data = remoteMessage.data;
+      //handleNotification(data);
+    });
+
+    // On app open
+
+    const unsubscribe1 = addEventListener(state => {
+      console.log('Connection type', state.type);
+      console.log('Is connected?', state.isConnected);
+      /** Dispatch use a reducer to update the value in store */
+      dispatch(setConnected(state.isConnected));
+    });
+    const onOpenApp = messaging().onNotificationOpenedApp(remoteMessage => {
+      console.log('Notification caused app to open:', remoteMessage);
+      // const data = remoteMessage.data;
+      // handleNotification(data);
+    });
+
+    return () => {
+      unsubscribe();
+      unsubscribe1();
+      onOpenApp();
+    };
+  }, [dispatch]);
 
   return (
     <QueryClientProvider client={queryClient}>

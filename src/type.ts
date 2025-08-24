@@ -35,13 +35,13 @@ export type RootStackParamList = {
     commentId: string;
     podcastId: string | null;
   };
-  ReportActionScreen:{
+  ReportActionScreen: {
     reportId: string;
     report_admin_id: string;
-  },
-  PodcastDetail:{
+  };
+  PodcastDetail: {
     trackId: string;
-  }
+  };
 };
 
 export type Admin = {
@@ -119,12 +119,44 @@ export type Category = {
 
 export type NotificationD = {
   _id: string;
-  userId: string;
+  userId: User | null;
+  adminId: Admin | null;
+  articleId: ArticleData | null;
+  revisionId: EditRequest | null;
+  podcastId: PodcastData | null;
+  commentId: Comment | null;
+  articleRecordId: string | null;
+  type: NotificationType;
   title: string;
   message: string;
   read: boolean;
   timestamp: string;
 };
+
+export enum NotificationType {
+  ArticleReview = 'articleReview',
+  PodcastReview = 'podcastReview',
+  PodcastCommentMention = 'podcastCommentMention',
+  ArticleCommentMention = 'articleCommentMention',
+  ArticleRepost = 'articleRepost',
+  UserFollow = 'userFollow',
+  CommentLike = 'commentLike',
+  Comment = 'comment',
+  Article = 'article',
+  Podcast = 'podcast',
+  EditRequest = 'editRequest',
+  ArticleLike = 'articleLike',
+  PodcastLike = 'podcastLike',
+  ArticleImprovement = 'articleImprovement',
+  ArticleComment = 'articleComment',
+  PodcastComment = 'podcastComment',
+  EditRequestComment = 'editRequestComment',
+  ArticleCommentLike = 'articleCommentLike',
+  PodcastCommentLike = 'podcastCommentLike',
+  ArticleRevisionReview = 'articleRevisionReview',
+  ArticleSubmitToAdmin = 'articleSubmitToAdmin',
+  RevisionSubmitToAdmin = 'revisionSubmitToAdmin',
+}
 
 export type CategoryType = {
   id: number;
@@ -218,7 +250,7 @@ export type ReviewScreenProp = StackScreenProps<
   'ArticleReviewScreen'
 >;
 
-export type  ReportActionScreenProp = StackScreenProps<
+export type ReportActionScreenProp = StackScreenProps<
   RootStackParamList,
   'ReportActionScreen'
 >;
@@ -353,9 +385,9 @@ export type PodcastData = {
   status: string;
   admin_id: string | null;
   updated_at: string;
-  filePath: string | undefined,
-  downloadAt: Date| null,
-  commentCount: number|0,
+  filePath: string | undefined;
+  downloadAt: Date | null;
+  commentCount: number | 0;
   //podcasts: string[];
 };
 
@@ -401,17 +433,18 @@ export const reportActionMessages: Record<reportActionEnum, string> = {
   [reportActionEnum.WARN_CONVICT]: 'Issued a warning to the user.',
   [reportActionEnum.REMOVE_CONTENT]: 'Removed the reported content.',
   [reportActionEnum.EDIT_CONTENT]: 'Edited the reported content.',
-  [reportActionEnum.RESTORE_CONTENT]: 'Restored the previously removed content.',
+  [reportActionEnum.RESTORE_CONTENT]:
+    'Restored the previously removed content.',
   [reportActionEnum.BLOCK_CONVICT]: 'Blocked the user from the platform.',
   [reportActionEnum.BAN_CONVICT]: 'Banned the user permanently.',
   [reportActionEnum.ESCALATED]: 'Escalated the report for further review.',
   [reportActionEnum.INVESTIGATION]: 'Started an investigation on the report.',
   [reportActionEnum.IGNORE]: 'Ignored the report.',
-  [reportActionEnum.CONVICT_REQUEST_TO_RESTORE_CONTENT]: 'Reviewed the user’s request to restore content.',
-  [reportActionEnum.CONVICT_REQUEST_DISAPPROVED]: 'Disapproved the user’s request for content restoration.',
+  [reportActionEnum.CONVICT_REQUEST_TO_RESTORE_CONTENT]:
+    'Reviewed the user’s request to restore content.',
+  [reportActionEnum.CONVICT_REQUEST_DISAPPROVED]:
+    'Disapproved the user’s request for content restoration.',
 };
-
-
 
 export type Report = {
   _id: string;
@@ -441,7 +474,7 @@ export type Reason = {
   status: string;
 };
 
-export type LineDataItem ={
+export type LineDataItem = {
   label: string;
   value: number;
-}
+};

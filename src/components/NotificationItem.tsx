@@ -1,5 +1,6 @@
-import moment from 'moment';
+
 import React from 'react';
+import moment from 'moment';
 import {
   Pressable,
   View,
@@ -16,14 +17,17 @@ import {BUTTON_COLOR} from '../helper/Theme';
 export default function NotificationItem({
   item,
   handleDeleteAction,
+  handleClickAction,
 }: {
   item: NotificationD;
   handleDeleteAction: (item: NotificationD) => void;
+  handleClickAction: (item: NotificationD) => void;
 }) {
   return (
     <Pressable
       onPress={() => {
         // handle onPress
+        handleClickAction(item);
       }}>
       <View style={styles.cardContainer}>
         {/* Share Icon */}

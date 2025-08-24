@@ -6,7 +6,7 @@ import {
   Text,
   View,
 } from 'react-native';
-import {NotificationProps, NotificationD} from '../type';
+import {NotificationProps, NotificationD, NotificationType} from '../type';
 import {ON_PRIMARY_COLOR, PRIMARY_COLOR} from '../helper/Theme';
 import NotificationItem from '../components/NotificationItem';
 import Snackbar from 'react-native-snackbar';
@@ -16,6 +16,7 @@ import {useSelector} from 'react-redux';
 import {useEffect, useState} from 'react';
 import axios from 'axios';
 import Loader from '../components/Loader';
+import React from 'react';
 
 export default function Notification({navigation}: NotificationProps) {
   const {user_token} = useSelector((state: any) => state.user);
@@ -146,9 +147,17 @@ export default function Notification({navigation}: NotificationProps) {
     setRefreshing(false);
   };
 
+  const handleClickAction = (item: NotificationD)=>{
+    //console.log('Notification clicked:', item);
+  
+      // Click action left for 2nd half
+   
+  }
   const renderItem = ({item}: {item: NotificationD}) => {
     return (
-      <NotificationItem item={item} handleDeleteAction={handleDeleteAction} />
+      <NotificationItem item={item} handleDeleteAction={handleDeleteAction}
+      handleClickAction={handleClickAction}
+       />
     );
   };
 

@@ -3,13 +3,16 @@ import {FlatList, Image, StyleSheet, Text, TouchableOpacity, View} from 'react-n
 import {ON_PRIMARY_COLOR, PRIMARY_COLOR} from '../../helper/Theme';
 import {ArticleData} from '../../type';
 import { hp } from '../../helper/Metric';
+import React from 'react';
 
 type Props = {
   inProgressArticle: ArticleData[];
   availableArticle: ArticleData[];
   refreshing: boolean;
-  onRefresh: ()=> void;
+  onRefresh: (num: number)=> void;
   renderItem: ({item}: {item: ArticleData}) => React.JSX.Element;
+  onAvailablePageEnd: ()=> void;
+  onProgressPageEnd: ()=> void;
 };
 export default function HomeArticle({
   inProgressArticle,
@@ -17,6 +20,8 @@ export default function HomeArticle({
   refreshing,
   onRefresh,
   renderItem,
+  onAvailablePageEnd,
+  onProgressPageEnd
 }: Props) {
   const [selectedCategory, setSelectedCategory] = useState<string>('Available');
   const categories = ['Available', 'Inprogress'];
@@ -61,7 +66,14 @@ export default function HomeArticle({
           keyExtractor={item => item._id.toString()}
           contentContainerStyle={styles.flatListContentContainer}
           refreshing={refreshing}
-          onRefresh={onRefresh}
+          onRefresh={()=>{
+            if(selectedCategory === categories[0]){
+                onRefresh(1);
+            }else{
+              onRefresh(2);
+            }
+
+          }}
           ListEmptyComponent={
             <View style={styles.emptyContainer}>
               <Image
@@ -71,6 +83,14 @@ export default function HomeArticle({
               <Text style={styles.message}>No Article Found</Text>
             </View>
           }
+          onEndReached={()=>{
+            if(selectedCategory === categories[0]){
+              onAvailablePageEnd();
+            }else{
+              onProgressPageEnd();
+            }
+          }}
+          onEndReachedThreshold={0.5}
         />
       </View>
     </View>

@@ -43,38 +43,82 @@ export default function Imrovement({
   const [selectedCat, setSelectedCat] = useState<string>('Available');
   const categories = ['Available', 'Inprogress'];
 
+  const[availablePage, setAvailablePage] = useState(1);
+  const[totalAvailPage, setTotalAvailPage] = useState(0);
+  const [availableImprovements, setAvailableImprovements] = useState<EditRequest[]>([]);
+
+  const[progressPage, setProgressPage] = useState(1);
+  const[totalProgressPage, setTotalProgressPage] = useState(0);
+  const [progressImprovements, setProgressImprovements] = useState<EditRequest[]>([]);
+
   const {
-    data: availableImprovements,
     refetch: availableImprovementRefetch,
     isLoading: isAvailableImprovementLoading,
   } = useQuery({
-    queryKey: ['get-available-improvements'],
+    queryKey: ['get-available-improvements', availablePage],
     queryFn: async () => {
-      const response = await axios.get(`${GET_AVAILABLE_IMPROVEMENTS}`);
-      let d = response.data as EditRequest[];
-      //updateAvailableArticles(d);
-      return response.data as EditRequest[];
+      const response = await axios.get(`${GET_AVAILABLE_IMPROVEMENTS}?page=${availablePage}`);
+
+      if(Number(availablePage) === 1){
+
+        if(response.data.totalPages){
+          let d = response.data.totalPages;
+          setTotalAvailPage(d);
+        }
+        if(response.data.articles){
+            setAvailableImprovements(response.data.articles);
+        }
+      }else{
+         if(response.data.articles){
+           const oldData = availableImprovements;
+           const newData = response.data.articles as EditRequest[];
+           setAvailableImprovements([...oldData, ...newData]);
+         }
+      }
+      return response.data.articles as EditRequest[];
     },
+    enabled: !!availablePage,
   });
 
   const {
-    data: progressImprovements,
     refetch: refetchProgressImprovements,
     isLoading: isProgressImprovementLoading,
   } = useQuery({
-    queryKey: ['get-progress-improvements'],
+    queryKey: ['get-progress-improvements', progressPage],
     queryFn: async () => {
-      const response = await axios.get(`${GET_PROGRESS_IMPROVEMENTS}`);
-      let d = response.data as EditRequest[];
-      //updateProgressArticles(d);
-      return response.data as EditRequest[];
+      const response = await axios.get(`${GET_PROGRESS_IMPROVEMENTS}?page=${progressPage}`);
+
+      if(Number(progressPage) === 1){
+
+        if(response.data.totalPages){
+          let d = response.data.totalPages;
+          setTotalProgressPage(d);
+        }
+        if(response.data.articles){
+            setProgressImprovements(response.data.articles);
+        }
+      }else{
+         if(response.data.articles){
+           const oldData = progressImprovements;
+           const newData = response.data.articles as EditRequest[];
+           setProgressImprovements([...oldData, ...newData]);
+         }
+      }
+
+      return response.data.articles as EditRequest[];
     },
+    enabled : !!progressPage,
   });
 
   const onRefresh = () => {
     setRefreshing(true);
-    availableImprovementRefetch();
-    refetchProgressImprovements();
+    if(selectedCat === categories[0]){
+      setAvailablePage(1);
+      availableImprovementRefetch();
+    }else{
+      setProgressPage(1);
+      refetchProgressImprovements();
+    }
     setRefreshing(false);
   };
 
@@ -166,7 +210,7 @@ export default function Imrovement({
   const renderItem = useCallback(
     ({item}: {item: EditRequest}) => {
       return (
-        // eslint-disable-next-line react/react-in-jsx-scope
+
         <ImprovementCard
           item={item}
           isSelected={selectedCardId === item._id}
@@ -274,6 +318,20 @@ export default function Imrovement({
                 <Text style={styles.message}>No Article Found</Text>
               </View>
             }
+            onEndReached={()=>{
+              if(selectedCat === categories[0]){
+                 if(availablePage < totalAvailPage){
+                  setAvailablePage(prev => prev + 1);
+                 }
+              }
+              else if(selectedCat === categories[1]){
+
+                if(progressPage < totalProgressPage){
+                  setProgressPage(prev => prev + 1);
+                }
+              }
+            }}
+            onEndReachedThreshold={0.5}
           />
         </View>
       </View>

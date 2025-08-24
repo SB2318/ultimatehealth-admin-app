@@ -35,32 +35,73 @@ export default function WorkHistoryScreen({navigation}: WorkHistoryProps) {
   const insets = useSafeAreaInsets();
   const [selectedCardId, setSelectedCardId] = useState<string>('');
 
+  const [improvePage, setImprovePage] = useState(1);
+  const [totalImprovePage, setTotalImprovePage] = useState(0);
+
+  const [articlePage, setArticlePage] = useState(1);
+  const [totalArticlePage, setTotalArticlePage] = useState(0);
+  const [completedImprovements, setCompletedImprovements] = useState<
+    EditRequest[]
+  >([]);
+  const [completedArticles, setCompletedArticles] = useState<ArticleData[]>([]);
+
   const {
-    data: completedImprovements,
     refetch: refetchCompletedImprovements,
     isLoading: isCompletedImprovementLoading,
   } = useQuery({
-    queryKey: ['get-publish-improvements'],
+    queryKey: ['get-publish-improvements', improvePage],
     queryFn: async () => {
-      const response = await axios.get(`${GET_COMPLETED_IMPROVEMENTS}`);
-      return response.data as EditRequest[];
+      const response = await axios.get(
+        `${GET_COMPLETED_IMPROVEMENTS}?page=${improvePage}`,
+      );
+
+      if (Number(improvePage) === 1) {
+        if (response.data.totalPages) {
+          let d = response.data.totalPages;
+          setTotalImprovePage(d);
+        }
+        if (response.data.articles) {
+          setCompletedImprovements(response.data.articles);
+        }
+      } else {
+        if (response.data.articles) {
+          const oldData = completedImprovements;
+          const newData = response.data.articles as EditRequest[];
+          setCompletedImprovements([...oldData, ...newData]);
+        }
+      }
+
+      return response.data.articles as EditRequest[];
     },
+    enabled: !!user_token,
   });
 
   const {
-    data: completedArticles,
     refetch: refetchCompletedArticles,
     isLoading: isCompletedArticleLoading,
   } = useQuery({
-    queryKey: ['get-publish-articles'],
+    queryKey: ['get-publish-articles', articlePage],
     queryFn: async () => {
-      const response = await axios.get(`${GET_COMPLETED_TASK_API}/${user_id}`, {
-        //headers: {
-        //  Authorization: `Bearer ${user_token}`,
-        //},
-      });
-      return response.data as ArticleData[];
+      const response = await axios.get(
+        `${GET_COMPLETED_TASK_API}/${user_id}?page=${articlePage}`,
+      );
+
+      if (Number(articlePage) === 1) {
+        if (response.data.totalPages) {
+          const pages = response.data.totalPages;
+          setTotalArticlePage(pages);
+        }
+        if (response.data.articles) {
+          setCompletedArticles(response.data.articles);
+        }
+      } else {
+        let d = response.data.articles as ArticleData[];
+        setCompletedArticles([...completedArticles, ...d]);
+      }
+
+      return response.data.articles as ArticleData[];
     },
+    enabled: !!user_token,
   });
 
   const {
@@ -74,7 +115,6 @@ export default function WorkHistoryScreen({navigation}: WorkHistoryProps) {
       return response.data as PodcastData[];
     },
   });
-
 
   const {
     data: assignedReports,
@@ -228,16 +268,20 @@ export default function WorkHistoryScreen({navigation}: WorkHistoryProps) {
               refreshing={isCompletedArticleLoading}
               onRefresh={refetchCompletedArticles}
               ListEmptyComponent={
-             <View style={styles.emptyContainer}>
+                <View style={styles.emptyContainer}>
                   <Image
                     source={require('../../assets/identify-audience.png')}
                     style={styles.image}
                   />
-                  <Text style={styles.message}>
-                    No articles available
-                  </Text>
+                  <Text style={styles.message}>No articles available</Text>
                 </View>
               }
+              onEndReached={()=>{
+                if(articlePage < totalArticlePage){
+                  setArticlePage(prev => prev + 1);
+                }
+              }}
+              onEndReachedThreshold={0.5}
             />
           </Tabs.Tab>
 
@@ -252,18 +296,25 @@ export default function WorkHistoryScreen({navigation}: WorkHistoryProps) {
               ]}
               keyExtractor={item => item?._id}
               refreshing={isCompletedImprovementLoading}
-              onRefresh={refetchCompletedImprovements}
+              onRefresh={() => {
+                setImprovePage(1);
+                refetchCompletedImprovements();
+              }}
               ListEmptyComponent={
-              <View style={styles.emptyContainer}>
+                <View style={styles.emptyContainer}>
                   <Image
                     source={require('../../assets/identify-audience.png')}
                     style={styles.image}
                   />
-                  <Text style={styles.message}>
-                    No revisions available
-                  </Text>
+                  <Text style={styles.message}>No revisions available</Text>
                 </View>
               }
+              onEndReached={() => {
+                if (improvePage < totalImprovePage) {
+                  setImprovePage(prev => prev + 1);
+                }
+              }}
+              onEndReachedThreshold={0.5}
             />
           </Tabs.Tab>
 
@@ -285,9 +336,7 @@ export default function WorkHistoryScreen({navigation}: WorkHistoryProps) {
                     source={require('../../assets/identify-audience.png')}
                     style={styles.image}
                   />
-                  <Text style={styles.message}>
-                    No podcasts available
-                  </Text>
+                  <Text style={styles.message}>No podcasts available</Text>
                 </View>
               }
             />
@@ -307,15 +356,13 @@ export default function WorkHistoryScreen({navigation}: WorkHistoryProps) {
                   />
                 )}
                 ListEmptyComponent={
-                <View style={styles.emptyContainer}>
-                  <Image
-                    source={require('../../assets/identify-audience.png')}
-                    style={styles.image}
-                  />
-                  <Text style={styles.message}>
-                    No report available
-                  </Text>
-                </View>
+                  <View style={styles.emptyContainer}>
+                    <Image
+                      source={require('../../assets/identify-audience.png')}
+                      style={styles.image}
+                    />
+                    <Text style={styles.message}>No report available</Text>
+                  </View>
                 }
                 //contentContainerStyle={styles.container}
                 showsVerticalScrollIndicator={false}

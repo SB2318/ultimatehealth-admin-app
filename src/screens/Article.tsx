@@ -49,7 +49,7 @@ import TagItemCard from '../components/TagItemCard';
 import AddTagModal from '../components/AddTagModal';
 
 export default function HomeScreen({navigation}: ArticleProps) {
-  const {user_id} = useSelector((state: any) => state.user);
+  const {user_id, user_token} = useSelector((state: any) => state.user);
   const {
     filteredAvailableArticles,
     filteredProgressArticles,
@@ -71,6 +71,11 @@ export default function HomeScreen({navigation}: ArticleProps) {
   >([]);
 
   const [tagRefresh, setTagRefresh] = useState<boolean>(false);
+  const [availablePage, setAvailablePage] = useState(1);
+  const [totalAvailablePage, setTotalAvailablePage] = useState(0);
+
+  const [progressPage, setProgressPage] = useState(1);
+  const [totalProgressPage, setTotalProgressPage] = useState(0);
   //const bottomBarHeight = useBottomTabBarHeight();
   const bottomSheetModalRef = useRef<BottomSheetModal>(null);
   const insets = useSafeAreaInsets();
@@ -79,7 +84,7 @@ export default function HomeScreen({navigation}: ArticleProps) {
     bottomSheetModalRef.current?.present();
   }, []);
 
-  const getAllCategories = async () => {
+  const getAllCategories = useCallback(async () => {
     const {data: categoryData} = await axios.get(
       `${Config.BASE_URL + ARTICLE_TAGS_API}`,
     );
@@ -100,26 +105,50 @@ export default function HomeScreen({navigation}: ArticleProps) {
     // console.log("Article data", categoryData.length);
     setArticleCategories(categoryData);
     dispatch(setTags({tags: categoryData}));
-  };
+  },[dispatch, selectedTags]);
 
   useEffect(() => {
     getAllCategories();
 
     return () => {};
-  }, []);
+  }, [getAllCategories]);
+
+  const onAvailablePageEnd = ()=>{
+    if(availablePage < totalAvailablePage){
+      setAvailablePage(prev => prev + 1);
+    }
+  };
+
+  const onProgressPageEnd = ()=>{
+    if(progressPage < totalProgressPage){
+      setProgressPage(prev => prev + 1);
+    }
+  };
 
   const {
     data: availableArticles,
     refetch: availableAticleRefetch,
     isLoading: isAvailableArticleLoading,
   } = useQuery({
-    queryKey: ['get-available-articles'],
+    queryKey: ['get-available-articles', availablePage],
     queryFn: async () => {
-      const response = await axios.get(`${GET_AVILABLE_ARTICLES_API}`);
-      let d = response.data as ArticleData[];
-      updateAvailableArticles(d);
-      return response.data as ArticleData[];
+      const response = await axios.get(`${GET_AVILABLE_ARTICLES_API}?page=${availablePage}`);
+
+      if(Number(availablePage) === 1){
+       if(response.data.totalPages){
+         const pages = response.data.totalPages;
+         setTotalAvailablePage(pages);
+       }
+       if(response.data.articles){
+        updateAvailableArticles(response.data.articles);
+       }
+      }else{
+        let d = response.data.articles as ArticleData[];
+        updateAvailableArticles([...filteredAvailableArticles, ...d]);
+      }
+      return response.data.articles as ArticleData[];
     },
+    enabled : !!user_token,
   });
 
   const {
@@ -127,15 +156,27 @@ export default function HomeScreen({navigation}: ArticleProps) {
     refetch: refetchProgressArticles,
     isLoading: isProgressArticleLoading,
   } = useQuery({
-    queryKey: ['get-progress-articles'],
+    queryKey: ['get-progress-articles', progressPage],
     queryFn: async () => {
       const response = await axios.get(
-        `${GET_INPROGRESS_ARTICLES_API}/${user_id}`,
+        `${GET_INPROGRESS_ARTICLES_API}/${user_id}?page=${progressPage}`,
       );
-      let d = response.data as ArticleData[];
-      updateProgressArticles(d);
-      return response.data as ArticleData[];
+
+      if(Number(progressPage) === 1){
+       if(response.data.totalPages){
+         const pages = response.data.totalPages;
+         setTotalProgressPage(pages);
+       }
+       if(response.data.articles){
+        updateProgressArticles(response.data.articles);
+       }
+      }else{
+        let d = response.data.articles as ArticleData[];
+        updateProgressArticles([...filteredProgressArticles, ...d]);
+      }
+      return response.data.articles as ArticleData[];
     },
+    enabled : !!user_token,
   });
 
   const pickArticleMutation = useMutation({
@@ -150,7 +191,7 @@ export default function HomeScreen({navigation}: ArticleProps) {
     },
     onSuccess: data => {
       Alert.alert(data.message);
-      onArticleRefresh();
+      onArticleRefresh(1);
     },
     onError: error => {
       console.log('Error', error);
@@ -181,7 +222,7 @@ export default function HomeScreen({navigation}: ArticleProps) {
         text: 'Article discarded',
         duration: Snackbar.LENGTH_SHORT,
       });
-      onArticleRefresh();
+      onArticleRefresh(2);
     },
     onError: err => {
       console.log('Error', err);
@@ -204,7 +245,7 @@ export default function HomeScreen({navigation}: ArticleProps) {
         text: 'You have unassign yourself successfully',
         duration: Snackbar.LENGTH_SHORT,
       });
-      onArticleRefresh();
+      onArticleRefresh(2);
     },
     onError: err => {
       console.log('Error', err);
@@ -438,10 +479,15 @@ export default function HomeScreen({navigation}: ArticleProps) {
     ],
   );
 
-  const onArticleRefresh = () => {
+  const onArticleRefresh = (num: number) => {
     setArticleRefreshing(true);
-    availableAticleRefetch();
-    refetchProgressArticles();
+    if(num === 1){
+      setAvailablePage(1);
+      availableAticleRefetch();
+    }else{
+
+      refetchProgressArticles();
+    }
     setArticleRefreshing(false);
   };
 
@@ -648,6 +694,8 @@ export default function HomeScreen({navigation}: ArticleProps) {
               refreshing={articleRefreshing}
               onRefresh={onArticleRefresh}
               renderItem={renderItem}
+              onAvailablePageEnd ={onAvailablePageEnd}
+              onProgressPageEnd = {onProgressPageEnd}
             />
           </Tabs.Tab>
 

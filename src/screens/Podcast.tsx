@@ -19,33 +19,72 @@ import axios from 'axios';
 import {useState} from 'react';
 import Snackbar from 'react-native-snackbar';
 import Loader from '../components/Loader';
+import React from 'react';
+import { useSelector } from 'react-redux';
 
 export default function Podcast({navigation}: PodcastProps) {
   const insets = useSafeAreaInsets();
+  const {user_token} = useSelector((state: any)=> state.user);
   const [selectedPodcastId, setSelectedPodcastId] = useState<string>('');
+  const [page, setPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(0);
+  const [availablePodcasts, setAvailablePodcasts] = useState<PodcastData[]>([]);
+  const [progressPage, setProgressPage] = useState(1);
+  const [progressTotalPages, setProgressTotalPages] = useState(0);
+  const [progressPodcasts, setProgressPodcasts] = useState<PodcastData[]>(
+    [],
+  );
 
   const {
-    data: availablePodcasts,
     refetch: availablePodcastRefetch,
     isLoading: isAvailablePodcastLoading,
   } = useQuery({
-    queryKey: ['get-available-podcasts'],
+    queryKey: ['get-available-podcasts', page],
     queryFn: async () => {
-      const response = await axios.get(`${FETCH_AVAILABLE_PODCAST}`);
-      return response.data as PodcastData[];
+      const response = await axios.get(`${FETCH_AVAILABLE_PODCAST}?page=${page}`);
+
+      if(response.data.totalPages){
+        const pages = response.data.totalPages;
+        setTotalPages(pages);
+        const data = response.data.podcasts;
+        setAvailablePodcasts(data);
+      }else{
+
+        if(response.data.podcasts){
+           const oldData = availablePodcasts;
+           const newData = response.data.podcasts;
+           setAvailablePodcasts([...oldData, ...newData]);
+        }
+      }
+
+      return response.data.podcasts as PodcastData[];
     },
+    enabled: !!user_token,
   });
 
   const {
-    data: progressPodcasts,
     refetch: progressPodcastRefetch,
     isLoading: isProgressPodcastLoading,
   } = useQuery({
-    queryKey: ['get-progress-podcasts'],
+    queryKey: ['get-progress-podcasts', progressPage],
     queryFn: async () => {
-      const response = await axios.get(`${FETCH_PROGRESS_PODCAST}`);
-      return response.data as PodcastData[];
+      const response = await axios.get(`${FETCH_PROGRESS_PODCAST}?page=${progressPage}`);
+      if(response.data.totalPages){
+        const pages = response.data.totalPages;
+        setProgressTotalPages(pages);
+        const data = response.data.podcasts;
+        setProgressPodcasts(data);
+      }else{
+        if(response.data.podcasts){
+          const oldData = progressPodcasts;
+          const newData = response.data.podcasts;
+          setProgressPodcasts([...oldData, ...newData]);
+        }
+      }
+
+      return response.data.podcasts as PodcastData[];
     },
+    enabled: !!user_token,
   });
 
   const handlePodcastClick = (
@@ -78,7 +117,7 @@ export default function Podcast({navigation}: PodcastProps) {
     navigation.navigate('PodcastDetail', {
       trackId: id,
     });
-  }
+  };
 
   const pickPodcastMutation = useMutation({
     mutationKey: ['pick-podcast-key'],
@@ -202,7 +241,10 @@ export default function Podcast({navigation}: PodcastProps) {
                     item?._id?.toString() ?? index.toString()
                   }
                   refreshing={isAvailablePodcastLoading}
-                  onRefresh={availablePodcastRefetch}
+                  onRefresh={()=>{
+                    setPage(1);
+                    availablePodcastRefetch();
+                  }}
                   renderItem={({item}: {item: PodcastData}) => {
                     if (!item) {
                       return null;
@@ -229,6 +271,12 @@ export default function Podcast({navigation}: PodcastProps) {
                       </Text>
                     </View>
                   }
+                  onEndReached={()=>{
+                    if(page < totalPages){
+                      setPage(page + 1);
+                    }
+                  }}
+                  onEndReachedThreshold={0.5}
                 />
               </View>
             </View>
@@ -244,7 +292,10 @@ export default function Podcast({navigation}: PodcastProps) {
                     item?._id?.toString() ?? `progress-${index}`
                   }
                   refreshing={isProgressPodcastLoading}
-                  onRefresh={progressPodcastRefetch}
+                  onRefresh={()=>{
+                    setProgressPage(1);
+                    progressPodcastRefetch();
+                  }}
                   renderItem={({item}: {item: PodcastData}) => {
                     if (!item) {
                       return null;
@@ -271,6 +322,12 @@ export default function Podcast({navigation}: PodcastProps) {
                       </Text>
                     </View>
                   }
+                  onEndReached={()=>{
+                    if(progressPage < progressTotalPages){
+                      setProgressPage(progressPage + 1);
+                    }
+                  }}
+                  onEndReachedThreshold={0.5}
                 />
               </View>
             </View>

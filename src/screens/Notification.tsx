@@ -37,9 +37,9 @@ export default function Notification({navigation}: NotificationProps) {
         const response = await axios.get(
           `${Config.BASE_URL}/notifications?role=1`,
           {
-           // headers: {
+            // headers: {
             //  Authorization: `Bearer ${user_token}`,
-           // },
+            // },
           },
         );
 
@@ -62,10 +62,10 @@ export default function Notification({navigation}: NotificationProps) {
       const res = await axios.put(
         `${Config.BASE_URL}/notifications/mark-as-read`,
         {
-            role: 1
+          role: 1,
         },
         {
-         // headers: {
+          // headers: {
           //  Authorization: `Bearer ${user_token}`,
           //},
         },
@@ -102,9 +102,9 @@ export default function Notification({navigation}: NotificationProps) {
         `${Config.BASE_URL}/notification/${id}`,
 
         {
-         // headers: {
+          // headers: {
           //  Authorization: `Bearer ${user_token}`,
-         // },
+          // },
         },
       );
 
@@ -147,17 +147,41 @@ export default function Notification({navigation}: NotificationProps) {
     setRefreshing(false);
   };
 
-  const handleClickAction = (item: NotificationD)=>{
-    //console.log('Notification clicked:', item);
-  
-      // Click action left for 2nd half
-   
-  }
+  const handleClickAction = (item: NotificationD) => {
+    if (
+      item.type === NotificationType.ArticleComment ||
+      item.type === NotificationType.ArticleSubmitToAdmin
+    ) {
+      if (item.articleId) {
+        navigation.navigate('ArticleReviewScreen', {
+          articleId: parseInt(item.articleId._id, 10),
+          authorId: item.articleId.authorId,
+          destination: item.articleId.status,
+          recordId: item.articleId?.pb_recordId,
+        });
+      }
+    } else if (
+      item.type === NotificationType.RevisionSubmitToAdmin ||
+      item.type === NotificationType.EditRequestComment
+    ) {
+      if (item.revisonId) {
+        navigation.navigate('ImprovementReviewScreen', {
+          requestId: item.revisonId?._id,
+          authorId: item.revisonId?.user_id,
+          destination: item.revisonId?.status,
+          recordId: item.revisonId?.pb_recordId,
+          articleRecordId: item.revisonId?.article_recordId,
+        });
+      }
+    }
+  };
   const renderItem = ({item}: {item: NotificationD}) => {
     return (
-      <NotificationItem item={item} handleDeleteAction={handleDeleteAction}
-      handleClickAction={handleClickAction}
-       />
+      <NotificationItem
+        item={item}
+        handleDeleteAction={handleDeleteAction}
+        handleClickAction={handleClickAction}
+      />
     );
   };
 

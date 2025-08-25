@@ -122,7 +122,7 @@ export type NotificationD = {
   userId: User | null;
   adminId: Admin | null;
   articleId: ArticleData | null;
-  revisionId: EditRequest | null;
+  revisonId: EditRequest | null;
   podcastId: PodcastData | null;
   commentId: Comment | null;
   articleRecordId: string | null;
@@ -134,27 +134,11 @@ export type NotificationD = {
 };
 
 export enum NotificationType {
-  ArticleReview = 'articleReview',
-  PodcastReview = 'podcastReview',
-  PodcastCommentMention = 'podcastCommentMention',
-  ArticleCommentMention = 'articleCommentMention',
-  ArticleRepost = 'articleRepost',
-  UserFollow = 'userFollow',
-  CommentLike = 'commentLike',
-  Comment = 'comment',
-  Article = 'article',
-  Podcast = 'podcast',
-  EditRequest = 'editRequest',
-  ArticleLike = 'articleLike',
-  PodcastLike = 'podcastLike',
-  ArticleImprovement = 'articleImprovement',
+
   ArticleComment = 'articleComment',
   PodcastComment = 'podcastComment',
   EditRequestComment = 'editRequestComment',
-  ArticleCommentLike = 'articleCommentLike',
-  PodcastCommentLike = 'podcastCommentLike',
-  ArticleRevisionReview = 'articleRevisionReview',
-  ArticleSubmitToAdmin = 'articleSubmitToAdmin',
+  ArticleSubmitToAdmin = 'articleSubmitToAdmin', 
   RevisionSubmitToAdmin = 'revisionSubmitToAdmin',
 }
 
@@ -229,9 +213,9 @@ export type ArticleProps = CompositeScreenProps<
   StackScreenProps<RootStackParamList, 'ArticleReviewScreen'>
 >;
 
-export type NotificationProps = BottomTabScreenProps<
-  TabParamList,
-  'Notification'
+export type NotificationProps = CompositeScreenProps<
+  BottomTabScreenProps<TabParamList, 'Notification'>,
+  StackScreenProps<RootStackParamList, 'ArticleReviewScreen'>
 >;
 
 export type PodcastProps = CompositeScreenProps<

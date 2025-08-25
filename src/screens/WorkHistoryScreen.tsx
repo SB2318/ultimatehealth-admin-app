@@ -38,12 +38,21 @@ export default function WorkHistoryScreen({navigation}: WorkHistoryProps) {
   const [improvePage, setImprovePage] = useState(1);
   const [totalImprovePage, setTotalImprovePage] = useState(0);
 
+  const [podcastPage, setPodcastPage] = useState(1);
+  const [totalPodcastPage, setTotalPodcastPage] = useState(0);
+  const [completedPodcasts, setCompletedPodcasts] = useState<PodcastData[]>([]);
+
   const [articlePage, setArticlePage] = useState(1);
   const [totalArticlePage, setTotalArticlePage] = useState(0);
   const [completedImprovements, setCompletedImprovements] = useState<
     EditRequest[]
   >([]);
   const [completedArticles, setCompletedArticles] = useState<ArticleData[]>([]);
+
+  const[reportPage, setReportPage] = useState(1);
+  const[totalReportPage, setTotalReportPage] = useState(0);
+
+  const [assignedReports, setAssignedReports] = useState<Report[]>([]);
 
   const {
     refetch: refetchCompletedImprovements,
@@ -105,30 +114,59 @@ export default function WorkHistoryScreen({navigation}: WorkHistoryProps) {
   });
 
   const {
-    data: completedPodcasts,
     refetch: refetchCompletedPodcasts,
     isLoading: isCompletedPodcastLoading,
   } = useQuery({
-    queryKey: ['get-publish-podcasts'],
+    queryKey: ['get-publish-podcasts', podcastPage],
     queryFn: async () => {
-      const response = await axios.get(`${GET_COMPLETED_PODCAST}`);
-      return response.data as PodcastData[];
+      const response = await axios.get(`${GET_COMPLETED_PODCAST}?page=${podcastPage}`);
+      if (Number(podcastPage) === 1) {
+        if (response.data.totalPages) {
+          const pages = response.data.totalPages;
+          setTotalPodcastPage(pages);
+        }
+        if (response.data.podcasts) {
+          setCompletedPodcasts(response.data.podcasts);
+        }
+      } else {
+        let d = response.data.podcasts as PodcastData[];
+        setCompletedPodcasts([...completedPodcasts, ...d]);
+      }
+
+      return response.data.podcasts as PodcastData[];
     },
+    enabled: !!user_token,
   });
 
   const {
-    data: assignedReports,
+
     refetch: refetchAssignReports,
     isLoading: isRefetchAssignReportLoading,
   } = useQuery({
-    queryKey: ['get-assigned-reports'],
+    queryKey: ['get-assigned-reports', reportPage],
     queryFn: async () => {
       const response = await axios.get(
-        `${GET_ASSIGNED_REPORTS}?isCompleted=${true}`,
+        `${GET_ASSIGNED_REPORTS}?isCompleted=${true}&page=${reportPage}`,
       );
+
+      if(Number(reportPage) === 1) {
+        if (response.data.totalPages) {
+          setTotalReportPage(response.data.totalPages);
+        }
+        if (response.data.reports) {
+          setAssignedReports(response.data.reports);
+        }
+      } else {
+        if (response.data.reports) {
+          const oldData = assignedReports;
+          const newData = response.data.reports as Report[];
+          setAssignedReports([...oldData, ...newData]);
+        }
+      }
 
       return response.data as Report[];
     },
+    enabled: !!user_token,
   });
 
   const onViewContent = (report: Report) => {
@@ -164,7 +202,7 @@ export default function WorkHistoryScreen({navigation}: WorkHistoryProps) {
           item={item}
           isSelected={selectedCardId === item._id}
           setSelectedCardId={setSelectedCardId}
-          onClick={(item, index) => {
+          onClick={(item, index, reason) => {
             // TODO: handle card click if needed
           }}
           onNavigate={item => {
@@ -266,7 +304,10 @@ export default function WorkHistoryScreen({navigation}: WorkHistoryProps) {
               ]}
               keyExtractor={item => item?._id}
               refreshing={isCompletedArticleLoading}
-              onRefresh={refetchCompletedArticles}
+              onRefresh={()=>{
+                setArticlePage(1);
+                refetchCompletedArticles();
+              }}
               ListEmptyComponent={
                 <View style={styles.emptyContainer}>
                   <Image
@@ -339,6 +380,12 @@ export default function WorkHistoryScreen({navigation}: WorkHistoryProps) {
                   <Text style={styles.message}>No podcasts available</Text>
                 </View>
               }
+              onEndReached={() => {
+                if (podcastPage < totalPodcastPage) {
+                  setPodcastPage(prev => prev + 1);
+                }
+              }}
+              onEndReachedThreshold={0.5}
             />
           </Tabs.Tab>
           <Tabs.Tab name={'Reports'}>
@@ -364,8 +411,19 @@ export default function WorkHistoryScreen({navigation}: WorkHistoryProps) {
                     <Text style={styles.message}>No report available</Text>
                   </View>
                 }
+                onRefresh={()=>{
+                  setReportPage(1);
+                  refetchAssignReports();
+                }}
+                refreshing={isRefetchAssignReportLoading}
                 //contentContainerStyle={styles.container}
                 showsVerticalScrollIndicator={false}
+                onEndReached={() => {
+                  if (reportPage < totalReportPage) {
+                    setReportPage(prev => prev + 1);
+                  }
+                }}
+                onEndReachedThreshold={0.5}
               />
             </View>
           </Tabs.Tab>

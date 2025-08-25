@@ -33,7 +33,7 @@ import ReasonItemCard from '../components/ReasonItemCard';
 import AddTagModal from '../components/AddTagModal';
 
 export default function ReportScreen({navigation}) {
-  const {user_id} = useSelector((state: any) => state.user);
+  const {user_token} = useSelector((state: any) => state.user);
 
   //const bottomBarHeight = useBottomTabBarHeight();
   const bottomSheetModalRef = useRef<BottomSheetModal>(null);
@@ -41,7 +41,14 @@ export default function ReportScreen({navigation}) {
   const [selectedReason, setSelectedReason] = useState<Reason | null>(null);
   const [addTagModalVisible, setAddTagModalVisible] = useState<boolean>(false);
   const [reasonRefresh, setReasonRefresh] = useState<boolean>(false);
-  const [reportRefresh, setReportRefresh] = useState<boolean>(false);
+
+  const [pendingPage, setPendingPage] = useState(1);
+  const [totalPendingPage, setTotalPendingPage] = useState(0);
+  const [pendingReports, setPendingReports] = useState<Report[]>([]);
+
+  const [assignReportPage, setAssignReportPage] = useState(1);
+  const [totalAssignReportPage, setTotalAssignReportPage] = useState(0);
+  const [assignedReports, setAssignedReports] = useState<Report[]>([]);
 
   const handlePresentModalPress = useCallback(() => {
     bottomSheetModalRef.current?.present();
@@ -52,30 +59,54 @@ export default function ReportScreen({navigation}) {
     setSelectedReason(null);
   };
   const {
-    data: pendingReports,
     refetch: pendingReportFetch,
     isLoading: isPendingReportLoading,
   } = useQuery({
-    queryKey: ['get-pending-reports'],
+    queryKey: ['get-pending-reports', pendingPage],
     queryFn: async () => {
-      const response = await axios.get(`${GET_PENDING_REPORTS}`);
-      //let d = response.data as ArticleData[];
-      //updateAvailableArticles(d);
-      return response.data as Report[];
+      const response = await axios.get(`${GET_PENDING_REPORTS}?page=${pendingPage}`);
+      if (Number(pendingPage) === 1) {
+        if (response.data.totalPages) {
+          setTotalPendingPage(response.data.totalPages);
+        }
+        if (response.data.pendingReports) {
+          setPendingReports(response.data.pendingReports);
+        }
+      } else {
+        if (response.data.pendingReports) {
+        let d = response.data.pendingReports as Report[];
+        setPendingReports([...pendingReports, ...d]);
+        }
+      }
+      return response.data.pendingReports as Report[];
     },
+    enabled: !!user_token,
   });
 
   //console.log('Pending Reports', pendingReports);
   const {
-    data: assignedReports,
     refetch: refetchAssignReports,
     isLoading: isRefetchAssignReportLoading,
   } = useQuery({
-    queryKey: ['get-assigned-reports'],
+    queryKey: ['get-assigned-reports', assignReportPage],
     queryFn: async () => {
-      const response = await axios.get(`${GET_ASSIGNED_REPORTS}`);
+      const response = await axios.get(`${GET_ASSIGNED_REPORTS}?page=${assignReportPage}`);
 
-      return response.data as Report[];
+      if(Number(assignReportPage) === 1){
+
+        let pages = response.data.totalPages;
+        setTotalAssignReportPage(pages);
+
+        if(response.data.reports){
+          setAssignedReports(response.data.reports);
+        }
+      }else{
+        const d = assignedReports;
+        const newData = response.data.reports;
+        setAssignedReports([...d,...newData]);
+      }
+
+      return response.data.reports as Report[];
     },
   });
 
@@ -93,12 +124,7 @@ export default function ReportScreen({navigation}) {
     },
   });
 
-  const onReportRefresh = () => {
-    setReportRefresh(true);
-    refetchAssignReports();
-    pendingReportFetch();
-    setReportRefresh(false);
-  };
+
 
   const onReportReasonRefresh = () => {
     setReasonRefresh(true);
@@ -348,10 +374,13 @@ export default function ReportScreen({navigation}) {
           <Tabs.Tab name="Pending">
             <View style={{flex: 1}}>
               <Tabs.FlatList
-                data={pendingReports}
+                data={pendingReports ? pendingReports : []}
                 keyExtractor={item => item._id}
-                refreshing={reportRefresh}
-                onRefresh={onReportRefresh}
+                refreshing={isPendingReportLoading}
+                onRefresh={()=>{
+                  setPendingPage(1);
+                  pendingReportFetch();
+                }}
                 renderItem={({item}) => (
                   <ReportCard
                     report={item}
@@ -370,6 +399,13 @@ export default function ReportScreen({navigation}) {
                 }
                 //contentContainerStyle={styles.container}
                 showsVerticalScrollIndicator={false}
+                onEndReached={()=>{
+                  if (pendingPage < totalPendingPage) {
+                    setPendingPage(pendingPage + 1);
+                    //pendingReportFetch();
+                  }
+                }}
+                onEndReachedThreshold={0.5}
               />
             </View>
           </Tabs.Tab>
@@ -377,10 +413,13 @@ export default function ReportScreen({navigation}) {
           <Tabs.Tab name="Assigned">
             <View style={{flex: 1}}>
               <Tabs.FlatList
-                data={assignedReports}
+                data={assignedReports ? assignedReports : []}
                 keyExtractor={item => item._id}
-                refreshing={reportRefresh}
-                onRefresh={onReportRefresh}
+                refreshing={isRefetchAssignReportLoading}
+                onRefresh={()=>{
+                  setAssignReportPage(1);
+                  refetchAssignReports();
+                }}
                 renderItem={({item}) => (
                   <ReportCard
                     report={item}
@@ -397,6 +436,12 @@ export default function ReportScreen({navigation}) {
                     <Text style={styles.message}>No Report Found</Text>
                   </View>
                 }
+                onEndReached={()=>{
+                  if(assignReportPage < totalAssignReportPage){
+                    setAssignReportPage((prev) => prev + 1);
+                  }
+                }}
+                onEndReachedThreshold={0.5}
                 //contentContainerStyle={styles.container}
                 showsVerticalScrollIndicator={false}
               />

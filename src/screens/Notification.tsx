@@ -21,21 +21,20 @@ import React from 'react';
 export default function Notification({navigation}: NotificationProps) {
   const {user_token} = useSelector((state: any) => state.user);
   const [refreshing, setRefreshing] = useState(false);
+  const [page, setPage] = React.useState(1);
+  const [totalPages, setTotalPages] = React.useState(0);
+  const [notificationData, setNotificationData] = useState<NotificationD[]>([]);
 
   const {
-    data: notifications,
     isLoading,
     isError,
     refetch,
   } = useQuery({
-    queryKey: ['get-all-notifications'],
+    queryKey: ['get-all-notifications', page],
     queryFn: async () => {
       try {
-        if (user_token === '') {
-          throw new Error('No token found');
-        }
         const response = await axios.get(
-          `${Config.BASE_URL}/notifications?role=1`,
+          `${Config.BASE_URL}/notifications?role=1&page=${page}`,
           {
             // headers: {
             //  Authorization: `Bearer ${user_token}`,
@@ -43,12 +42,23 @@ export default function Notification({navigation}: NotificationProps) {
           },
         );
 
+         if(Number(page) === 1){
+          if(response.data.totalPages){
+          const totalPage = response.data.totalPages;
+          setTotalPages(totalPage);
+          }
+          setNotificationData(response.data.notifications);
+        }else{
+          const oldNotif = notificationData ?? [];
+          setNotificationData([...oldNotif, ...response.data.notifications]);
+        }
         // console.log('Notification Response', response);
-        return response.data as NotificationD[];
+        return response.data.notifications as NotificationD[];
       } catch (err) {
         console.error('Error fetching articles:', err);
       }
     },
+    enabled: !!user_token,
   });
 
   // Mark Notification as read api integration
@@ -60,7 +70,7 @@ export default function Notification({navigation}: NotificationProps) {
         return;
       }
       const res = await axios.put(
-        `${Config.BASE_URL}/notifications/mark-as-read`,
+        `${Config.BASE_URL}/notifications/mark-as-read?role=1`,
         {
           role: 1,
         },
@@ -191,7 +201,7 @@ export default function Notification({navigation}: NotificationProps) {
   return (
     <SafeAreaView style={styles.container}>
       <FlatList
-        data={notifications}
+        data={notificationData}
         renderItem={renderItem}
         keyExtractor={item => item._id.toString()}
         contentContainerStyle={styles.flatListContentContainer}
@@ -208,6 +218,12 @@ export default function Notification({navigation}: NotificationProps) {
             <Text style={styles.message}>No new notifications</Text>
           </View>
         }
+        onEndReached={()=>{
+          if(page < totalPages){
+            setPage(page + 1);
+          }
+        }}
+        onEndReachedThreshold={0.5}
       />
     </SafeAreaView>
   );

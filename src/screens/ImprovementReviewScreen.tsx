@@ -1,3 +1,4 @@
+    /* eslint-disable react-native/no-inline-styles */
 import {
   Image,
   StyleSheet,
@@ -31,7 +32,7 @@ import Ionicons from 'react-native-vector-icons/Ionicons';
 import FontAwesome from 'react-native-vector-icons/FontAwesome';
 import {useDispatch, useSelector} from 'react-redux';
 import WebView from 'react-native-webview';
-import {hp, wp} from '../helper/Metric';
+import {baseHeight, height, hp, scalePerChar, wp} from '../helper/Metric';
 import {
   CHECK_GRAMMAR,
   CHECK_PLAGIARISM,
@@ -621,7 +622,11 @@ const ImprovementReviewScreen = ({
               style={{
                 padding: 7,
                 //width: '99%',
-                height: webviewHeight - 3000,
+                //height: webviewHeight - 3000,
+                minHeight: Math.min(
+                  height * 0.8,
+                  baseHeight + (htmlContent ? htmlContent.length : noDataHtml.length) * scalePerChar,
+                ),
                 // flex:7,
                 justifyContent: 'center',
                 alignItems: 'center',

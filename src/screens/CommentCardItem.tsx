@@ -1,8 +1,10 @@
+    /* eslint-disable react-native/no-inline-styles */
 import React, {useRef} from 'react';
 import {View, Image, Text, StyleSheet} from 'react-native';
 import {Comment} from '../type';
 import moment from 'moment';
 import WebView from 'react-native-webview';
+import { baseHeight, height, scalePerChar } from '../helper/Metric';
 
 export default function CommentCardItem({item}: {item: Comment}) {
   const webViewRef = useRef<WebView>(null);
@@ -49,7 +51,11 @@ export default function CommentCardItem({item}: {item: Comment}) {
             style={{
               padding: 7,
               //width: '99%',
-              minHeight: item.content.length-20 ,
+             // minHeight: item.content.length-20 ,
+              minHeight: Math.min(
+                height * 0.8,
+                baseHeight + (item.content.length ?? 0) * scalePerChar,
+              ),
               // flex:7,
               justifyContent: 'center',
               alignItems: 'center',

@@ -29,7 +29,7 @@ import Ionicons from 'react-native-vector-icons/Ionicons';
 import FontAwesome from 'react-native-vector-icons/FontAwesome';
 import {useDispatch, useSelector} from 'react-redux';
 import WebView from 'react-native-webview';
-import {hp, wp} from '../helper/Metric';
+import {baseHeight, height, hp, scalePerChar, wp} from '../helper/Metric';
 import {
   CHECK_GRAMMAR,
   CHECK_PLAGIARISM,
@@ -544,7 +544,11 @@ const ReviewScreen = ({route}: ReviewScreenProp) => {
               style={{
                 padding: 7,
                 //width: '99%',
-                minHeight: webviewHeight,
+                minHeight: Math.min(
+                  height * 0.8,
+                  baseHeight +
+                    (htmlContent?.length ?? noDataHtml.length) * scalePerChar,
+                ),
                 // flex:7,
                 justifyContent: 'center',
                 alignItems: 'center',

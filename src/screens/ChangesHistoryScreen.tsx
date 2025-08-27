@@ -1,3 +1,4 @@
+    /* eslint-disable react-native/no-inline-styles */
 import {useQuery} from '@tanstack/react-query';
 import {ScrollView, StyleSheet, View} from 'react-native';
 import {ChangesHistoryScreenProp} from '../type';
@@ -7,6 +8,8 @@ import { useRef } from 'react';
 import WebView from 'react-native-webview';
 import Loader from '../components/Loader';
 import { ON_PRIMARY_COLOR } from '../helper/Theme';
+import { baseHeight, height, scalePerChar } from '../helper/Metric';
+import React from 'react';
 
 export default function ChangesHistoryScreen({
   route,
@@ -46,11 +49,15 @@ export default function ChangesHistoryScreen({
     console.log("History Length", history?.length);
   return (
     <ScrollView style={styles.container}>
-    
+
         <WebView
           style={{
-            
-            minHeight: history ? history.length-6000 : 1,
+
+            //minHeight: history ? history.length-6000 : 1,
+            minHeight: Math.min(
+              height * 0.8,
+              baseHeight + (history?.length ?? 0) * scalePerChar,
+            ),
             backgroundColor: ON_PRIMARY_COLOR,
             justifyContent: 'center',
             alignItems: 'center',

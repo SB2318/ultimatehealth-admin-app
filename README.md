@@ -4,7 +4,8 @@ The admin app is the guardian of quality and compliance for the UltimateHealth p
 
 [![Download Latest APK](https://img.shields.io/badge/Download-APK-blue.svg)](https://drive.google.com/file/d/1fP7yrtD6NpeatRw5KvDUpiC8sWJpjr9_/view?usp=sharing)
 
-### API DOCUMENTATION AVAILABLE SOON
+### 📄 API DOCUMENTATION  
+[Click here to view the full API Documentation](https://rebrand.ly/9el5636)
 
 ### 🔧 Key Features:
 

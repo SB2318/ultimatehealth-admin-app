@@ -86,7 +86,7 @@ export default function HomeScreen({navigation}: ArticleProps) {
 
   const getAllCategories = useCallback(async () => {
     const {data: categoryData} = await axios.get(
-      `${Config.BASE_URL + ARTICLE_TAGS_API}`,
+      `${Config.PROD_URL + ARTICLE_TAGS_API}`,
     );
     if (
       selectedTags === undefined ||

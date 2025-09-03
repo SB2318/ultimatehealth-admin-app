@@ -22,7 +22,7 @@ const TabBar = ({state, descriptors, navigation}: any) => {
             throw new Error('No token found');
           }
           const response = await axios.get(
-            `${Config.BASE_URL}/notification/unread-count?role=1`,
+            `${Config.PROD_URL}/notification/unread-count?role=1`,
             {
               //headers: {
               //  Authorization: `Bearer ${user_token}`,
@@ -134,7 +134,7 @@ const TabBar = ({state, descriptors, navigation}: any) => {
                       <View
                         style={{
                           position: 'absolute',
-                          top: 6,
+                          top: 4,
                           right: 2,
                           width: 15,
                           height: 15,

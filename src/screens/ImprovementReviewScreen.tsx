@@ -1,4 +1,4 @@
-    /* eslint-disable react-native/no-inline-styles */
+/* eslint-disable react-native/no-inline-styles */
 import {
   Image,
   StyleSheet,
@@ -9,7 +9,7 @@ import {
   FlatList,
   Alert,
 } from 'react-native';
-import React, {useEffect, useRef, useState} from 'react';
+import React, {useEffect, useMemo, useRef, useState} from 'react';
 import {useMutation, useQuery} from '@tanstack/react-query';
 import {BUTTON_COLOR, ON_PRIMARY_COLOR, PRIMARY_COLOR} from '../helper/Theme';
 import AntDesign from 'react-native-vector-icons/AntDesign';
@@ -456,6 +456,18 @@ const ImprovementReviewScreen = ({
       document.head.appendChild(style);
     `;
 
+  const scalePerChar = 1 / 1000;
+  const maxMultiplier = 4.3;
+  const baseMultiplier = 0.8;
+
+  const minHeight = useMemo(() => {
+    let content = htmlContent ?? '';
+    const scaleFactor = Math.min(content.length * scalePerChar, maxMultiplier);
+    const scaledHeight = height * (baseMultiplier + scaleFactor);
+    const cappedHeight = Math.min(scaledHeight, height * 6);
+    return cappedHeight;
+  }, [htmlContent, scalePerChar]);
+
   /*
   let contentSource = improvement?.edited_content
     ? improvement?.edited_content?.endsWith('.html')
@@ -623,10 +635,7 @@ const ImprovementReviewScreen = ({
                 padding: 7,
                 //width: '99%',
                 //height: webviewHeight - 3000,
-                minHeight: Math.min(
-                  height * 0.8,
-                  baseHeight + (htmlContent ? htmlContent.length : noDataHtml.length) * scalePerChar,
-                ),
+                minHeight: minHeight,
                 // flex:7,
                 justifyContent: 'center',
                 alignItems: 'center',

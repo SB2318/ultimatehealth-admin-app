@@ -15,7 +15,7 @@ export const SocketProvider: React.FC<SocketProviderProps> = ({
 
   useEffect(() => {
     // Initialize the socket connection
-    const socketConnection = io(`${Config.SOCKET_URL}`);
+    const socketConnection = io(`${Config.SOCKET_PROD}`);
     setSocket(socketConnection);
 
     // Cleanup on unmount

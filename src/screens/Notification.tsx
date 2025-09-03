@@ -34,7 +34,7 @@ export default function Notification({navigation}: NotificationProps) {
     queryFn: async () => {
       try {
         const response = await axios.get(
-          `${Config.BASE_URL}/notifications?role=1&page=${page}`,
+          `${Config.PROD_URL}/notifications?role=1&page=${page}`,
           {
             // headers: {
             //  Authorization: `Bearer ${user_token}`,
@@ -70,7 +70,7 @@ export default function Notification({navigation}: NotificationProps) {
         return;
       }
       const res = await axios.put(
-        `${Config.BASE_URL}/notifications/mark-as-read?role=1`,
+        `${Config.PROD_URL}/notifications/mark-as-read?role=1`,
         {
           role: 1,
         },
@@ -109,7 +109,7 @@ export default function Notification({navigation}: NotificationProps) {
         return;
       }
       const res = await axios.delete(
-        `${Config.BASE_URL}/notification/${id}`,
+        `${Config.PROD_URL}/notification/${id}`,
 
         {
           // headers: {

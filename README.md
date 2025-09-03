@@ -10,6 +10,11 @@ The admin app is the guardian of quality and compliance for the UltimateHealth p
   Click here to view the full API Documentation
 </a>
 
+<h3>📄 PYTHON SERVER (CONTENT CHECKER)</h3>
+<a href="https://uhsocial.in/content-intel/docs" target="_blank" rel="noopener noreferrer">
+  Click here to view the content checker API Documentation
+</a>
+
 ### 🔧 Key Features:
 
 **Interactive Article Review Workflow:**

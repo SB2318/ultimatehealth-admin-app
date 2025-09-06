@@ -464,6 +464,7 @@ const styles = StyleSheet.create({
   },
   flatListContentContainer: {
     paddingHorizontal: 16,
+     marginBottom: 80,
   },
 
   profileImage: {

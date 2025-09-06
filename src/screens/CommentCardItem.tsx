@@ -17,7 +17,7 @@ export default function CommentCardItem({item}: {item: Comment}) {
     const style = document.createElement('style');
     style.innerHTML = \`
       body {
-        font-size: 46px;
+        font-size: 66px;
         line-height: 1.5;
         color: #333;
       }
@@ -30,10 +30,16 @@ export default function CommentCardItem({item}: {item: Comment}) {
       const baseMultiplier = 0.8;
     
       const minHeight = useMemo(() => {
-        let content = item.content ?? "";
-        const scaleFactor = Math.min(content.length * scalePerChar, maxMultiplier);
+        let content = item && item.content ? item.content : "";
+        let startIndex = content.lastIndexOf("<body>");
+        let endIndex = content.lastIndexOf("<body>");
+        const length = (endIndex- startIndex+1);
+        const scaleFactor = Math.min(length * scalePerChar, maxMultiplier);
         const scaledHeight = height * (baseMultiplier + scaleFactor);
-        const cappedHeight = Math.min(scaledHeight, height * 6);
+        console.log("Content length", content.length);
+        const cappedHeight = Math.min(length+ 123, Math.min(scaledHeight, height * 6));
+        //const cappedHeight =  Math.min(scaledHeight, height * 6);
+        console.log("Scaled Height", scaledHeight);
         return cappedHeight;
       }, [item, scalePerChar]);
   return (
@@ -48,9 +54,9 @@ export default function CommentCardItem({item}: {item: Comment}) {
       <View style={styles.commentContent}>
         <View style={{flexDirection: 'row', alignItems: 'flex-start'}}>
           <Text style={styles.username}>
-            {item.isReview ? 'Moderator' : 'Author'}
+            {item && item.isReview ? 'Moderator' : 'Author'}
           </Text>
-          {item.isEdited && (
+          {item && item.isEdited && (
             <Text style={{...styles.comment, marginStart: 4, marginTop: 2}}>
               (edited)
             </Text>
@@ -72,13 +78,17 @@ export default function CommentCardItem({item}: {item: Comment}) {
             ref={webViewRef}
             originWhitelist={['*']}
             injectedJavaScript={cssCode}
-            source={{html: item.content}}
+            source={{html: item ? item.content : ""}}
             textZoom={100}
           />
         </View>
-        <Text style={styles.timestamp}>
+      {
+        item && (
+            <Text style={styles.timestamp}>
           Last updated {formatWithOrdinal(item.updatedAt)}
         </Text>
+        )
+      }
       </View>
     </View>
   );

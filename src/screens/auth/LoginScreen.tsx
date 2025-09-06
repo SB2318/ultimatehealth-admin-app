@@ -326,6 +326,7 @@ export default function LoginScreen({navigation}){
             style={styles.logo}
           />
               {/* brand text container */}
+              <Text style={styles.brandText}>Admin</Text>
               
             </View>
             {/* login form */}
@@ -519,7 +520,7 @@ export default function LoginScreen({navigation}){
     },
     brandText: {
       color: 'black',
-      fontSize: fp(4),
+      fontSize: hp(4),
       fontFamily: 'Lobster-Regular',
       fontWeight: '600',
       alignSelf:'center'

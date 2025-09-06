@@ -35,7 +35,7 @@ const GET_COMPLETED_IMPROVEMENTS = `${Config.PROD_URL}/admin/publish-improvement
 const GET_CHANGES_HISTORY = `${Config.PROD_URL}/article/detect-content-loss`;
 
 const GET_ARTICLE_CONTENT = `${Config.PROD_URL}/articles/get-article-content`;
-const GET_IMPROVEMENT_CONTENT = `${Config.PROD_URL}/articles/get-improve-content`;
+const GET_IMPROVEMENT_CONTENT = `${Config.PROD_URL}/article/get-improve-content`;
 const PUBLISH_IMPROVEMENT_POCKETBASE = `${Config.PROD_URL}/publish-improvement-from-pocketbase`;
 const DELETE_IMPROVEMENT_RECORD_PB = `${Config.PROD_URL}/delete-improvement`;
 // For verification related POST and GET request, send isAdmin in request body and query.

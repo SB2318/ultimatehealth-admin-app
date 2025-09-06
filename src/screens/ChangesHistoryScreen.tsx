@@ -20,10 +20,13 @@ export default function ChangesHistoryScreen({
   const {data: history, isLoading} = useQuery({
     queryKey: ['get-chages-history'],
     queryFn: async () => {
+
+      //console.log("Headers", axios.defaults.headers);
+     // console.log("request id", requestId);
       const response = await axios.get(
         `${GET_CHANGES_HISTORY}?requestId=${requestId}`,
       );
-
+   // console.log("response", response);
       return response.data.diff as string;
     },
   });
@@ -80,7 +83,7 @@ const styles = StyleSheet.create({
     flex: 1,
     position: 'relative',
     //height:"100%",
-    padding: 7,
+    padding: 0,
     //width:"100%",
     // backgroundColor: ON_PRIMARY_COLOR,
   },

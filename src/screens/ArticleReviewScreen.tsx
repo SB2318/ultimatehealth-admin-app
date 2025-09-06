@@ -223,17 +223,17 @@ const ReviewScreen = ({route}: ReviewScreenProp) => {
     });
 
     socket.on('review-comments', data => {
-      console.log('comment loaded');
+      console.log('comment loaded', data);
 
-      setComments(data.comments);
+      setComments(data);
     });
 
     // Listen for new comments
     socket.on('new-feedback', data => {
       console.log('new comment loaded', data);
-
+      setFeedback("");
       setComments(prevComments => {
-        const newComments = [data.comment, ...prevComments];
+        const newComments = [data, ...prevComments];
         // Scroll to the first index after adding the new comment
         if (flatListRef.current && newComments.length > 1) {
           flatListRef?.current.scrollToIndex({index: 0, animated: true});
@@ -415,8 +415,12 @@ const ReviewScreen = ({route}: ReviewScreenProp) => {
     const minHeight = useMemo(() => {
       let content = htmlContent ?? "";
       const scaleFactor = Math.min(content.length * scalePerChar, maxMultiplier);
+      //console.log("ScaleFactor", scaleFactor);
+      //console.log("Content length", content.length);
       const scaledHeight = height * (baseMultiplier + scaleFactor);
-      const cappedHeight = Math.min(scaledHeight, height * 6);
+     // console.log("ScaledHeight", scaledHeight);
+      const cappedHeight = Math.min(content.length+120, Math.min(scaledHeight, height * 6));
+     // console.log("CappedHeight", cappedHeight);
       return cappedHeight;
     }, [htmlContent, scalePerChar]);
 

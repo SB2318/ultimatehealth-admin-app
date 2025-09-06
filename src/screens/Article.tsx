@@ -515,7 +515,7 @@ export default function HomeScreen({navigation}: ArticleProps) {
       authorId: authorId,
       destination: destination,
       recordId: recordId,
-      articleRecordId: recordId,
+      articleRecordId: articleRecordId,
     });
   };
 

@@ -131,6 +131,7 @@ const styles = StyleSheet.create({
     flex: 1,
     width: '100%',
     paddingHorizontal: 0,
+    marginBottom: 80,
     //zIndex: -2,
   },
    flatListContentContainer: {

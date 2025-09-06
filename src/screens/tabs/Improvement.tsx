@@ -59,6 +59,7 @@ export default function Imrovement({
     queryFn: async () => {
       const response = await axios.get(`${GET_AVAILABLE_IMPROVEMENTS}?page=${availablePage}`);
 
+      console.log('response', response.data);
       if(Number(availablePage) === 1){
 
         if(response.data.totalPages){
@@ -77,7 +78,7 @@ export default function Imrovement({
       }
       return response.data.articles as EditRequest[];
     },
-    enabled: !!availablePage,
+    //enabled: !!availablePage,
   });
 
   const {
@@ -372,6 +373,7 @@ const styles = StyleSheet.create({
     flex: 1,
     width: '100%',
     paddingHorizontal: 0,
+    marginBottom: 80,
     //zIndex: -2,
   },
   flatListContentContainer: {

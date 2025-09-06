@@ -92,6 +92,8 @@ const ImprovementReviewScreen = ({
     source_title: '',
   });
 
+  console.log("Improvement record id", recordId);
+  console.log("Article record Id", articleRecordId);
   const [copyRightResults, setCopyRightResults] = useState<
     CopyrightCheckerResponse[]
   >([]);
@@ -136,7 +138,7 @@ const ImprovementReviewScreen = ({
     queryKey: ['get-improvement-content'],
     queryFn: async () => {
       let url = '';
-      if (recordId) {
+      if (!recordId) {
         url = `${GET_IMPROVEMENT_CONTENT}?articleRecordId=${articleRecordId}`;
       } else {
         url = `${GET_IMPROVEMENT_CONTENT}?recordid=${recordId}&articleRecordId=${articleRecordId}`;
@@ -464,7 +466,7 @@ const ImprovementReviewScreen = ({
     let content = htmlContent ?? '';
     const scaleFactor = Math.min(content.length * scalePerChar, maxMultiplier);
     const scaledHeight = height * (baseMultiplier + scaleFactor);
-    const cappedHeight = Math.min(scaledHeight, height * 6);
+    const cappedHeight = Math.min(content.length + 120, Math.min(scaledHeight, height * 6));
     return cappedHeight;
   }, [htmlContent, scalePerChar]);
 

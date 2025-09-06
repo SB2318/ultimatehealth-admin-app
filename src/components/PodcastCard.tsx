@@ -14,6 +14,7 @@ import {PodcastData} from '../type';
 import {BUTTON_COLOR, PRIMARY_COLOR} from '../helper/Theme';
 import {msToTime, StatusEnum} from '../helper/Utils';
 import DiscardReasonModal from './DiscardReasonModal';
+import { GET_STORAGE_DATA } from '../helper/APIUtils';
 
 interface PodcastProps {
   item: PodcastData;
@@ -154,7 +155,7 @@ const handleAnimation = () => {
           source={{
             uri:
               item.cover_image && item.cover_image !== ''
-                ? item.cover_image
+                ? item.cover_image.startsWith("https") ? item.cover_image : `${GET_STORAGE_DATA}/${item.cover_image}`
                 : 'https://t3.ftcdn.net/jpg/05/10/75/30/360_F_510753092_f4AOmCJAczuGgRLCmHxmowga2tC9VYQP.jpg',
           }}
           style={styles.image}

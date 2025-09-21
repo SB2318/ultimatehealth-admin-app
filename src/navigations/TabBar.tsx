@@ -18,9 +18,7 @@ const TabBar = ({state, descriptors, navigation}: any) => {
       queryKey: ['get-unread-notifications-count'],
       queryFn: async () => {
         try {
-          if (user_token === '') {
-            throw new Error('No token found');
-          }
+      
           const response = await axios.get(
             `${Config.PROD_URL}/notification/unread-count?role=1`,
             {
@@ -31,11 +29,14 @@ const TabBar = ({state, descriptors, navigation}: any) => {
           );
   
           // console.log('Notification Response', response);
+          if(!response || !response.data) return 0;
           return response.data.unreadCount as number;
         } catch (err) {
-          console.error('Error fetching articles:', err);
+          //console.error('Error fetching articles:', err);
+          return 0;
         }
       },
+      enabled : !!user_token
     });
   
     useFocusEffect(

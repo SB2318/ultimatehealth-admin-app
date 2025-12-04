@@ -676,7 +676,7 @@ export default function HomeScreen({navigation}: ArticleProps) {
                   ListEmptyComponent={
                     <View style={styles.emptyContainer}>
                       <Image
-                        source={require('../../assets/identify-audience.png')}
+                        source={require('../../assets/images/identify-audience.png')}
                         style={styles.image}
                       />
 

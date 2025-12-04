@@ -15,11 +15,11 @@ import AntDesign from 'react-native-vector-icons/AntDesign';
 import {PodcastData, PodcastDetailScreenProp} from '../type';
 import {BUTTON_COLOR, ON_PRIMARY_COLOR, PRIMARY_COLOR} from '../helper/Theme';
 import Slider from '@react-native-community/slider';
-import TrackPlayer, {
-  State,
-  usePlaybackState,
-  useProgress,
-} from 'react-native-track-player';
+// import TrackPlayer, {
+//   State,
+//   usePlaybackState,
+//   useProgress,
+// } from 'react-native-track-player';
 import {useMutation, useQuery} from '@tanstack/react-query';
 import axios from 'axios';
 import {
@@ -42,8 +42,8 @@ const PodcastDetail = ({navigation, route}: PodcastDetailScreenProp) => {
   //const [progress, setProgress] = useState(10);
   const insets = useSafeAreaInsets();
   const {trackId} = route.params;
-  const playbackState = usePlaybackState();
-  const progress = useProgress();
+ // const playbackState = usePlaybackState();
+ // const progress = useProgress();
   const {user_token, user_id} = useSelector((state: any) => state.user);
   const {isConnected} = useSelector((state: any) => state.network);
   const [isExpanded, setIsExpanded] = useState<boolean>(false);
@@ -51,21 +51,21 @@ const PodcastDetail = ({navigation, route}: PodcastDetailScreenProp) => {
     useState<boolean>(false);
 
   const handleListenPress = async () => {
-    const currentState = await TrackPlayer.getPlaybackState();
+    // const currentState = await TrackPlayer.getPlaybackState();
 
-    console.log('Current state', currentState);
-    console.log('State Playing', State.Playing);
-    console.log('State Ready', State.Ready);
-    console.log('State Stoped', State.Stopped);
-    if (currentState.state === State.Playing) {
-      await TrackPlayer.pause();
-    } else if (
-      currentState.state === State.Paused ||
-      currentState.state === State.Ready ||
-      currentState.state === State.Stopped
-    ) {
-      await TrackPlayer.play();
-    }
+    // console.log('Current state', currentState);
+    // console.log('State Playing', State.Playing);
+    // console.log('State Ready', State.Ready);
+    // console.log('State Stoped', State.Stopped);
+    // if (currentState.state === State.Playing) {
+    //   await TrackPlayer.pause();
+    // } else if (
+    //   currentState.state === State.Paused ||
+    //   currentState.state === State.Ready ||
+    //   currentState.state === State.Stopped
+    // ) {
+    //   await TrackPlayer.play();
+    // }
   };
 
   const {data: podcast, refetch} = useQuery({
@@ -91,15 +91,15 @@ const PodcastDetail = ({navigation, route}: PodcastDetailScreenProp) => {
   });
 
   const addTrack = useCallback(async () => {
-    await TrackPlayer.reset();
-    if (podcast) {
-      await TrackPlayer.add({
-        id: trackId,
-        url: `${GET_IMAGE}/${podcast?.audio_url}`,
-        title: podcast?.title,
-        artist: podcast?.user_id.user_name,
-      });
-    }
+    // await TrackPlayer.reset();
+    // if (podcast) {
+    //   await TrackPlayer.add({
+    //     id: trackId,
+    //     url: `${GET_IMAGE}/${podcast?.audio_url}`,
+    //     title: podcast?.title,
+    //     artist: podcast?.user_id.user_name,
+    //   });
+    // }
   }, [podcast, trackId]);
 
   useEffect(() => {
@@ -410,21 +410,21 @@ const PodcastDetail = ({navigation, route}: PodcastDetailScreenProp) => {
         <Slider
           style={styles.slider}
           minimumValue={0}
-          maximumValue={progress.duration}
-          value={progress.position}
+         // maximumValue={progress.duration}
+         // value={progress.position}
           minimumTrackTintColor={PRIMARY_COLOR}
           maximumTrackTintColor="#ccc"
           thumbTintColor={PRIMARY_COLOR}
           onSlidingComplete={async value => {
             // seek to selected time
-            await TrackPlayer.seekTo(value);
+            //await TrackPlayer.seekTo(value);
           }}
         />
 
-        <View style={styles.timeRow}>
+        {/* <View style={styles.timeRow}>
           <Text style={styles.time}>{formatTime(progress.position)}</Text>
           <Text style={styles.time}>{formatTime(progress.duration)}</Text>
-        </View>
+        </View> */}
 
         <DiscardReasonModal
           visible={discardModalVisible}
@@ -441,14 +441,14 @@ const PodcastDetail = ({navigation, route}: PodcastDetailScreenProp) => {
           }}
         />
 
-        {playbackState.state === State.Buffering && (
+        {/* {playbackState.state === State.Buffering && (
           <Text style={styles.bufferingText}>⏳ Buffering... please wait</Text>
-        )}
+        )} */}
 
-        <TouchableOpacity
+        {/* <TouchableOpacity
           style={[
             styles.listenButton,
-            playbackState.state === State.Buffering &&
+           // playbackState.state === State.Buffering &&
               styles.listenButtonDisabled,
           ]}
           onPress={handleListenPress}
@@ -458,7 +458,7 @@ const PodcastDetail = ({navigation, route}: PodcastDetailScreenProp) => {
               ? '⏸️Pause'
               : '🎧 Listen Now'}
           </Text>
-        </TouchableOpacity>
+        </TouchableOpacity> */}
       </ScrollView>
     </SafeAreaView>
   );

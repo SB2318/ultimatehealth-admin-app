@@ -7,7 +7,7 @@
 
 import React, {useEffect} from 'react';
 import {StatusBar, useColorScheme, View} from 'react-native';
-import {Colors} from 'react-native/Libraries/NewAppScreen';
+//import {Colors} from 'react-native/Libraries/NewAppScreen';
 //import {PRIMARY_COLOR} from './src/helper/Theme';
 import {NavigationContainer} from '@react-navigation/native';
 import StackNavigation from './src/navigations/StackNavigation';
@@ -15,18 +15,19 @@ import {SafeAreaProvider} from 'react-native-safe-area-context';
 import {QueryClient, QueryClientProvider} from '@tanstack/react-query';
 import {FirebaseProvider} from './src/hooks/FirebaseContext';
 import {SocketProvider} from './src/components/SocketContext';
-import TrackPlayer, {Capability} from 'react-native-track-player';
-import PushNotification from 'react-native-push-notification';
+//import TrackPlayer, {Capability} from 'react-native-track-player';
+//import PushNotification from 'react-native-push-notification';
 import messaging from '@react-native-firebase/messaging';
 import {addEventListener} from '@react-native-community/netinfo';
 import {setConnected} from './src/stores/NetworkSlice';
 import { useDispatch } from 'react-redux';
+import { ON_PRIMARY_COLOR } from './src/helper/Theme';
 
 const queryClient = new QueryClient();
 function App(): React.JSX.Element {
   const isDarkMode = useColorScheme() === 'dark';
   const backgroundStyle = {
-    backgroundColor: isDarkMode ? Colors.darker : Colors.lighter,
+    backgroundColor: isDarkMode ? 'black' : ON_PRIMARY_COLOR,
   };
 
   //const BarStyle = Platform.OS === 'ios' ? 'dark-content' : 'light-content';
@@ -41,82 +42,82 @@ function App(): React.JSX.Element {
   }, []);
 
   useEffect(() => {
-    const init = async () => {
-      try {
-        await TrackPlayer.setupPlayer();
+    // const init = async () => {
+    //   try {
+    //     await TrackPlayer.setupPlayer();
 
-        await TrackPlayer.updateOptions({
-          capabilities: [
-            Capability.Play,
-            Capability.Pause,
-            Capability.SkipToNext,
-            Capability.SkipToPrevious,
-            Capability.Stop,
-          ],
-          compactCapabilities: [Capability.Play, Capability.Pause],
-        });
+    //     await TrackPlayer.updateOptions({
+    //       capabilities: [
+    //         Capability.Play,
+    //         Capability.Pause,
+    //         Capability.SkipToNext,
+    //         Capability.SkipToPrevious,
+    //         Capability.Stop,
+    //       ],
+    //       compactCapabilities: [Capability.Play, Capability.Pause],
+    //     });
 
-        console.log(' TrackPlayer initialized once');
-      } catch (e) {
-        console.log(' TrackPlayer already initialized or failed', e);
-      }
-    };
+    //     console.log(' TrackPlayer initialized once');
+    //   } catch (e) {
+    //     console.log(' TrackPlayer already initialized or failed', e);
+    //   }
+    // };
 
-    init();
+    //init();
     return () => {
-      TrackPlayer.reset();
+    //  TrackPlayer.reset();
     };
   }, []);
 
    useEffect(() => {
-    PushNotification.configure({
-      onRegister: (token: any) => {
-        console.log('FCM Token:', token);
-      },
+    // PushNotification.configure({
+    //   onRegister: (token: any) => {
+    //     console.log('FCM Token:', token);
+    //   },
 
-      onNotification: () => {
-        // Handle notification action here
-      },
-      requestPermissions: true, // Automatically request permissions on iOS
-    });
+    //   onNotification: () => {
+    //     // Handle notification action here
+    //   },
+    //   requestPermissions: true, // Automatically request permissions on iOS
+    // });
 
     // Create notification channels (Android specific)
-    PushNotification.createChannel(
-      {
-        channelId: 'default-channel',
-        channelName: 'Default Channel',
-        channelDescription: 'UltimateHealth Notifications',
-        playSound: true,
-        soundName: 'default',
-        importance: 4,
-        vibrate: true,
-      },
-      (created: any) => console.log(`createChannel returned '${created}'`),
-    );
-    const unsubscribe = messaging().onMessage(async remoteMessage => {
-      console.log(
-        'Foreground notification received from message:',
-        remoteMessage,
-      );
-      //const data = remoteMessage.data;
-      // handleNotification(data);
+    // PushNotification.createChannel(
+    //   {
+    //     channelId: 'default-channel',
+    //     channelName: 'Default Channel',
+    //     channelDescription: 'UltimateHealth Notifications',
+    //     playSound: true,
+    //     soundName: 'default',
+    //     importance: 4,
+    //     vibrate: true,
+    //   },
+    //   (created: any) => console.log(`createChannel returned '${created}'`),
+    // );
+    // const unsubscribe = messaging().onMessage(async remoteMessage => {
+    //   console.log(
+    //     'Foreground notification received from message:',
+    //     remoteMessage,
+    //   );
+    //   //const data = remoteMessage.data;
+    //   // handleNotification(data);
 
-      PushNotification.localNotification({
-        channelId: 'default-channel',
-        title: remoteMessage?.notification?.title,
-        message: remoteMessage?.notification?.body,
-        playSound: true,
-        soundName: 'default',
-        priority: 'high',
-        visibility: 'public',
-      });
-    });
+    //   PushNotification.localNotification({
+    //     channelId: 'default-channel',
+    //     title: remoteMessage?.notification?.title,
+    //     message: remoteMessage?.notification?.body,
+    //     playSound: true,
+    //     soundName: 'default',
+    //     priority: 'high',
+    //     visibility: 'public',
+    //   });
+    // });
 
-    messaging().setBackgroundMessageHandler(async remoteMessage => {
-      console.log('Background notification received:', remoteMessage); 
-     // const data = remoteMessage.data;
-      //handleNotification(data);
-    });
+    // messaging().setBackgroundMessageHandler(async remoteMessage => {
+    //   console.log('Background notification received:', remoteMessage); 
+    //  // const data = remoteMessage.data;
+    //   //handleNotification(data);
+    // });
 
     // On app open
 
@@ -133,7 +134,7 @@ function App(): React.JSX.Element {
     });
 
     return () => {
-      unsubscribe();
+     // unsubscribe();
       unsubscribe1();
       onOpenApp();
     };

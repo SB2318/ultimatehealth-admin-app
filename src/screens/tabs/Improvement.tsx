@@ -313,7 +313,7 @@ export default function Imrovement({
             ListEmptyComponent={
               <View style={styles.emptyContainer}>
                 <Image
-                  source={require('../../../assets/article_default.jpg')}
+                  source={require('../../../assets/images/article_default.jpg')}
                   style={styles.image}
                 />
                 <Text style={styles.message}>No Article Found</Text>

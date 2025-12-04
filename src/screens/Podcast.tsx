@@ -263,7 +263,7 @@ export default function Podcast({navigation}: PodcastProps) {
                   ListEmptyComponent={
                     <View style={styles.emptyContainer}>
                       <Image
-                        source={require('../../assets/identify-audience.png')}
+                        source={require('../../assets/images/identify-audience.png')}
                         style={styles.image}
                       />
                       <Text style={styles.message}>
@@ -314,7 +314,7 @@ export default function Podcast({navigation}: PodcastProps) {
                   ListEmptyComponent={
                     <View style={styles.emptyContainer}>
                       <Image
-                        source={require('../../assets/identify-audience.png')}
+                        source={require('../../assets/images/identify-audience.png')}
                         style={styles.image}
                       />
                       <Text style={styles.message}>

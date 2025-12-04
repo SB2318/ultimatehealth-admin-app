@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { View, ScrollView, StatusBar, Image, Text, TextInput, TouchableOpacity, Alert, useColorScheme, StyleSheet } from 'react-native';
-import { Colors } from 'react-native/Libraries/NewAppScreen';
+//import { Colors } from 'react-native/Libraries/NewAppScreen';
 import { BUTTON_COLOR, ON_PRIMARY_COLOR, PRIMARY_COLOR } from '../../helper/Theme';
 //import { getMessaging, getToken } from 'firebase/messaging';
 
@@ -322,7 +322,7 @@ export default function LoginScreen({navigation}){
             <View style={styles.logoContainer}>
               {/* image */}
               <Image
-            source={require('../../../assets/icon.png')}
+            source={require('../../../assets/images/icon.png')}
             style={styles.logo}
           />
               {/* brand text container */}
@@ -333,7 +333,7 @@ export default function LoginScreen({navigation}){
             <View
               style={[
                 styles.formContainer,
-                {backgroundColor: isDarkMode ? Colors.darker : 'white'},
+                {backgroundColor: isDarkMode ? 'black' : 'white'},
               ]}>
               {/* email input */}
               <Text style={styles.inputLabelTxt}>Email</Text>

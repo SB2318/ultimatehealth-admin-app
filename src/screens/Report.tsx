@@ -360,7 +360,7 @@ export default function ReportScreen({navigation}) {
                   ListEmptyComponent={
                     <View style={styles.emptyContainer}>
                       <Image
-                        source={require('../../assets/identify-audience.png')}
+                        source={require('../../assets/images/identify-audience.png')}
                         style={styles.image}
                       />
                       <Text style={styles.message}>No reason found</Text>
@@ -391,7 +391,7 @@ export default function ReportScreen({navigation}) {
                 ListEmptyComponent={
                   <View style={styles.emptyContainer}>
                     <Image
-                      source={require('../../assets/identify-audience.png')}
+                      source={require('../../assets/images/identify-audience.png')}
                       style={styles.image}
                     />
                     <Text style={styles.message}>No report found</Text>
@@ -430,7 +430,7 @@ export default function ReportScreen({navigation}) {
                 ListEmptyComponent={
                   <View style={styles.emptyContainer}>
                     <Image
-                      source={require('../../assets/identify-audience.png')}
+                      source={require('../../assets/images/identify-audience.png')}
                       style={styles.image}
                     />
                     <Text style={styles.message}>No Report Found</Text>

@@ -128,7 +128,7 @@ export default function SplashScreen({navigation}){
 
     return (
         <View style={styles.container}>
-          <Image source={require('../../assets/icon.png')} style={styles.icon} />
+          <Image source={require('../../assets/images/icon.png')} style={styles.icon} />
           <Text style={styles.text}>Ultimate</Text>
           <Text style={styles.text}>Health</Text>
           <Text style={styles.text}>Admin</Text>

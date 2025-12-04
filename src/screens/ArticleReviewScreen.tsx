@@ -447,7 +447,7 @@ const ReviewScreen = ({route}: ReviewScreenProp) => {
             />
           ) : (
             <Image
-              source={require('../../assets/article_default.jpg')}
+              source={require('../../assets/images/article_default.jpg')}
               style={styles.image}
             />
           )}

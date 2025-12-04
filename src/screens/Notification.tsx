@@ -55,7 +55,9 @@ export default function Notification({navigation}: NotificationProps) {
         // console.log('Notification Response', response);
         return response.data.notifications as NotificationD[];
       } catch (err) {
-        console.error('Error fetching articles:', err);
+        //console.error('Error fetching articles:', err);
+
+        return [];
       }
     },
     enabled: !!user_token,

@@ -1,88 +1,50 @@
-## UltimateHealth Admin
+# Welcome to your Expo app 👋
 
-The admin app is the guardian of quality and compliance for the UltimateHealth platform. With smart moderation tools and seamless collaboration features, it ensures every published resource is accurate, respectful, and valuable to users around the world. 🌍💡
+This is an [Expo](https://expo.dev) project created with [`create-expo-app`](https://www.npmjs.com/package/create-expo-app).
 
-[![Download Latest APK](https://img.shields.io/badge/Download-APK-blue.svg)](https://drive.google.com/file/d/1fP7yrtD6NpeatRw5KvDUpiC8sWJpjr9_/view?usp=sharing)
+## Get started
 
+1. Install dependencies
 
-<h3>📄 API DOCUMENTATION</h3>
-<a href="https://uhsocial.in/docs" target="_blank" rel="noopener noreferrer">
-  Click here to view the full API Documentation
-</a>
+   ```bash
+   npm install
+   ```
 
-<h3>📄 PYTHON SERVER (CONTENT CHECKER)</h3>
-<a href="https://uhsocial.in/content-intel/docs" target="_blank" rel="noopener noreferrer">
-  Click here to view the content checker API Documentation
-</a>
+2. Start the app
 
-### 🔧 Key Features:
+   ```bash
+   npx expo start
+   ```
 
-**Interactive Article Review Workflow:**
-Collaborate with authors and reviewers to approve, reject, or request edits on submitted health articles with clear status tracking and inline feedback.
+In the output, you'll find options to open the app in a
 
-**AI-Powered Grammar & Plagiarism Checker:**
-Automatically review article submissions for language clarity, grammar issues, and content originality to maintain the platform’s credibility.
+- [development build](https://docs.expo.dev/develop/development-builds/introduction/)
+- [Android emulator](https://docs.expo.dev/workflow/android-studio-emulator/)
+- [iOS simulator](https://docs.expo.dev/workflow/ios-simulator/)
+- [Expo Go](https://expo.dev/go), a limited sandbox for trying out app development with Expo
 
-**Image & Logo Checker**
-Detect unauthorized or low-quality images and logos using AI validation tools — ensuring that all visuals meet ethical and quality standards.
+You can start developing by editing the files inside the **app** directory. This project uses [file-based routing](https://docs.expo.dev/router/introduction).
 
-**Report Management System**
-Handle flagged content and investigate reports of inappropriate behavior, misinformation, or policy violations. Keep the platform safe and trustworthy.
+## Get a fresh project
 
-**Secure Admin Authentication**
-Role-based access control and secure auth systems ensure sensitive operations are protected.
+When you're ready, run:
 
+```bash
+npm run reset-project
+```
 
-### 🔧 Edit Requests:**
+This command will move the starter code to the **app-example** directory and create a blank **app** directory where you can start developing.
 
-**Admin:**
+## Learn more
 
- HomeScreen -> Article & Improvements (All status will available)
+To learn more about developing your project with Expo, look at the following resources:
 
- WorkHistory -> Article, Improvement, Report with count (All status will available)
+- [Expo documentation](https://docs.expo.dev/): Learn fundamentals, or go into advanced topics with our [guides](https://docs.expo.dev/guides).
+- [Learn Expo tutorial](https://docs.expo.dev/tutorial/introduction/): Follow a step-by-step tutorial where you'll create a project that runs on Android, iOS, and the web.
 
- ProfileScreen -> Article  Publish Count & Improvement Count
+## Join the community
 
+Join our community of developers creating universal apps.
 
-**User App:**
-
- Dashboard: 
-
-   Articles -> (Inprogress, Publish,Discarded)
-
-   Improvements-> ( InProgress, Publish, Discarded)
-
-   ProfileScreen: Article Publish Count, Improvement Counts
-
-   ArticleViewScreen : Contributors section
-
-
-
-### Report Action
-
-#### Report Flow
-
-A user will be temporarily blocked if they have 3 or more active reports in their report bucket.
-Users are allowed to submit a **report resolution request** if they believe the reports against them are unfair or mistakenly filed. These requests will be reviewed by moderators.
-
----
-
-#### BLOCK USER (Temporary Restriction)
-
-When a user is blocked, the following restrictions apply:
-
-1. User will be unable to post new content.
-2. User will be unable to comment on existing content.
-3. User will be unable to react to or repost any content.
-4. User will be unable to submit edit requests.
-5. User can still view and save existing content.
-
----
-
-#### BAN USER (Permanent Restriction)
-
-When a user is banned, the following actions are enforced:
-
-1. User will be unable to post new content.
-2. All content and comments created by the user will be removed from the platform.
-3. User will not be able to view any new or existing posts or perform any actions on the platform.
+- [Expo on GitHub](https://github.com/expo/expo): View our open source platform and contribute.
+- [Discord community](https://chat.expo.dev): Chat with Expo users and ask questions.

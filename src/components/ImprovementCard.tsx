@@ -16,10 +16,10 @@ import {
     useSharedValue,
     withTiming,
   } from 'react-native-reanimated';
-  import ArticleFloatingMenu from './ArticleFloatingMenu';
+
+import ArticleFloatingMenu from './ArticleFloatingMenu';
   //import io from 'socket.io-client';
-  import Entypo from 'react-native-vector-icons/Entypo';
-  import AntDesign from 'react-native-vector-icons/AntDesign';
+import {Entypo, AntDesign} from '@expo/vector-icons';
 import DiscardReasonModal from './DiscardReasonModal';
 import WebView from 'react-native-webview';
 

@@ -3,7 +3,7 @@ import { StyleSheet, View, Text, TouchableOpacity } from "react-native";
 import { wp, hp } from "../helper/Metric";
 import { PRIMARY_COLOR, BUTTON_COLOR } from "../helper/Theme";
 import { Reason } from "../type";
-import Icon from "react-native-vector-icons/Feather";
+import Icon from "@expo/vector-icons/Feather";
 
 interface Props {
    reason: Reason,

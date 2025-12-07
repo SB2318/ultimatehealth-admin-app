@@ -13,7 +13,7 @@ import {Tabs, MaterialTabBar} from 'react-native-collapsible-tab-view';
 import {useDispatch, useSelector} from 'react-redux';
 import axios from 'axios';
 import {useMutation, useQuery} from '@tanstack/react-query';
-import AntDesign from 'react-native-vector-icons/AntDesign';
+import AntDesign from '@expo/vector-icons/AntDesign';
 import {ArticleData, ArticleProps, Category, CategoryType} from '../type';
 import {FAB} from 'react-native-paper';
 import {
@@ -23,6 +23,7 @@ import {
   GET_INPROGRESS_ARTICLES_API,
   HTTP_CATEGORY,
   PICK_ARTICLE,
+  PROD_URL,
   UNASSIGN_ARTICLE,
 } from '../helper/APIUtils';
 import {useCallback, useState} from 'react';
@@ -33,7 +34,6 @@ import {hp, wp} from '../helper/Metric';
 import FilterModal from '../components/FilterModal';
 import Loader from '../components/Loader';
 import Snackbar from 'react-native-snackbar';
-import Config from 'react-native-config';
 import {BottomSheetModal} from '@gorhom/bottom-sheet';
 import {
   setFilteredAvailableArticles,
@@ -86,7 +86,7 @@ export default function HomeScreen({navigation}: ArticleProps) {
 
   const getAllCategories = useCallback(async () => {
     const {data: categoryData} = await axios.get(
-      `${Config.PROD_URL + ARTICLE_TAGS_API}`,
+      `${PROD_URL + ARTICLE_TAGS_API}`,
     );
     if (
       selectedTags === undefined ||

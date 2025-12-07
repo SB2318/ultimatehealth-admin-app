@@ -11,9 +11,11 @@ import axios, { AxiosError } from "axios";
 import { CHECK_USER_HANDLE, REGISTRATION_API, VERIFICATION_MAIL_API } from "../../helper/APIUtils";
 import { useMutation } from "@tanstack/react-query";
 import Snackbar from 'react-native-snackbar';
-import AntIcon from 'react-native-vector-icons/AntDesign';
-import AntDesign from 'react-native-vector-icons/AntDesign';
-import Icon from 'react-native-vector-icons/MaterialIcons';
+// eslint-disable-next-line import/no-duplicates
+import AntIcon from '@expo/vector-icons/AntDesign';
+// eslint-disable-next-line import/no-duplicates
+import AntDesign from '@expo/vector-icons/AntDesign';
+import Icon from '@expo/vector-icons/MaterialIcons';
 import Loader from "../../components/Loader";
 import { PRIMARY_COLOR } from "../../helper/Theme";
 import { hp, wp } from "../../helper/Metric";

@@ -7,8 +7,7 @@ import Animated, {
 } from 'react-native-reanimated';
 import ArticleFloatingMenu from './ArticleFloatingMenu';
 //import io from 'socket.io-client';
-import Entypo from 'react-native-vector-icons/Entypo';
-import Feather from 'react-native-vector-icons/Feather';
+import {Entypo, Feather} from '@expo/vector-icons';
 import {hp, wp} from '../helper/Metric';
 import {PodcastData} from '../type';
 import {BUTTON_COLOR, PRIMARY_COLOR} from '../helper/Theme';

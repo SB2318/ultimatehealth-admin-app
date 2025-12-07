@@ -1,14 +1,14 @@
 import React, { useCallback } from 'react';
 import {View, Pressable, StyleSheet, useColorScheme, Text} from 'react-native';
-import FontAwesome from 'react-native-vector-icons/FontAwesome';
-import Ionicons from 'react-native-vector-icons/Ionicons';
-import MaterialIcon from 'react-native-vector-icons/MaterialIcons';
+import {FontAwesome, Ionicons} from '@expo/vector-icons';
+import MaterialIcon from '@expo/vector-icons/MaterialIcons';
 import {PRIMARY_COLOR} from '../helper/Theme';
 import { useFocusEffect } from '@react-navigation/native';
 import { useQuery } from '@tanstack/react-query';
 import axios from 'axios';
-import Config from 'react-native-config';
+
 import { useSelector } from 'react-redux';
+import { PROD_URL } from '../helper/APIUtils';
 
 const TabBar = ({state, descriptors, navigation}: any) => {
   const isDarkMode = useColorScheme() === 'dark';
@@ -20,7 +20,7 @@ const TabBar = ({state, descriptors, navigation}: any) => {
         try {
       
           const response = await axios.get(
-            `${Config.PROD_URL}/notification/unread-count?role=1`,
+            `${PROD_URL}/notification/unread-count?role=1`,
             {
               //headers: {
               //  Authorization: `Bearer ${user_token}`,

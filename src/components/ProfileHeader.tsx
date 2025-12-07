@@ -10,8 +10,8 @@ import {
   import React from 'react';
   import EllipseSvg from '../../assets/svg/EllipseSvg';
   import {ON_PRIMARY_COLOR, PRIMARY_COLOR} from '../helper/Theme';
-  import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
-  import MaterialCommunityIcon from 'react-native-vector-icons/MaterialCommunityIcons';
+  import MaterialIcons from '@expo/vector-icons/MaterialIcons';
+  import MaterialCommunityIcon from '@expo/vector-icons/MaterialCommunityIcons';
   import {fp, hp, wp} from '../helper/Metric';
   import {ProfileHeaderProps} from '../type';
   

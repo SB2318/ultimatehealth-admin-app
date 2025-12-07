@@ -1,11 +1,8 @@
 import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 import {actions, RichEditor, RichToolbar} from 'react-native-pell-rich-editor';
-import Entypo from 'react-native-vector-icons/Entypo';
-import Feather from 'react-native-vector-icons/Feather';
-import FontAwesome from 'react-native-vector-icons/FontAwesome';
-import Ionicons from 'react-native-vector-icons/Ionicons';
+import {Entypo, Feather, FontAwesome, Ionicons} from '@expo/vector-icons';
 import { wp, hp } from '../helper/Metric';
-import { ON_PRIMARY_COLOR, BUTTON_COLOR, PRIMARY_COLOR } from '../helper/Theme';
+import { ON_PRIMARY_COLOR, PRIMARY_COLOR } from '../helper/Theme';
 import { useRef, useState } from 'react';
 
 export default function Editor ({callback}:{callback: (reason:string)=> void}){

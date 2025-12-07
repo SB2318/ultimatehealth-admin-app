@@ -10,13 +10,12 @@ import {NotificationProps, NotificationD, NotificationType} from '../type';
 import {ON_PRIMARY_COLOR, PRIMARY_COLOR} from '../helper/Theme';
 import NotificationItem from '../components/NotificationItem';
 import Snackbar from 'react-native-snackbar';
-import Config from 'react-native-config';
 import {useMutation, useQuery} from '@tanstack/react-query';
 import {useSelector} from 'react-redux';
-import {useEffect, useState} from 'react';
+import React, {useEffect, useState} from 'react';
 import axios from 'axios';
 import Loader from '../components/Loader';
-import React from 'react';
+import { PROD_URL } from '../helper/APIUtils';
 
 export default function Notification({navigation}: NotificationProps) {
   const {user_token} = useSelector((state: any) => state.user);
@@ -34,7 +33,7 @@ export default function Notification({navigation}: NotificationProps) {
     queryFn: async () => {
       try {
         const response = await axios.get(
-          `${Config.PROD_URL}/notifications?role=1&page=${page}`,
+          `${PROD_URL}/notifications?role=1&page=${page}`,
           {
             // headers: {
             //  Authorization: `Bearer ${user_token}`,
@@ -72,7 +71,7 @@ export default function Notification({navigation}: NotificationProps) {
         return;
       }
       const res = await axios.put(
-        `${Config.PROD_URL}/notifications/mark-as-read?role=1`,
+        `${PROD_URL}/notifications/mark-as-read?role=1`,
         {
           role: 1,
         },
@@ -111,7 +110,7 @@ export default function Notification({navigation}: NotificationProps) {
         return;
       }
       const res = await axios.delete(
-        `${Config.PROD_URL}/notification/${id}`,
+        `${PROD_URL}/notification/${id}`,
 
         {
           // headers: {

@@ -8,7 +8,7 @@ import messaging from '@react-native-firebase/messaging';
 import { useMutation } from '@tanstack/react-query';
 import axios, { AxiosError } from 'axios';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import Icon from 'react-native-vector-icons/Ionicons';
+import Icon from '@expo/vector-icons/Ionicons';
 import { useDispatch } from 'react-redux';
 import { useFirebaseMessaging } from '../../../FirebaseContext';
 import EmailInputModal from '../../components/EmailInputModal';

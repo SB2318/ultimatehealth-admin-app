@@ -10,7 +10,7 @@ import {
   Report,
   WorkHistoryProps,
 } from '../type';
-import Ionicons from 'react-native-vector-icons/Ionicons';
+import Ionicons from '@expo/vector-icons/Ionicons';
 import {FAB} from 'react-native-paper';
 import ReviewCard from '../components/ReviewCard';
 import {hp} from '../helper/Metric';

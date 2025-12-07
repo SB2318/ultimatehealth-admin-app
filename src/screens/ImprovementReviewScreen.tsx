@@ -12,8 +12,8 @@ import {
 import React, {useEffect, useMemo, useRef, useState} from 'react';
 import {useMutation, useQuery} from '@tanstack/react-query';
 import {BUTTON_COLOR, ON_PRIMARY_COLOR, PRIMARY_COLOR} from '../helper/Theme';
-import AntDesign from 'react-native-vector-icons/AntDesign';
-import MaterialIcon from 'react-native-vector-icons/MaterialIcons';
+import AntDesign from '@expo/vector-icons/AntDesign';
+import MaterialIcon from '@expo/vector-icons/MaterialIcons';
 import {useSafeAreaInsets} from 'react-native-safe-area-context';
 import {
   Admin,
@@ -25,11 +25,8 @@ import {
   ScoreData,
   CopyrightCheckerResponse,
 } from '../type';
-import Feather from 'react-native-vector-icons/Feather';
-import Entypo from 'react-native-vector-icons/Entypo';
-import Ionicons from 'react-native-vector-icons/Ionicons';
-
-import FontAwesome from 'react-native-vector-icons/FontAwesome';
+import {Feather, Entypo, Ionicons} from '@expo/vector-icons';
+import FontAwesome from '@expo/vector-icons/FontAwesome';
 import {useDispatch, useSelector} from 'react-redux';
 import WebView from 'react-native-webview';
 import {baseHeight, height, hp, scalePerChar, wp} from '../helper/Metric';

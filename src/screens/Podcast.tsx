@@ -2,7 +2,7 @@ import {Image, StyleSheet, Text, View} from 'react-native';
 import {PodcastData, PodcastProps} from '../type';
 import {BUTTON_COLOR} from '../helper/Theme';
 import {FAB} from 'react-native-paper';
-import AntDesign from 'react-native-vector-icons/AntDesign';
+import AntDesign from '@expo/vector-icons/AntDesign';
 import {MaterialTabBar, Tabs} from 'react-native-collapsible-tab-view';
 import {hp, wp} from '../helper/Metric';
 import {useSafeAreaInsets} from 'react-native-safe-area-context';

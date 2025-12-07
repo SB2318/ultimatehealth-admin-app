@@ -5,10 +5,10 @@ import {
   BottomSheetFlatList,
   BottomSheetBackdrop,
 } from '@gorhom/bottom-sheet';
-import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
-import {HomeScreenCategoriesFlatlistProps} from '../type.ts';
-import {BUTTON_COLOR, ON_PRIMARY_COLOR} from '../helper/Theme.ts';
-import {hp} from '../helper/Metric.ts';
+import MaterialIcons from '@expo/vector-icons/MaterialIcons';
+import {HomeScreenCategoriesFlatlistProps} from '../type';
+import {BUTTON_COLOR, ON_PRIMARY_COLOR} from '../helper/Theme';
+import {hp} from '../helper/Metric';
 
 const CategoriesFlatlistModal = ({
   bottomSheetModalRef2,

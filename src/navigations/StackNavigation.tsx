@@ -10,7 +10,7 @@ import { RootStackParamList } from '../type';
 import TabNavigation from './TabNavigation';
 import ArticleReviewScreen from '../screens/ArticleReviewScreen';
 import { StyleSheet, TouchableOpacity } from 'react-native';
-import FontAwesome from 'react-native-vector-icons/FontAwesome';
+import FontAwesome from '@expo/vector-icons/FontAwesome';
 import EditProfile from '../screens/EditProfile';
 import LogoutScreen from '../screens/auth/LogoutScreen';
 import WorkHistoryScreen from '../screens/WorkHistoryScreen';

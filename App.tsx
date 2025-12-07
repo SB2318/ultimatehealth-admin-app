@@ -5,23 +5,23 @@
  * @format
  */
 
-import React, {useEffect} from 'react';
-import {StatusBar, useColorScheme, View} from 'react-native';
+import React, { useEffect } from 'react';
+import { StatusBar, useColorScheme, View } from 'react-native';
 //import {Colors} from 'react-native/Libraries/NewAppScreen';
 //import {PRIMARY_COLOR} from './src/helper/Theme';
-import {NavigationContainer} from '@react-navigation/native';
+import { NavigationContainer } from '@react-navigation/native';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { SafeAreaProvider } from 'react-native-safe-area-context';
+import { FirebaseProvider } from './FirebaseContext';
+import { SocketProvider } from './src/components/SocketContext';
 import StackNavigation from './src/navigations/StackNavigation';
-import {SafeAreaProvider} from 'react-native-safe-area-context';
-import {QueryClient, QueryClientProvider} from '@tanstack/react-query';
-import {FirebaseProvider} from './src/hooks/FirebaseContext';
-import {SocketProvider} from './src/components/SocketContext';
 //import TrackPlayer, {Capability} from 'react-native-track-player';
 //import PushNotification from 'react-native-push-notification';
+import { addEventListener } from '@react-native-community/netinfo';
 import messaging from '@react-native-firebase/messaging';
-import {addEventListener} from '@react-native-community/netinfo';
-import {setConnected} from './src/stores/NetworkSlice';
 import { useDispatch } from 'react-redux';
 import { ON_PRIMARY_COLOR } from './src/helper/Theme';
+import { setConnected } from './src/stores/NetworkSlice';
 
 const queryClient = new QueryClient();
 function App(): React.JSX.Element {

@@ -1,23 +1,22 @@
 import React, { useState } from 'react';
-import { View, ScrollView, StatusBar, Image, Text, TextInput, TouchableOpacity, Alert, useColorScheme, StyleSheet } from 'react-native';
+import { Alert, Image, ScrollView, StatusBar, StyleSheet, Text, TextInput, TouchableOpacity, useColorScheme, View } from 'react-native';
 //import { Colors } from 'react-native/Libraries/NewAppScreen';
-import { BUTTON_COLOR, ON_PRIMARY_COLOR, PRIMARY_COLOR } from '../../helper/Theme';
+import { BUTTON_COLOR, PRIMARY_COLOR } from '../../helper/Theme';
 //import { getMessaging, getToken } from 'firebase/messaging';
 
 import messaging from '@react-native-firebase/messaging';
-import {useSafeAreaInsets} from 'react-native-safe-area-context';
-import Icon from 'react-native-vector-icons/Ionicons';
-import EmailInputModal from '../../components/EmailInputModal';
 import { useMutation } from '@tanstack/react-query';
 import axios, { AxiosError } from 'axios';
-import { LOGIN_API, RESEND_VERIFICATION, SEND_OTP } from '../../helper/APIUtils';
-import { Admin, AuthData } from '../../type';
-import { storeItem, KEYS } from '../../helper/Utils';
-import { setUserId, setUserToken, setUserHandle } from '../../stores/UserSlice';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import Icon from 'react-native-vector-icons/Ionicons';
 import { useDispatch } from 'react-redux';
-import { wp, hp, fp } from '../../helper/Metric';
-import { getApp } from '@react-native-firebase/app';
-import { useFirebaseMessaging } from '../../hooks/FirebaseContext';
+import { useFirebaseMessaging } from '../../../FirebaseContext';
+import EmailInputModal from '../../components/EmailInputModal';
+import { LOGIN_API, RESEND_VERIFICATION, SEND_OTP } from '../../helper/APIUtils';
+import { fp, hp, wp } from '../../helper/Metric';
+import { KEYS, storeItem } from '../../helper/Utils';
+import { setUserHandle, setUserId, setUserToken } from '../../stores/UserSlice';
+import { Admin, AuthData } from '../../type';
 //import { getApp } from '@react-native-firebase/app';
 
 //import { useFirebaseMessaging } from '../../hooks/FirebaseContext';

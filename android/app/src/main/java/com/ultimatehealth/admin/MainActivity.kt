@@ -1,4 +1,4 @@
-package com.ultimatehealthadmin
+package com.ultimatehealth.admin
 import expo.modules.splashscreen.SplashScreenManager
 
 import android.os.Build

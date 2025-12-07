@@ -1,4 +1,4 @@
-package com.ultimatehealthadmin
+package com.ultimatehealth.admin
 
 import android.app.Application
 import android.content.res.Configuration

@@ -186,10 +186,10 @@ const ReviewCard = ({
               }}>
               <Text style={styles.viewText}>View</Text>
               <AntDesign
-                name="arrowright"
-                size={16}
+                name="arrow-right"
+                size={18}
                 color={PRIMARY_COLOR}
-                style={{marginTop: 2}}
+                style={{margin: 2}}
               />
             </TouchableOpacity>
 

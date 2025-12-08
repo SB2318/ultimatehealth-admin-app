@@ -28,7 +28,7 @@ import {
 } from '../helper/APIUtils';
 import {useCallback, useState} from 'react';
 import {useFocusEffect} from '@react-navigation/native';
-import {useSafeAreaInsets} from 'react-native-safe-area-context';
+import {SafeAreaView, useSafeAreaInsets} from 'react-native-safe-area-context';
 import ReviewCard from '../components/ReviewCard';
 import {hp, wp} from '../helper/Metric';
 import FilterModal from '../components/FilterModal';
@@ -573,7 +573,7 @@ export default function HomeScreen({navigation}: ArticleProps) {
         prev.map(item => (item.id === data.id ? data : item)),
       );
       Snackbar.show({
-        text: 'Tag added',
+        text: 'Tag updated',
         duration: Snackbar.LENGTH_SHORT,
       });
     },
@@ -620,10 +620,11 @@ export default function HomeScreen({navigation}: ArticleProps) {
   }
 
   return (
-    <View style={styles.container}>
-      <View style={[styles.innerContainer, {paddingTop: insets.top}]}>
+   <SafeAreaView style={styles.container}>
+    
+      <View style={[styles.innerContainer]}>
         <Tabs.Container
-          // renderHeader={renderHeader}
+         //  renderHeader={renderHeader}
           initialIndex={0}
           renderTabBar={renderTabBar}
           containerStyle={styles.tabsContainer}>
@@ -700,7 +701,7 @@ export default function HomeScreen({navigation}: ArticleProps) {
           </Tabs.Tab>
 
           {/* Available Improvements articles */}
-          <Tabs.Tab name="Improvements">
+          <Tabs.Tab name="Revisions">
             <Improvement handleNav={handleImprovementReviewNav} />
           </Tabs.Tab>
         </Tabs.Container>
@@ -747,17 +748,21 @@ export default function HomeScreen({navigation}: ArticleProps) {
           }}
         />
       </View>
-    </View>
+  
+   </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#0CAFFF',
+    backgroundColor: ON_PRIMARY_COLOR,
+    
+   
   },
   innerContainer: {
     flex: 1,
+    padding: hp(0.2)
   },
   tabsContainer: {
     backgroundColor: 'white',
@@ -772,7 +777,7 @@ const styles = StyleSheet.create({
   },
   scrollViewContentContainer: {
     paddingHorizontal: 16,
-    marginTop: 16,
+    marginTop: 6,
     backgroundColor: ON_PRIMARY_COLOR,
   },
   flatListContentContainer: {
@@ -827,8 +832,8 @@ const styles = StyleSheet.create({
   },
   fab: {
     position: 'absolute',
-    right: 20,
-    bottom: 60,
+    right: hp(4),
+    bottom: hp(10),
     borderRadius: hp(20),
     backgroundColor: BUTTON_COLOR,
   },

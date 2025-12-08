@@ -141,11 +141,12 @@ const styles = StyleSheet.create({
     },
  
  image: {
-     height: 160,
-     width: 160,
-     borderRadius: 80,
-     resizeMode: 'cover',
-     marginBottom: hp(4),
+      height: 160,
+    width: 260,
+    //borderRadius: 80,
+    resizeMode: 'cover',
+    marginTop: hp(10),
+    marginBottom: hp(4)
    },
 
    message: {

@@ -9,6 +9,7 @@ import axios from 'axios';
 
 import { useSelector } from 'react-redux';
 import { PROD_URL } from '../helper/APIUtils';
+import { hp } from '../helper/Metric';
 
 const TabBar = ({state, descriptors, navigation}: any) => {
   const isDarkMode = useColorScheme() === 'dark';
@@ -194,7 +195,7 @@ const styles = StyleSheet.create({
     bottom: 0,
     borderTopLeftRadius: 10,
     borderTopRightRadius: 10,
-    paddingBottom: 2,
+    paddingBottom: hp(7),
     backgroundColor: 'red',
     //borderWidth: 0.19,
     zIndex: 0,

@@ -29,7 +29,7 @@ import {Feather, Entypo, Ionicons} from '@expo/vector-icons';
 import FontAwesome from '@expo/vector-icons/FontAwesome';
 import {useDispatch, useSelector} from 'react-redux';
 import WebView from 'react-native-webview';
-import {baseHeight, height, hp, scalePerChar, wp} from '../helper/Metric';
+import {height, hp, wp} from '../helper/Metric';
 import {
   CHECK_GRAMMAR,
   CHECK_PLAGIARISM,

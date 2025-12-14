@@ -133,7 +133,7 @@ export default function NewPasswordScreen({
         onPress={() => {
           navigation.navigate('LoginScreen');
         }}>
-        <AntIcon name="arrowleft" size={35} color="white" />
+        <AntIcon name="arrow-left" size={35} color="white" />
       </TouchableOpacity>
 
       <View style={styles.innerContainer}>

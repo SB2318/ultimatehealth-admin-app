@@ -20,10 +20,19 @@ import StackNavigation from './src/navigations/StackNavigation';
 import { addEventListener } from '@react-native-community/netinfo';
 import messaging from '@react-native-firebase/messaging';
 import { useDispatch } from 'react-redux';
+import config from './tamagui.config';
 import { ON_PRIMARY_COLOR } from './src/helper/Theme';
 import { setConnected } from './src/stores/NetworkSlice';
+import { TamaguiProvider } from 'tamagui';
 
 const queryClient = new QueryClient();
+
+// type Conf = typeof config;
+
+// declare module '@tamagui/core' {
+//   interface TamaguiCustomConfig extends Conf {}
+// }
+
 function App(): React.JSX.Element {
   const isDarkMode = useColorScheme() === 'dark';
   const backgroundStyle = {
@@ -141,6 +150,7 @@ function App(): React.JSX.Element {
   }, [dispatch]);
 
   return (
+     <TamaguiProvider config={config}>
     <QueryClientProvider client={queryClient}>
       <SocketProvider>
         <FirebaseProvider>
@@ -162,6 +172,7 @@ function App(): React.JSX.Element {
         </FirebaseProvider>
       </SocketProvider>
     </QueryClientProvider>
+    </TamaguiProvider>
   );
 }
 

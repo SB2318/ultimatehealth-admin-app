@@ -338,9 +338,7 @@ export default function LoginScreen({navigation}){
               <Text style={styles.inputLabelTxt}>Email</Text>
               {emailMessage ? (
                   <Text style={{color: 'red',}}>Please Enter a Valid Email</Text>
-                ) : (
-                  <Text style={{color: 'red'}} />
-                )}
+                ) : null}
               <View style={styles.input}>
                 
                 <TextInput
@@ -366,9 +364,7 @@ export default function LoginScreen({navigation}){
                   <Text style={{color: 'red'}}>
                     Password must be 6 Characters Longs
                   </Text>
-                ) : (
-                  <Text style={{color: 'red'}} />
-                )}
+                ) : null}
               <View style={styles.input}>
                 <View style={styles.passwordContainer}>
                   <TextInput
@@ -549,6 +545,7 @@ export default function LoginScreen({navigation}){
     inputLabel: {
       fontSize: fp(5),
       fontWeight: '600',
+      lineHeight: hp(3),
       color: '#ffffff',
       marginBottom: hp(1),
     },
@@ -572,7 +569,7 @@ export default function LoginScreen({navigation}){
     },
     forgotPasswordContainer: {
       alignItems: 'flex-start',
-      marginVertical: 2,
+      marginVertical: 1,
     },
     forgotPasswordText: {color: '	#000000', fontWeight: '700', marginBottom: 6},
     loginButtonContainer: {marginVertical: hp(2)},

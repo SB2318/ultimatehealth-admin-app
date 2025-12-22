@@ -105,7 +105,7 @@ export default function HomeScreen({navigation}: ArticleProps) {
     // console.log("Article data", categoryData.length);
     setArticleCategories(categoryData);
     dispatch(setTags({tags: categoryData}));
-  },[dispatch, selectedTags]);
+  }, [dispatch, selectedTags]);
 
   useEffect(() => {
     getAllCategories();
@@ -113,14 +113,14 @@ export default function HomeScreen({navigation}: ArticleProps) {
     return () => {};
   }, [getAllCategories]);
 
-  const onAvailablePageEnd = ()=>{
-    if(availablePage < totalAvailablePage){
+  const onAvailablePageEnd = () => {
+    if (availablePage < totalAvailablePage) {
       setAvailablePage(prev => prev + 1);
     }
   };
 
-  const onProgressPageEnd = ()=>{
-    if(progressPage < totalProgressPage){
+  const onProgressPageEnd = () => {
+    if (progressPage < totalProgressPage) {
       setProgressPage(prev => prev + 1);
     }
   };
@@ -132,23 +132,25 @@ export default function HomeScreen({navigation}: ArticleProps) {
   } = useQuery({
     queryKey: ['get-available-articles', availablePage],
     queryFn: async () => {
-      const response = await axios.get(`${GET_AVILABLE_ARTICLES_API}?page=${availablePage}`);
+      const response = await axios.get(
+        `${GET_AVILABLE_ARTICLES_API}?page=${availablePage}`,
+      );
 
-      if(Number(availablePage) === 1){
-       if(response.data.totalPages){
-         const pages = response.data.totalPages;
-         setTotalAvailablePage(pages);
-       }
-       if(response.data.articles){
-        updateAvailableArticles(response.data.articles);
-       }
-      }else{
+      if (Number(availablePage) === 1) {
+        if (response.data.totalPages) {
+          const pages = response.data.totalPages;
+          setTotalAvailablePage(pages);
+        }
+        if (response.data.articles) {
+          updateAvailableArticles(response.data.articles);
+        }
+      } else {
         let d = response.data.articles as ArticleData[];
         updateAvailableArticles([...filteredAvailableArticles, ...d]);
       }
       return response.data.articles as ArticleData[];
     },
-    enabled : !!user_token,
+    enabled: !!user_token,
   });
 
   const {
@@ -162,21 +164,21 @@ export default function HomeScreen({navigation}: ArticleProps) {
         `${GET_INPROGRESS_ARTICLES_API}/${user_id}?page=${progressPage}`,
       );
 
-      if(Number(progressPage) === 1){
-       if(response.data.totalPages){
-         const pages = response.data.totalPages;
-         setTotalProgressPage(pages);
-       }
-       if(response.data.articles){
-        updateProgressArticles(response.data.articles);
-       }
-      }else{
+      if (Number(progressPage) === 1) {
+        if (response.data.totalPages) {
+          const pages = response.data.totalPages;
+          setTotalProgressPage(pages);
+        }
+        if (response.data.articles) {
+          updateProgressArticles(response.data.articles);
+        }
+      } else {
         let d = response.data.articles as ArticleData[];
         updateProgressArticles([...filteredProgressArticles, ...d]);
       }
       return response.data.articles as ArticleData[];
     },
-    enabled : !!user_token,
+    enabled: !!user_token,
   });
 
   const pickArticleMutation = useMutation({
@@ -481,11 +483,10 @@ export default function HomeScreen({navigation}: ArticleProps) {
 
   const onArticleRefresh = (num: number) => {
     setArticleRefreshing(true);
-    if(num === 1){
+    if (num === 1) {
       setAvailablePage(1);
       availableAticleRefetch();
-    }else{
-
+    } else {
       refetchProgressArticles();
     }
     setArticleRefreshing(false);
@@ -600,12 +601,20 @@ export default function HomeScreen({navigation}: ArticleProps) {
         duration: Snackbar.LENGTH_SHORT,
       });
     },
-    onError: error => {
-      console.log(error);
-      Snackbar.show({
-        text: error.message,
-        duration: Snackbar.LENGTH_SHORT,
-      });
+    onError: (error: any) => {
+      console.log('error code', error.error);
+
+      if (error.status === 500) {
+        Snackbar.show({
+          text: 'Deletion failed: this tag is currently linked to one or more articles',
+          duration: Snackbar.LENGTH_SHORT,
+        });
+      } else {
+        Snackbar.show({
+          text: error.message,
+          duration: Snackbar.LENGTH_SHORT,
+        });
+      }
     },
   });
 
@@ -620,18 +629,17 @@ export default function HomeScreen({navigation}: ArticleProps) {
   }
 
   return (
-   <SafeAreaView style={styles.container}>
-    
+    <SafeAreaView style={styles.container}>
       <View style={[styles.innerContainer]}>
         <Tabs.Container
-         //  renderHeader={renderHeader}
+          //  renderHeader={renderHeader}
           initialIndex={0}
           renderTabBar={renderTabBar}
           containerStyle={styles.tabsContainer}>
           {/* Tab 1 */}
 
           <Tabs.Tab name="Tags">
-            <View style={{flex: 1}}>
+            <View style={{flex: 1, marginBottom: hp(5)}}>
               <View style={styles.reasonTabContainer}>
                 <TouchableOpacity
                   style={styles.addButton}
@@ -695,8 +703,8 @@ export default function HomeScreen({navigation}: ArticleProps) {
               refreshing={articleRefreshing}
               onRefresh={onArticleRefresh}
               renderItem={renderItem}
-              onAvailablePageEnd ={onAvailablePageEnd}
-              onProgressPageEnd = {onProgressPageEnd}
+              onAvailablePageEnd={onAvailablePageEnd}
+              onProgressPageEnd={onProgressPageEnd}
             />
           </Tabs.Tab>
 
@@ -748,8 +756,7 @@ export default function HomeScreen({navigation}: ArticleProps) {
           }}
         />
       </View>
-  
-   </SafeAreaView>
+    </SafeAreaView>
   );
 }
 
@@ -757,12 +764,10 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: ON_PRIMARY_COLOR,
-    
-   
   },
   innerContainer: {
     flex: 1,
-    padding: hp(0.2)
+    padding: hp(0.2),
   },
   tabsContainer: {
     backgroundColor: 'white',
@@ -800,9 +805,10 @@ const styles = StyleSheet.create({
   },
   labelStyle: {
     fontWeight: '600',
-    fontSize: 14,
+    fontSize: wp(3.5),
     color: 'black',
     textTransform: 'capitalize',
+
   },
   contentContainerStyle: {
     width: '100%',

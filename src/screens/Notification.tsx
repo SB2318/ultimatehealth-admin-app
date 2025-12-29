@@ -1,7 +1,6 @@
 import {
   Alert,
   FlatList,
-  SafeAreaView,
   StyleSheet,
   Text,
   View,
@@ -16,6 +15,7 @@ import React, {useEffect, useState} from 'react';
 import axios from 'axios';
 import Loader from '../components/Loader';
 import { PROD_URL } from '../helper/APIUtils';
+import { SafeAreaView } from 'react-native-safe-area-context';
 
 export default function Notification({navigation}: NotificationProps) {
   const {user_token} = useSelector((state: any) => state.user);

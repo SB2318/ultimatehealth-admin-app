@@ -1,6 +1,7 @@
 import { createTamagui, createTokens, TamaguiConfig } from 'tamagui';
 import { themes } from '@tamagui/themes';
 import { createAnimations } from '@tamagui/animations-react-native'
+import { ON_PRIMARY_COLOR } from './src/helper/Theme';
 
 
 const animations = createAnimations({
@@ -47,7 +48,7 @@ const tokens = createTokens({
     blue10: '#007AFF',
     gray3: '#F5F5F5',
     borderColor: '#99CCFF',
-    background: '#FFFFFF',
+    background: ON_PRIMARY_COLOR,
  
   },
 

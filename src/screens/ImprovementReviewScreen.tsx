@@ -8,12 +8,14 @@ import {
   ScrollView,
   FlatList,
   Alert,
+  Dimensions,
 } from 'react-native';
 import React, {useEffect, useMemo, useRef, useState} from 'react';
 import {useMutation, useQuery} from '@tanstack/react-query';
 import {BUTTON_COLOR, ON_PRIMARY_COLOR, PRIMARY_COLOR} from '../helper/Theme';
 import AntDesign from '@expo/vector-icons/AntDesign';
 import MaterialIcon from '@expo/vector-icons/MaterialIcons';
+import AutoHeightWebView from '@brown-bear/react-native-autoheight-webview';
 import {useSafeAreaInsets} from 'react-native-safe-area-context';
 import {
   Admin,
@@ -89,8 +91,8 @@ const ImprovementReviewScreen = ({
     source_title: '',
   });
 
-  console.log("Improvement record id", recordId);
-  console.log("Article record Id", articleRecordId);
+  console.log('Improvement record id', recordId);
+  console.log('Article record Id', articleRecordId);
   const [copyRightResults, setCopyRightResults] = useState<
     CopyrightCheckerResponse[]
   >([]);
@@ -463,7 +465,10 @@ const ImprovementReviewScreen = ({
     let content = htmlContent ?? '';
     const scaleFactor = Math.min(content.length * scalePerChar, maxMultiplier);
     const scaledHeight = height * (baseMultiplier + scaleFactor);
-    const cappedHeight = Math.min(content.length + 120, Math.min(scaledHeight, height * 6));
+    const cappedHeight = Math.min(
+      content.length + 120,
+      Math.min(scaledHeight, height * 6),
+    );
     return cappedHeight;
   }, [htmlContent, scalePerChar]);
 
@@ -629,7 +634,7 @@ const ImprovementReviewScreen = ({
             Author Name: {improvement?.article?.authorName}
           </Text>
           <View style={styles.descriptionContainer}>
-            <WebView
+            {/* <WebView
               style={{
                 padding: 7,
                 //width: '99%',
@@ -644,6 +649,26 @@ const ImprovementReviewScreen = ({
               injectedJavaScript={cssCode}
               source={{html: htmlContent ? htmlContent : noDataHtml}}
               textZoom={100}
+            /> */}
+
+            <AutoHeightWebView
+              style={{
+                width: Dimensions.get('window').width - 15,
+                marginTop: 35,
+              }}
+              customStyle={`* { font-family: 'Times New Roman'; } p { font-size: 16px; }`}
+              onSizeUpdated={size => console.log(size.height)}
+              files={[
+                {
+                  href: 'cssfileaddress',
+                  type: 'text/css',
+                  rel: 'stylesheet',
+                },
+              ]}
+              originWhitelist={['*']}
+              source={{html: htmlContent ?? noDataHtml}}
+              scalesPageToFit={true}
+              viewportContent={'width=device-width, user-scalable=no'}
             />
           </View>
         </View>

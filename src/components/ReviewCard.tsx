@@ -67,7 +67,7 @@ const ReviewCard = ({
       action: () => {
         setDiscardModalVisible(true);
         //onclick(item, 1);
-        handleAnimation();
+      //  handleAnimation();
       },
       icon: 'times-circle',
       color: 'red',
@@ -79,8 +79,9 @@ const ReviewCard = ({
       name: 'Discard Article',
       action: () => {
         setDiscardModalVisible(true);
+      //  console.log("discard modal click", discardModalVisible);
         //onclick(item, 1);
-        handleAnimation();
+       // handleAnimation();
       },
       icon: 'ban',
       color: 'red',
@@ -115,6 +116,7 @@ const ReviewCard = ({
         width.value = withTiming(0, {duration: 250});
         yValue.value = withTiming(100, {duration: 250});
         setSelectedCardId('');
+        onNavigate(item);
         /*
           navigation.navigate('ArticleScreen', {
             articleId: Number(item._id),
@@ -192,21 +194,22 @@ const ReviewCard = ({
                 style={{margin: 2}}
               />
             </TouchableOpacity>
-
-            <DiscardReasonModal
-              visible={discardModalVisible}
-              callback={(reason: string) => {
-                onclick(item, 1, reason);
-                setDiscardModalVisible(false);
-              }}
-              dismiss={() => {
-                setDiscardModalVisible(false);
-              }}
-            />
           </View>
 
           {/* Like, Save, and Comment Actions */}
         </View>
+
+        <DiscardReasonModal
+          visible={discardModalVisible}
+          callback={(reason: string) => {
+            console.log("discard modal click-", discardModalVisible);
+            onclick(item, 1, reason);
+            setDiscardModalVisible(false);
+          }}
+          dismiss={() => {
+            setDiscardModalVisible(false);
+          }}
+        />
       </View>
     </Pressable>
   );

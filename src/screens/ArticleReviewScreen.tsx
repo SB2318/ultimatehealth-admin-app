@@ -1,14 +1,14 @@
 import {
   Image,
   StyleSheet,
-  Text,
   TouchableOpacity,
   View,
   ScrollView,
   FlatList,
   Alert,
+  Dimensions,
 } from 'react-native';
-import React, {useEffect, useMemo, useRef, useState} from 'react';
+import React, {useEffect, useRef, useState} from 'react';
 import {useMutation, useQuery} from '@tanstack/react-query';
 import {BUTTON_COLOR, ON_PRIMARY_COLOR, PRIMARY_COLOR} from '../helper/Theme';
 import AntDesign from '@expo/vector-icons/AntDesign';
@@ -25,11 +25,10 @@ import {
 
 import {Feather, Entypo, Ionicons} from '@expo/vector-icons';
 
-
 import FontAwesome from '@expo/vector-icons/FontAwesome';
 import {useDispatch, useSelector} from 'react-redux';
-import WebView from 'react-native-webview';
-import {height, hp, wp} from '../helper/Metric';
+import AutoHeightWebView from '@brown-bear/react-native-autoheight-webview';
+import {hp, wp} from '../helper/Metric';
 import {
   CHECK_GRAMMAR,
   CHECK_PLAGIARISM,
@@ -57,13 +56,16 @@ import ScorecardModal from '../components/ScoreCardModal';
 import PlagiarismModal from '../components/PlagiarismModal';
 import CopyrightCheckerModal from '../components/CopyrightCheckerModal';
 import Snackbar from 'react-native-snackbar';
+import {SafeAreaView} from 'react-native-safe-area-context';
+import {YStack, Text} from 'tamagui';
 
 const ReviewScreen = ({route}: ReviewScreenProp) => {
   const {articleId, destination, recordId} = route.params;
   const {user_id} = useSelector((state: any) => state.user);
-  const RichText = useRef();
+  const RichText = useRef(null);
   const [feedback, setFeedback] = useState('');
-  const [webviewHeight, setWebViewHeight] = useState(0);
+  const height = Dimensions.get('screen').height;
+  const [webviewHeight, setWebViewHeight] = useState(height);
   const [discardModalVisible, setDiscardModalVisible] = useState(false);
   const [grammarModalVisible, setGrammarModalVisible] = useState(false);
   const [plagModalVisible, setPlagModalVisible] = useState(false);
@@ -96,7 +98,7 @@ const ReviewScreen = ({route}: ReviewScreenProp) => {
 
   const flatListRef = useRef<FlatList<Comment>>(null);
 
-  const webViewRef = useRef<WebView>(null);
+  //const webViewRef = useRef<WebView>(null);
 
   function handleHeightChange(_height) {}
 
@@ -141,19 +143,18 @@ const ReviewScreen = ({route}: ReviewScreenProp) => {
               try {
                 setCopyrightProgressVisible(true);
 
-
                 const data = await checkImageCopyright(article.imageUtils);
-                console.log("DSAE", data)
+                console.log('DSAE', data);
                 setCopyRightResults(data);
-              
+
                 setCopyrightProgressVisible(false);
                 setCopyrightModalVisible(true);
               } catch (error) {
                 console.log('Error during copyright check:', error);
                 Snackbar.show({
-                  text:"Network error occurs during copyright check, try again!",
+                  text: 'Network error occurs during copyright check, try again!',
                   duration: Snackbar.LENGTH_SHORT,
-                })
+                });
                 setCopyrightProgressVisible(false);
               }
             },
@@ -231,7 +232,7 @@ const ReviewScreen = ({route}: ReviewScreenProp) => {
     // Listen for new comments
     socket.on('new-feedback', data => {
       console.log('new comment loaded', data);
-      setFeedback("");
+      setFeedback('');
       setComments(prevComments => {
         const newComments = [data, ...prevComments];
         // Scroll to the first index after adding the new comment
@@ -348,30 +349,6 @@ const ReviewScreen = ({route}: ReviewScreenProp) => {
       Alert.alert(err.message);
     },
   });
-  useEffect(() => {
-    if (htmlContent) {
-      /*
-      let source = article?.content?.endsWith('.html')
-        ? {uri: `${GET_STORAGE_DATA}/${article.content}`}
-        : {html: article?.content};
-
-      const fetchContentLength = async () => {
-        const length = await getContentLength(source);
-        console.log('Content Length:', length);
-
-        //setWebViewHeight(length * 1.2); //Add some buffer to the height calculation
-        setWebViewHeight(length);
-      };
-
-      fetchContentLength();
-      */
-      setWebViewHeight(htmlContent.length);
-    } else {
-      setWebViewHeight(noDataHtml.length);
-    }
-  }, [htmlContent]);
-
-  // console.log('author id', authorId);
 
   const cssCode = `
       const style = document.createElement('style');
@@ -406,23 +383,30 @@ const ReviewScreen = ({route}: ReviewScreenProp) => {
   };
   */
 
-  // console.log("htmlContent", htmlContent);
+  //console.log("htmlContent", htmlContent);
 
-  const scalePerChar = 1 / 1000;
-    const maxMultiplier = 4.3;
-    const baseMultiplier = 0.8;
-  
-    const minHeight = useMemo(() => {
-      let content = htmlContent ?? "";
-      const scaleFactor = Math.min(content.length * scalePerChar, maxMultiplier);
-      //console.log("ScaleFactor", scaleFactor);
-      //console.log("Content length", content.length);
-      const scaledHeight = height * (baseMultiplier + scaleFactor);
-     // console.log("ScaledHeight", scaledHeight);
-      const cappedHeight = Math.min(content.length+120, Math.min(scaledHeight, height * 6));
-     // console.log("CappedHeight", cappedHeight);
-      return cappedHeight;
-    }, [htmlContent, scalePerChar]);
+  // const scalePerChar = 1 / 1000;
+  // const maxMultiplier = 4.3;
+  // const baseMultiplier = 0.8;
+
+  // const minHeight = useMemo(() => {
+  //   let content = htmlContent ?? "";
+  //   const scaleFactor = Math.min(content.length * scalePerChar, maxMultiplier);
+
+  //   const scaledHeight = height * (baseMultiplier + scaleFactor);
+
+  //   const cappedHeight = Math.min(content.length+120, Math.min(scaledHeight, height * 6));
+  //   console.log("CappedHeight", cappedHeight);
+  //   return cappedHeight;
+  // }, [htmlContent, scalePerChar]);
+
+  const injectedJS = `
+  setTimeout(() => {
+    const height = document.documentElement.scrollHeight;
+    window.ReactNativeWebView.postMessage(height);
+  }, 50);
+  true;
+`;
 
   if (
     copyrightProgressVisible ||
@@ -435,7 +419,7 @@ const ReviewScreen = ({route}: ReviewScreenProp) => {
   }
 
   return (
-    <View style={styles.container}>
+    <SafeAreaView style={styles.container}>
       <ScrollView
         style={styles.scrollView}
         contentContainerStyle={styles.scrollViewContent}>
@@ -556,136 +540,188 @@ const ReviewScreen = ({route}: ReviewScreenProp) => {
             Author Name: {article?.authorName}
           </Text>
           <View style={styles.descriptionContainer}>
-            <WebView
-              style={{
-                padding: 7,
-                //width: '99%',
-                minHeight:minHeight,
-                // flex:7,
-                justifyContent: 'center',
-                alignItems: 'center',
-              }}
+            {
+              /**
+               * <WebView
               ref={webViewRef}
               originWhitelist={['*']}
-              injectedJavaScript={cssCode}
-              source={{html: htmlContent ? htmlContent : noDataHtml}}
-              textZoom={100}
+              source={{html: htmlContent ?? noDataHtml}}
+              injectedJavaScript={injectedJS}
+              onMessage={event => {
+                setWebViewHeight(Number(event.nativeEvent.data));
+              }}
+              style={{
+                height: webviewHeight,
+                backgroundColor: 'transparent',
+              }}
+              scrollEnabled={false}
+            />
+               */
+            }
+
+            <AutoHeightWebView
+              style={{
+                width: Dimensions.get('window').width - 15,
+                marginTop: 35,
+              }}
+              
+              customStyle={`* { font-family: 'Times New Roman'; } p { font-size: 16px; }`}
+              onSizeUpdated={size => console.log(size.height)}
+              files={[
+                {
+                  href: 'cssfileaddress',
+                  type: 'text/css',
+                  rel: 'stylesheet',
+                },
+              ]}
+              originWhitelist={['*']}
+              source={{html: htmlContent ?? noDataHtml}}
+              scalesPageToFit={true}
+              viewportContent={'width=device-width, user-scalable=no'}
             />
           </View>
         </View>
         {destination !== StatusEnum.DISCARDED &&
-          destination !== StatusEnum.UNASSIGNED &&
-          destination !== StatusEnum.PUBLISHED &&
-          article?.reviewer_id !== null && (
-            <View style={styles.inputContainer}>
-              <RichToolbar
-                style={[styles.richBar]}
-                editor={RichText}
-                disabled={false}
-                iconTint={'white'}
-                selectedIconTint={'black'}
-                disabledIconTint={'purple'}
-                iconSize={30}
-                actions={[
-                  actions.setBold,
-                  actions.setItalic,
-                  actions.setUnderline,
-                  actions.setStrikethrough,
-                  actions.heading1,
-                  actions.heading2,
-                  actions.heading3,
-                  actions.heading4,
-                  actions.heading5,
-                  actions.heading6,
-                  actions.alignLeft,
-                  actions.alignCenter,
-                  actions.alignRight,
-                  actions.insertBulletsList,
-                  actions.insertOrderedList,
-                  actions.insertLink,
-                  actions.table,
-                  actions.undo,
-                  actions.redo,
-                  actions.blockquote,
-                ]}
-                iconMap={{
-                  [actions.setStrikethrough]: ({tintColor}) => (
-                    <FontAwesome
-                      name="strikethrough"
-                      color={tintColor}
-                      size={26}
-                    />
-                  ),
-                  [actions.alignLeft]: ({tintColor}) => (
-                    <Feather name="align-left" color={tintColor} size={35} />
-                  ),
-                  [actions.alignCenter]: ({tintColor}) => (
-                    <Feather name="align-center" color={tintColor} size={35} />
-                  ),
-                  [actions.alignRight]: ({tintColor}) => (
-                    <Feather name="align-right" color={tintColor} size={35} />
-                  ),
-                  [actions.undo]: ({tintColor}) => (
-                    <Ionicons name="arrow-undo" color={tintColor} size={35} />
-                  ),
-                  [actions.redo]: ({tintColor}) => (
-                    <Ionicons name="arrow-redo" color={tintColor} size={35} />
-                  ),
-                  [actions.heading1]: ({tintColor}) => (
-                    <Text style={[styles.tib, {color: tintColor}]}>H1</Text>
-                  ),
-                  [actions.heading2]: ({tintColor}) => (
-                    <Text style={[styles.tib, {color: tintColor}]}>H2</Text>
-                  ),
-                  [actions.heading3]: ({tintColor}) => (
-                    <Text style={[styles.tib, {color: tintColor}]}>H3</Text>
-                  ),
-                  [actions.heading4]: ({tintColor}) => (
-                    <Text style={[styles.tib, {color: tintColor}]}>H4</Text>
-                  ),
-                  [actions.heading5]: ({tintColor}) => (
-                    <Text style={[styles.tib, {color: tintColor}]}>H5</Text>
-                  ),
-                  [actions.heading6]: ({tintColor}) => (
-                    <Text style={[styles.tib, {color: tintColor}]}>H6</Text>
-                  ),
-                  [actions.blockquote]: ({tintColor}) => (
-                    <Entypo name="quote" color={tintColor} size={35} />
-                  ),
-                }}
-              />
-              <RichEditor
-                disabled={false}
-                containerStyle={styles.editor}
-                ref={RichText}
-                style={styles.rich}
-                placeholder={'Start conversation with admin'}
-                initialContentHTML={feedback}
-                onChange={text => setFeedback(text)}
-                editorInitializedCallback={editorInitializedCallback}
-                onHeightChange={handleHeightChange}
-                initialHeight={300}
-              />
+        destination !== StatusEnum.UNASSIGNED &&
+        destination !== StatusEnum.PUBLISHED &&
+        article?.reviewer_id !== null ? (
+          <View style={styles.inputContainer}>
+            <RichToolbar
+              style={[styles.richBar]}
+              editor={RichText}
+              disabled={false}
+              iconTint={'white'}
+              selectedIconTint={'black'}
+              disabledIconTint={'purple'}
+              iconSize={30}
+              actions={[
+                actions.setBold,
+                actions.setItalic,
+                actions.setUnderline,
+                actions.setStrikethrough,
+                actions.heading1,
+                actions.heading2,
+                actions.heading3,
+                actions.heading4,
+                actions.heading5,
+                actions.heading6,
+                actions.alignLeft,
+                actions.alignCenter,
+                actions.alignRight,
+                actions.insertBulletsList,
+                actions.insertOrderedList,
+                actions.insertLink,
+                actions.table,
+                actions.undo,
+                actions.redo,
+                actions.blockquote,
+              ]}
+              iconMap={{
+                [actions.setStrikethrough]: ({tintColor}) => (
+                  <FontAwesome
+                    name="strikethrough"
+                    color={tintColor}
+                    size={26}
+                  />
+                ),
+                [actions.alignLeft]: ({tintColor}) => (
+                  <Feather name="align-left" color={tintColor} size={35} />
+                ),
+                [actions.alignCenter]: ({tintColor}) => (
+                  <Feather name="align-center" color={tintColor} size={35} />
+                ),
+                [actions.alignRight]: ({tintColor}) => (
+                  <Feather name="align-right" color={tintColor} size={35} />
+                ),
+                [actions.undo]: ({tintColor}) => (
+                  <Ionicons name="arrow-undo" color={tintColor} size={35} />
+                ),
+                [actions.redo]: ({tintColor}) => (
+                  <Ionicons name="arrow-redo" color={tintColor} size={35} />
+                ),
+                [actions.heading1]: ({tintColor}) => (
+                  <Text style={[styles.tib, {color: tintColor}]}>H1</Text>
+                ),
+                [actions.heading2]: ({tintColor}) => (
+                  <Text style={[styles.tib, {color: tintColor}]}>H2</Text>
+                ),
+                [actions.heading3]: ({tintColor}) => (
+                  <Text style={[styles.tib, {color: tintColor}]}>H3</Text>
+                ),
+                [actions.heading4]: ({tintColor}) => (
+                  <Text style={[styles.tib, {color: tintColor}]}>H4</Text>
+                ),
+                [actions.heading5]: ({tintColor}) => (
+                  <Text style={[styles.tib, {color: tintColor}]}>H5</Text>
+                ),
+                [actions.heading6]: ({tintColor}) => (
+                  <Text style={[styles.tib, {color: tintColor}]}>H6</Text>
+                ),
+                [actions.blockquote]: ({tintColor}) => (
+                  <Entypo name="quote" color={tintColor} size={35} />
+                ),
+              }}
+            />
+            <RichEditor
+              disabled={false}
+              containerStyle={styles.editor}
+              ref={RichText}
+              style={styles.rich}
+              placeholder={'Start conversation with admin'}
+              initialContentHTML={feedback}
+              onChange={text => setFeedback(text)}
+              editorInitializedCallback={editorInitializedCallback}
+              onHeightChange={handleHeightChange}
+              initialHeight={300}
+            />
 
-              {feedback.length > 0 && (
-                <TouchableOpacity
-                  style={styles.submitButton}
-                  onPress={() => {
-                    // emit socket event for feedback
-                    const ans = createFeebackHTMLStructure(feedback);
-                    socket.emit('add-review-comment', {
-                      articleId: article?._id,
-                      reviewer_id: article?.reviewer_id,
-                      feedback: ans,
-                      isReview: true,
-                      isNote: false,
-                    });
-                  }}>
-                  <Text style={styles.submitButtonText}>Post</Text>
-                </TouchableOpacity>
-              )}
-            </View>
-          )}
+            {feedback.length > 0 && (
+              <TouchableOpacity
+                style={styles.submitButton}
+                onPress={() => {
+                  // emit socket event for feedback
+                  const ans = createFeebackHTMLStructure(feedback);
+                  socket.emit('add-review-comment', {
+                    articleId: article?._id,
+                    reviewer_id: article?.reviewer_id,
+                    feedback: ans,
+                    isReview: true,
+                    isNote: false,
+                  });
+                }}>
+                <Text style={styles.submitButtonText}>Post</Text>
+              </TouchableOpacity>
+            )}
+          </View>
+        ) : (
+          <YStack
+            alignItems="center"
+            justifyContent="center"
+            padding="$4"
+            borderRadius="$4"
+            backgroundColor="$gray2"
+            borderWidth={1}
+            borderColor="$gray5"
+            margin="$3">
+            <Text
+              fontSize="$5"
+              fontWeight="600"
+              color="$gray11"
+              textAlign="center">
+              Select this article to start the conversation
+            </Text>
+
+            <Text
+              marginTop="$2"
+              fontSize="$3"
+              color="$gray9"
+              textAlign="center"
+              lineHeight="$4">
+              Review grammar aur plagiarism across our platform, aur verify
+              image copyright compliance.
+            </Text>
+          </YStack>
+        )}
 
         {comments && destination !== StatusEnum.PUBLISHED && (
           <View style={{padding: wp(4), marginTop: hp(4.5)}}>
@@ -727,7 +763,7 @@ const ReviewScreen = ({route}: ReviewScreenProp) => {
           data={copyRightResults}
         />
       </ScrollView>
-    </View>
+    </SafeAreaView>
   );
 };
 export default ReviewScreen;

@@ -1,104 +1,75 @@
-import {View, Text, StyleSheet, Modal, TouchableOpacity} from 'react-native';
-import {ON_PRIMARY_COLOR, PRIMARY_COLOR} from '../helper/Theme';
-import {hp, wp} from '../helper/Metric';
-import Ionicon from '@expo/vector-icons/Ionicons';
-import { useState } from 'react';
-import Editor from './Editor';
+import React from 'react'
+import { Sheet, YStack, XStack, Text, Button, Separator,  } from 'tamagui'
+import { Ionicons } from '@expo/vector-icons'
+import Editor from './Editor'
+import { ON_PRIMARY_COLOR } from '../helper/Theme'
 
-export default function DiscardReasonModal({
-  visible,
-  callback,
-  dismiss,
-}: {
-  visible: boolean;
-  callback: (reason: string) => void;
-  dismiss: () => void;
-}) {
-
-
-  return (
-    <Modal
-      animationType="slide"
-      transparent={true}
-      visible={visible}
-      onDismiss={dismiss}>
-      <View style={styles.overlay}>
-        <View style={styles.modalContainer}>
-        <View style={styles.header}>
-
-          <Text style={styles.modalTitle}>Discard </Text>
-          <TouchableOpacity onPress={dismiss}>
-          <Ionicon name="close" size={30} color="white" />
-          </TouchableOpacity>
-          </View>
-
-
-             <Editor
-               callback = {(reason: string)=>{
-                callback(reason);
-               }}
-               />
-           
-        </View>
-      </View>
-    </Modal>
-  );
+type Props = {
+  visible: boolean
+  callback: (reason: string) => void
+  dismiss: () => void
 }
 
-const styles = StyleSheet.create({
-  overlay: {
-    flex: 1,
-    backgroundColor: 'rgba(0, 0, 0, 0.5)',
-    justifyContent: 'center',
-    
-    alignItems: 'center',
-  },
-  modalContainer: {
-    backgroundColor: 'white',
-   // padding: 14,
-    borderRadius: 10,
-    marginHorizontal: 4,
-    width: '95%',
-    height: hp(50),
-    justifyContent: 'flex-start',
-    // alignItems:"center"
-  },
-  header:{
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    backgroundColor:"red",
-    padding: wp(3),
-    borderTopLeftRadius: 10,
-    borderTopRightRadius: 10,
-  },
-  container: {
-    flex: 0,
-    justifyContent: 'center',
-    alignItems: 'center',
-    backgroundColor: ON_PRIMARY_COLOR,
-  },
-  text: {
-    fontSize: 20,
-    //color: 'black',
-  },
-  modalTitle: {
-    fontSize: 18,
-    //fontWeight: 'bold',
-    fontWeight:"500",
-    marginVertical: 3,
-    color: 'white',
-  },
-    modalInput: {
-      minHeight: hp(27),
-      borderColor: PRIMARY_COLOR,
-      borderWidth: 1,
-     // backgroundColor:'#B6D0E2',
-     alignItems:'flex-start',
-     justifyContent:'flex-start',
-      marginVertical: 10,
-      paddingHorizontal: 10,
-      borderRadius: 5,
-      textAlignVertical:'top',
-      fontSize:20,
-    },
-});
+export default function DiscardReasonModal({ visible, callback, dismiss }: Props) {
+  return (
+    <Sheet
+      modal
+      open={visible}
+      onOpenChange={(open:any) => dismiss()}
+      snapPoints={[55]}
+      dismissOnSnapToBottom
+      animation="medium"
+      zIndex={100_000}
+    >
+      <Sheet.Overlay
+       // animation="lazy"
+        enterStyle={{ opacity: 0 }}
+        exitStyle={{ opacity: 0 }}
+        backgroundColor="rgba(0,0,0,0.5)"
+      />
+
+      {/* Built-in Handle for better UX */}
+      <Sheet.Handle />
+
+      <Sheet.Frame
+        paddingHorizontal="$4"
+        paddingBottom="$6"
+        borderTopLeftRadius="$7"
+        borderTopRightRadius="$7"
+        backgroundColor={ON_PRIMARY_COLOR}
+      >
+        {/* Header Section */}
+        <YStack marginTop="$2" marginBottom="$4" gap="$1.5">
+          <XStack justifyContent="space-between" alignItems="center">
+            <YStack>
+              
+              <Text fontSize="$5" color="$gray10" fontWeight={"700"} marginTop="$-1">
+                Discard Reason
+              </Text>
+            </YStack>
+
+            <Button
+              size="$5"
+              circular
+              backgroundColor="$gray3"
+              hoverStyle={{ backgroundColor: '$red10' }}
+              pressStyle={{ scale: 0.95 }}
+              onPress={dismiss}
+              icon={<Ionicons name="close" size={20} color="var(--gray11)" />}
+            />
+          </XStack>
+        </YStack>
+
+        {/* Editor Wrapper */}
+        <YStack flex={1} paddingTop="$1">
+          <Editor
+            callback={(reason: string) => {
+              callback(reason)
+              dismiss()
+            }}
+          />
+        </YStack>
+      </Sheet.Frame>
+    </Sheet>
+  )
+}

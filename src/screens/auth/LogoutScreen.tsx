@@ -1,7 +1,6 @@
 import React from 'react';
 import {
   StyleSheet,
-  SafeAreaView,
   View,
   Image,
   Text,
@@ -16,6 +15,7 @@ import {resetUserState} from '../../stores/UserSlice';
 import {useDispatch, useSelector} from 'react-redux';
 import {clearStorage} from '../../helper/Utils';
 import { LogoutScreenProp } from '../../type';
+import { SafeAreaView } from 'react-native-safe-area-context';
 
 const LogoutScreen = ({navigation, route}:LogoutScreenProp) => {
   const {profile_image, username} = route.params;

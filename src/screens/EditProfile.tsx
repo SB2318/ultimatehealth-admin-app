@@ -2,7 +2,6 @@ import {
   ScrollView,
   Dimensions,
   StyleSheet,
-  SafeAreaView,
   Alert,
 } from 'react-native';
 import React, {useEffect, useState} from 'react';
@@ -10,7 +9,7 @@ import React, {useEffect, useState} from 'react';
 import {ON_PRIMARY_COLOR, PRIMARY_COLOR} from '../helper/Theme';
 import {hp} from '../helper/Metric';
 import GeneralTab from '../components/GeneralTab';
-import {useSafeAreaInsets} from 'react-native-safe-area-context';
+import {SafeAreaView, useSafeAreaInsets} from 'react-native-safe-area-context';
 import {useSelector} from 'react-redux';
 import {useMutation, useQuery} from '@tanstack/react-query';
 import axios, {AxiosError} from 'axios';

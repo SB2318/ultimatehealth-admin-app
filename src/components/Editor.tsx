@@ -3,6 +3,7 @@ import { RichEditor, RichToolbar, actions } from 'react-native-pell-rich-editor'
 import { Entypo, Ionicons } from '@expo/vector-icons'
 import { YStack, XStack, Text, Button, Separator } from 'tamagui'
 import { StyleSheet } from 'react-native'
+import { PRIMARY_COLOR } from '../helper/Theme'
 
 export default function Editor({
   callback,
@@ -29,7 +30,7 @@ export default function Editor({
       borderRadius="$6"
       overflow="hidden"
       borderWidth={1}
-      borderColor="$gray5"
+      borderColor={PRIMARY_COLOR}
     >
       {/* Toolbar */}
       <YStack backgroundColor="$gray2" paddingVertical="$1">

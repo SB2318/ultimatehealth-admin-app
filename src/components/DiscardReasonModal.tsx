@@ -1,30 +1,44 @@
-import React from 'react'
-import { Sheet, YStack, XStack, Text, Button, Separator,  } from 'tamagui'
-import { Ionicons } from '@expo/vector-icons'
-import Editor from './Editor'
-import { ON_PRIMARY_COLOR } from '../helper/Theme'
+import React, {useEffect, useState} from 'react';
+import {Sheet, YStack, XStack, Text, Button} from 'tamagui';
+import {Ionicons} from '@expo/vector-icons';
+import Editor from './Editor';
+import {ON_PRIMARY_COLOR, PRIMARY_COLOR} from '../helper/Theme';
 
 type Props = {
-  visible: boolean
-  callback: (reason: string) => void
-  dismiss: () => void
-}
+  visible: boolean;
+  callback: (reason: string) => void;
+  dismiss: () => void;
+};
 
-export default function DiscardReasonModal({ visible, callback, dismiss }: Props) {
+export default function DiscardReasonModal({
+  visible,
+  callback,
+  dismiss,
+}: Props) {
+  const [open, setOpen] = useState(visible);
+
+  useEffect(() => {
+    setOpen(visible);
+    console.log('Visible modal', visible);
+  }, [visible]);
   return (
     <Sheet
       modal
-      open={visible}
-      onOpenChange={(open:any) => dismiss()}
-      snapPoints={[55]}
+      open={open}
+      onOpenChange={(isOpen: any) => {
+        setOpen(isOpen);
+        if (!isOpen) {
+          dismiss();
+        }
+      }}
+      snapPoints={[55, 50, 25]}
       dismissOnSnapToBottom
       animation="medium"
-      zIndex={100_000}
-    >
+      zIndex={100_000}>
       <Sheet.Overlay
-       // animation="lazy"
-        enterStyle={{ opacity: 0 }}
-        exitStyle={{ opacity: 0 }}
+        // animation="lazy"
+        enterStyle={{opacity: 0}}
+        exitStyle={{opacity: 0}}
         backgroundColor="rgba(0,0,0,0.5)"
       />
 
@@ -35,15 +49,18 @@ export default function DiscardReasonModal({ visible, callback, dismiss }: Props
         paddingHorizontal="$4"
         paddingBottom="$6"
         borderTopLeftRadius="$7"
+        borderColor={PRIMARY_COLOR}
         borderTopRightRadius="$7"
-        backgroundColor={ON_PRIMARY_COLOR}
-      >
+        backgroundColor={ON_PRIMARY_COLOR}>
         {/* Header Section */}
         <YStack marginTop="$2" marginBottom="$4" gap="$1.5">
           <XStack justifyContent="space-between" alignItems="center">
             <YStack>
-              
-              <Text fontSize="$5" color="$gray10" fontWeight={"700"} marginTop="$-1">
+              <Text
+                fontSize="$5"
+                color="$gray10"
+                fontWeight={'700'}
+                marginTop="$-1">
                 Discard Reason
               </Text>
             </YStack>
@@ -52,11 +69,12 @@ export default function DiscardReasonModal({ visible, callback, dismiss }: Props
               size="$5"
               circular
               backgroundColor="$gray3"
-              hoverStyle={{ backgroundColor: '$red10' }}
-              pressStyle={{ scale: 0.95 }}
+              hoverStyle={{backgroundColor: '$red10'}}
+              pressStyle={{scale: 0.95}}
               onPress={dismiss}
               icon={<Ionicons name="close" size={20} color="var(--gray11)" />}
             />
+            
           </XStack>
         </YStack>
 
@@ -64,12 +82,12 @@ export default function DiscardReasonModal({ visible, callback, dismiss }: Props
         <YStack flex={1} paddingTop="$1">
           <Editor
             callback={(reason: string) => {
-              callback(reason)
-              dismiss()
+              callback(reason);
+              dismiss();
             }}
           />
         </YStack>
       </Sheet.Frame>
     </Sheet>
-  )
+  );
 }

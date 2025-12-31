@@ -47,6 +47,7 @@ import HomeArticle from './tabs/HomeArticle';
 import Improvement from './tabs/Improvement';
 import TagItemCard from '../components/TagItemCard';
 import AddTagModal from '../components/AddTagModal';
+import DiscardReasonModal from '../components/DiscardReasonModal';
 
 export default function HomeScreen({navigation}: ArticleProps) {
   const {user_id, user_token} = useSelector((state: any) => state.user);
@@ -58,6 +59,7 @@ export default function HomeScreen({navigation}: ArticleProps) {
   } = useSelector((state: any) => state.article);
   //const [refreshing, setRefreshing] = useState<boolean>(false);
   const [selectedCardId, setSelectedCardId] = useState<string>('');
+  const [discardArticleId, setDiscardArticleId] = useState<string>('');
   const dispatch = useDispatch();
   const [articleRefreshing, setArticleRefreshing] = useState<boolean>(false);
   const [articleCategories, setArticleCategories] = useState<Category[]>([]);
@@ -65,6 +67,8 @@ export default function HomeScreen({navigation}: ArticleProps) {
     null,
   );
   const [sortingType, setSortingType] = useState<string>('');
+  const [articleDiscardModal, setArticleDiscardModal] =
+    useState<boolean>(false);
   const [addTagModalVisible, setAddTagModalVisible] = useState<boolean>(false);
   const [selectCategoryList, setSelectCategoryList] = useState<
     CategoryType['name'][]
@@ -224,6 +228,7 @@ export default function HomeScreen({navigation}: ArticleProps) {
         text: 'Article discarded',
         duration: Snackbar.LENGTH_SHORT,
       });
+      setArticleDiscardModal(false);
       onArticleRefresh(2);
     },
     onError: err => {
@@ -455,10 +460,8 @@ export default function HomeScreen({navigation}: ArticleProps) {
               });
             } else {
               // Display discard reason or screen
-              discardArticleMutation.mutate({
-                articleId: item._id,
-                reason: reason,
-              });
+              setDiscardArticleId(item._id);
+              setArticleDiscardModal(true);
             }
           }}
           onNavigate={item => {
@@ -755,6 +758,30 @@ export default function HomeScreen({navigation}: ArticleProps) {
             handlePresentModalPress();
           }}
         />
+
+        <DiscardReasonModal
+          visible={articleDiscardModal}
+          callback={(reason: string) => {
+            console.log('discard modal click-', articleDiscardModal);
+            // onclick(item, 1, reason);
+            if (discardArticleId !== '') {
+              discardArticleMutation.mutate({
+                articleId: discardArticleId,
+                reason: reason,
+              });
+            }else{
+              Snackbar.show({
+                text: "Article id not found, please try again",
+                duration: Snackbar.LENGTH_SHORT
+              });
+            }
+          
+          }}
+          dismiss={() => {
+            setDiscardArticleId("");
+            setArticleDiscardModal(false);
+          }}
+        />
       </View>
     </SafeAreaView>
   );
@@ -808,7 +835,6 @@ const styles = StyleSheet.create({
     fontSize: wp(3.5),
     color: 'black',
     textTransform: 'capitalize',
-
   },
   contentContainerStyle: {
     width: '100%',

@@ -5,7 +5,7 @@ import {
   Pressable,
   TouchableOpacity,
 } from 'react-native';
-import React, {useState} from 'react';
+import React, {useEffect, useState} from 'react';
 import {fp, hp, wp} from '../helper/Metric';
 import {ReviewCardProps} from '../type';
 import moment from 'moment';
@@ -20,7 +20,6 @@ import ArticleFloatingMenu from './ArticleFloatingMenu';
 //import io from 'socket.io-client';
 import {Entypo, AntDesign} from '@expo/vector-icons';
 
-import DiscardReasonModal from './DiscardReasonModal';
 
 const ReviewCard = ({
   item,
@@ -41,8 +40,16 @@ const ReviewCard = ({
       ? 'red'
       : BUTTON_COLOR;
 
-  const [discardModalVisible, setDiscardModalVisible] =
-    useState<boolean>(false);
+  // const [discardModalVisible, setDiscardModalVisible] =
+  //   useState<boolean>(false);
+
+  useEffect(() => {
+    return () => {
+      console.log('ReviewCard UNMOUNTED', item._id);
+    };
+  }, [item._id]);
+
+
 
   const menuStyle = useAnimatedStyle(() => {
     return {
@@ -65,9 +72,9 @@ const ReviewCard = ({
     {
       name: 'Discard Article',
       action: () => {
-        setDiscardModalVisible(true);
-        //onclick(item, 1);
-      //  handleAnimation();
+        // setDiscardModalVisible(true);
+        onclick(item, 1, '');
+        handleAnimation();
       },
       icon: 'times-circle',
       color: 'red',
@@ -78,10 +85,10 @@ const ReviewCard = ({
     {
       name: 'Discard Article',
       action: () => {
-        setDiscardModalVisible(true);
-      //  console.log("discard modal click", discardModalVisible);
-        //onclick(item, 1);
-       // handleAnimation();
+        //  setDiscardModalVisible(true);
+        //  console.log("discard modal click", discardModalVisible);
+        onclick(item, 1, '');
+        handleAnimation();
       },
       icon: 'ban',
       color: 'red',
@@ -199,17 +206,17 @@ const ReviewCard = ({
           {/* Like, Save, and Comment Actions */}
         </View>
 
-        <DiscardReasonModal
+        {/* <DiscardReasonModal
           visible={discardModalVisible}
           callback={(reason: string) => {
-            console.log("discard modal click-", discardModalVisible);
+            console.log('discard modal click-', discardModalVisible);
             onclick(item, 1, reason);
             setDiscardModalVisible(false);
           }}
           dismiss={() => {
             setDiscardModalVisible(false);
           }}
-        />
+        /> */}
       </View>
     </Pressable>
   );

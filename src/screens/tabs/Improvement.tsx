@@ -1,5 +1,7 @@
-import {useMutation, useQuery} from '@tanstack/react-query';
+import DiscardReasonModal from '@/src/components/DiscardReasonModal';
+import { useMutation, useQuery } from '@tanstack/react-query';
 import axios from 'axios';
+import React, { useCallback, useState } from 'react';
 import {
   Alert,
   FlatList,
@@ -9,6 +11,10 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
+import Snackbar from 'react-native-snackbar';
+import { useSelector } from 'react-redux';
+import ImprovementCard from '../../components/ImprovementCard';
+import Loader from '../../components/Loader';
 import {
   DISCARD_IMPROVEMENT,
   GET_AVAILABLE_IMPROVEMENTS,
@@ -16,14 +22,9 @@ import {
   PICK_IMPROVEMENT,
   UNASSIGN_IMPROVEMENT,
 } from '../../helper/APIUtils';
-import {EditRequest} from '../../type';
-import React, {useCallback, useState} from 'react';
-import {hp} from '../../helper/Metric';
-import {ON_PRIMARY_COLOR, PRIMARY_COLOR} from '../../helper/Theme';
-import ImprovementCard from '../../components/ImprovementCard';
-import Snackbar from 'react-native-snackbar';
-import Loader from '../../components/Loader';
-import {useSelector} from 'react-redux';
+import { hp } from '../../helper/Metric';
+import { ON_PRIMARY_COLOR, PRIMARY_COLOR } from '../../helper/Theme';
+import { EditRequest } from '../../type';
 
 export default function Imrovement({
   handleNav,
@@ -38,6 +39,8 @@ export default function Imrovement({
 }) {
   const [refreshing, setRefreshing] = useState<boolean>(false);
   const [selectedCardId, setSelectedCardId] = useState<string>('');
+  const [discardReqId, setDiscardReId] = useState<string>('');
+  const [discardReqModal, setDiscardReqModal] = useState<boolean>(false);
   const {user_id} = useSelector((state: any) => state.user);
 
   const [selectedCat, setSelectedCat] = useState<string>('Available');
@@ -231,10 +234,12 @@ export default function Imrovement({
               });
             } else {
               // Display discard reason or screen
-              discardImprovementMutation.mutate({
-                requestId: item._id,
-                discardReason: reason,
-              });
+              // discardImprovementMutation.mutate({
+              //   requestId: item._id,
+              //   discardReason: reason,
+              // });
+              setDiscardReId(item._id);
+              setDiscardReqModal(false);
             }
           }}
           onNavigate={item => {
@@ -248,14 +253,7 @@ export default function Imrovement({
         />
       );
     },
-    [
-      discardImprovementMutation,
-      handleNav,
-      pickImprovementMutation,
-      selectedCardId,
-      unassignFromImprovementMutation,
-      user_id,
-    ],
+    [handleNav, pickImprovementMutation, selectedCardId, unassignFromImprovementMutation, user_id],
   );
 
   if (
@@ -313,7 +311,7 @@ export default function Imrovement({
             ListEmptyComponent={
               <View style={styles.emptyContainer}>
                 <Image
-                  source={require('../../../assets/images/article_default.jpg')}
+                  source={require('../../../assets/images/article.png')}
                   style={styles.image}
                 />
                 <Text style={styles.message}>No Article Found</Text>
@@ -335,6 +333,31 @@ export default function Imrovement({
             onEndReachedThreshold={0.5}
           />
         </View>
+
+        <DiscardReasonModal
+          visible={discardReqModal}
+          callback={(reason: string) => {
+            console.log('discard modal click-', discardReqModal);
+            // onclick(item, 1, reason);
+            if (discardReqId !== '') {
+              discardImprovementMutation.mutate({
+                requestId: discardReqId,
+                discardReason: reason,
+              });
+            
+            }else{
+              Snackbar.show({
+                text: "Improvement id not found, please try again",
+                duration: Snackbar.LENGTH_SHORT
+              });
+            }
+          
+          }}
+          dismiss={() => {
+            setDiscardReId("");
+            setDiscardReqModal(false);
+          }}
+        />
       </View>
     </View>
   );
@@ -383,8 +406,8 @@ const styles = StyleSheet.create({
   },
 
   image: {
-    height: 160,
-    width: 260,
+    height: 190,
+    width: 190,
     //borderRadius: 80,
     resizeMode: 'cover',
     marginTop: hp(10),

@@ -1,34 +1,34 @@
+import AntDesign from '@expo/vector-icons/AntDesign';
+import MaterialIcon from '@expo/vector-icons/MaterialIcons';
+import {useMutation, useQuery} from '@tanstack/react-query';
+import React, {useEffect, useRef, useState} from 'react';
 import {
+  Alert,
+  Dimensions,
+  FlatList,
   Image,
+  ScrollView,
   StyleSheet,
   TouchableOpacity,
   View,
-  ScrollView,
-  FlatList,
-  Alert,
-  Dimensions,
 } from 'react-native';
-import React, {useEffect, useRef, useState} from 'react';
-import {useMutation, useQuery} from '@tanstack/react-query';
 import {BUTTON_COLOR, ON_PRIMARY_COLOR, PRIMARY_COLOR} from '../helper/Theme';
-import AntDesign from '@expo/vector-icons/AntDesign';
-import MaterialIcon from '@expo/vector-icons/MaterialIcons';
 import {
-  ArticleData,
-  ReviewScreenProp,
   Admin,
+  ArticleData,
   Comment,
-  ScoreData,
-  PlagiarismResponse,
   CopyrightCheckerResponse,
+  PlagiarismResponse,
+  ReviewScreenProp,
+  ScoreData,
 } from '../type';
 
-import {Feather, Entypo, Ionicons} from '@expo/vector-icons';
+import {Entypo, Feather, Ionicons} from '@expo/vector-icons';
 
-import FontAwesome from '@expo/vector-icons/FontAwesome';
-import {useDispatch, useSelector} from 'react-redux';
 import AutoHeightWebView from '@brown-bear/react-native-autoheight-webview';
-import {hp, wp} from '../helper/Metric';
+import FontAwesome from '@expo/vector-icons/FontAwesome';
+import axios from 'axios';
+import {useDispatch, useSelector} from 'react-redux';
 import {
   CHECK_GRAMMAR,
   CHECK_PLAGIARISM,
@@ -38,37 +38,46 @@ import {
   GET_PROFILE_API,
   PUBLISH_ARTICLE,
 } from '../helper/APIUtils';
-import axios from 'axios';
+import {hp, wp} from '../helper/Metric';
 
 import {useSocket} from '../components/SocketContext';
 
-import {setUserHandle} from '../stores/UserSlice';
 import {actions, RichEditor, RichToolbar} from 'react-native-pell-rich-editor';
+import {SafeAreaView} from 'react-native-safe-area-context';
+import Snackbar from 'react-native-snackbar';
+import {Text, YStack} from 'tamagui';
+import CopyrightCheckerModal from '../components/CopyrightCheckerModal';
+import DiscardReasonModal from '../components/DiscardReasonModal';
+import Loader from '../components/Loader';
+import PlagiarismModal from '../components/PlagiarismModal';
+import ScorecardModal from '../components/ScoreCardModal';
 import {
   checkImageCopyright,
   createFeebackHTMLStructure,
   StatusEnum,
 } from '../helper/Utils';
+import {setUserHandle} from '../stores/UserSlice';
 import CommentCardItem from './CommentCardItem';
-import DiscardReasonModal from '../components/DiscardReasonModal';
-import Loader from '../components/Loader';
-import ScorecardModal from '../components/ScoreCardModal';
-import PlagiarismModal from '../components/PlagiarismModal';
-import CopyrightCheckerModal from '../components/CopyrightCheckerModal';
-import Snackbar from 'react-native-snackbar';
-import {SafeAreaView} from 'react-native-safe-area-context';
-import {YStack, Text} from 'tamagui';
 
 const ReviewScreen = ({route}: ReviewScreenProp) => {
   const {articleId, destination, recordId} = route.params;
   const {user_id} = useSelector((state: any) => state.user);
   const RichText = useRef(null);
   const [feedback, setFeedback] = useState('');
-  const height = Dimensions.get('screen').height;
-  const [webviewHeight, setWebViewHeight] = useState(height);
+
+  const SCREEN_WIDTH = Dimensions.get('window').width;
+  const TOOLTIP_WIDTH = 140;
+
   const [discardModalVisible, setDiscardModalVisible] = useState(false);
   const [grammarModalVisible, setGrammarModalVisible] = useState(false);
   const [plagModalVisible, setPlagModalVisible] = useState(false);
+  const [imageToolTip, setImageToolTip] = useState(false);
+  const [grammarToolTip, setGrammarToolTip] = useState(false);
+  const [plagrismToolTip, setPlagrismToolTip] = useState(false);
+  const [discardToolTip, setDiscardToolTip] = useState(false);
+  const [publishToolTip, setPublishToolTip] = useState(false);
+  const [iconX, setIconX] = useState(0);
+
 
   const [copyRightResults, setCopyRightResults] = useState<
     CopyrightCheckerResponse[]
@@ -101,6 +110,22 @@ const ReviewScreen = ({route}: ReviewScreenProp) => {
   //const webViewRef = useRef<WebView>(null);
 
   function handleHeightChange(_height) {}
+
+  const getTooltipLeft = (iconX: number) => {
+    const half = TOOLTIP_WIDTH / 2;
+
+    // center align
+    let left = iconX - half + 18; 
+
+    if (left < 8) left = 8;
+
+    // right overflow
+    if (left + TOOLTIP_WIDTH > SCREEN_WIDTH - 8) {
+      left = SCREEN_WIDTH - TOOLTIP_WIDTH - 8;
+    }
+
+    return left;
+  };
 
   const onGrammarModalClose = () => {
     setScoreData({
@@ -350,64 +375,6 @@ const ReviewScreen = ({route}: ReviewScreenProp) => {
     },
   });
 
-  const cssCode = `
-      const style = document.createElement('style');
-      style.innerHTML = \`
-        body {
-          font-size: 46px;
-          line-height: 1.5;
-          color: #333;
-        }
-      \`;
-      document.head.appendChild(style);
-    `;
-
-  /*
-  const getContentLength = async (contentSource: {
-    uri?: string;
-    html?: string;
-  }) => {
-    if (contentSource.uri) {
-      try {
-        const response = await fetch(contentSource.uri);
-        const content = await response.text();
-        return content.length - 4000;
-      } catch (error) {
-        console.error('Error fetching URI:', error);
-        return 0;
-      }
-    } else if (contentSource.html) {
-      return contentSource.html.length;
-    }
-    return 0;
-  };
-  */
-
-  //console.log("htmlContent", htmlContent);
-
-  // const scalePerChar = 1 / 1000;
-  // const maxMultiplier = 4.3;
-  // const baseMultiplier = 0.8;
-
-  // const minHeight = useMemo(() => {
-  //   let content = htmlContent ?? "";
-  //   const scaleFactor = Math.min(content.length * scalePerChar, maxMultiplier);
-
-  //   const scaledHeight = height * (baseMultiplier + scaleFactor);
-
-  //   const cappedHeight = Math.min(content.length+120, Math.min(scaledHeight, height * 6));
-  //   console.log("CappedHeight", cappedHeight);
-  //   return cappedHeight;
-  // }, [htmlContent, scalePerChar]);
-
-  const injectedJS = `
-  setTimeout(() => {
-    const height = document.documentElement.scrollHeight;
-    window.ReactNativeWebView.postMessage(height);
-  }, 50);
-  true;
-`;
-
   if (
     copyrightProgressVisible ||
     plagiarismCheckMutation.isPending ||
@@ -418,8 +385,29 @@ const ReviewScreen = ({route}: ReviewScreenProp) => {
     return <Loader />;
   }
 
+  const activeToolTips = () => {
+    setImageToolTip(true);
+    setDiscardToolTip(true);
+    setPlagrismToolTip(true);
+    setGrammarToolTip(true);
+    setPublishToolTip(true);
+  };
+
+  const toolTipsOff = () => {
+    setImageToolTip(false);
+    setDiscardToolTip(false);
+    setPlagrismToolTip(false);
+    setGrammarToolTip(false);
+    setPublishToolTip(false);
+  };
+
   return (
-    <SafeAreaView style={styles.container}>
+    <SafeAreaView
+      style={styles.container}
+      onLayout={e => setIconX(e.nativeEvent.layout.x)}
+
+      onTouchStart={activeToolTips}
+      onTouchEnd={toolTipsOff}>
       <ScrollView
         style={styles.scrollView}
         contentContainerStyle={styles.scrollViewContent}>
@@ -431,16 +419,22 @@ const ReviewScreen = ({route}: ReviewScreenProp) => {
             />
           ) : (
             <Image
-              source={require('../../assets/images/article_default.jpg')}
+              source={require('../../assets/images/article.png')}
               style={styles.image}
             />
           )}
 
           {destination !== StatusEnum.PUBLISHED && (
             <TouchableOpacity
-              style={styles.topIcon}
+              style={{...styles.topIcon, marginTop: hp(1) }}
               onPress={handleCheckCopyright}>
-              <MaterialIcon name="plagiarism" size={36} color={PRIMARY_COLOR} />
+              <MaterialIcon name="plagiarism" size={32} color={PRIMARY_COLOR} />
+
+              {imageToolTip && (
+                <View style= {[styles.tooltip, { left: getTooltipLeft(iconX) }]}>
+                  <Text style={styles.tooltipText}>copyright</Text>
+                </View>
+              )}
             </TouchableOpacity>
           )}
 
@@ -457,7 +451,13 @@ const ReviewScreen = ({route}: ReviewScreenProp) => {
                     backgroundColor: 'red',
                   },
                 ]}>
-                <AntDesign name="poweroff" size={27} color={'white'} />
+                <AntDesign name="poweroff" size={23} color={'white'} />
+
+                {discardToolTip && (
+                  <View style= {[styles.tooltip, { left: getTooltipLeft(iconX) }]}>
+                    <Text style={styles.tooltipText}>discard</Text>
+                  </View>
+                )}
               </TouchableOpacity>
             )}
 
@@ -474,7 +474,13 @@ const ReviewScreen = ({route}: ReviewScreenProp) => {
                     backgroundColor: BUTTON_COLOR,
                   },
                 ]}>
-                <AntDesign name="google" size={28} color={'white'} />
+                <AntDesign name="google" size={24} color={'white'} />
+
+                {grammarToolTip && (
+                  <View style= {[styles.tooltip, { left: getTooltipLeft(iconX) }]}>
+                    <Text style={styles.tooltipText}>grammar</Text>
+                  </View>
+                )}
               </TouchableOpacity>
             )}
 
@@ -491,11 +497,18 @@ const ReviewScreen = ({route}: ReviewScreenProp) => {
                     backgroundColor: '#660099',
                   },
                 ]}>
+
+                   {plagrismToolTip && (
+                  <View style= {[styles.tooltip, { left: getTooltipLeft(iconX) }]}>
+                    <Text style={styles.tooltipText}>plagiarism</Text>
+                  </View>
+                )}
                 <MaterialIcon
-                  size={28}
+                  size={24}
                   name="published-with-changes"
                   color={'white'}
                 />
+               
               </TouchableOpacity>
             )}
 
@@ -516,10 +529,15 @@ const ReviewScreen = ({route}: ReviewScreenProp) => {
                   },
                 ]}>
                 <MaterialIcon
-                  size={28}
+                  size={24}
                   name="domain-verification"
                   color={'white'}
                 />
+                {publishToolTip && (
+                  <View style= {[styles.tooltip, { left: getTooltipLeft(iconX) }]}>
+                    <Text style={styles.tooltipText}>publish</Text>
+                  </View>
+                )}
               </TouchableOpacity>
             )}
         </View>
@@ -540,8 +558,7 @@ const ReviewScreen = ({route}: ReviewScreenProp) => {
             Author Name: {article?.authorName}
           </Text>
           <View style={styles.descriptionContainer}>
-            {
-              /**
+            {/**
                * <WebView
               ref={webViewRef}
               originWhitelist={['*']}
@@ -556,15 +573,13 @@ const ReviewScreen = ({route}: ReviewScreenProp) => {
               }}
               scrollEnabled={false}
             />
-               */
-            }
+               */}
 
             <AutoHeightWebView
               style={{
                 width: Dimensions.get('window').width - 15,
                 marginTop: 35,
               }}
-              
               customStyle={`* { font-family: 'Times New Roman'; } p { font-size: 16px; }`}
               onSizeUpdated={size => console.log(size.height)}
               files={[
@@ -787,8 +802,8 @@ const styles = StyleSheet.create({
     position: 'relative',
   },
   image: {
-    height: 300,
-    width: '100%',
+    height: 190,
+    width: 190,
     objectFit: 'cover',
   },
 
@@ -1032,5 +1047,20 @@ const styles = StyleSheet.create({
     resizeMode: 'contain',
     zIndex: 5,
     backgroundColor: ON_PRIMARY_COLOR,
+  },
+
+  tooltip: {
+    position: 'absolute',
+    top: 45,
+    backgroundColor: '#000',
+    paddingHorizontal: 4,
+    paddingVertical: 4,
+    borderRadius: 6,
+    minWidth: 58
+  },
+  tooltipText: {
+    color: '#fff',
+    fontSize: 9,
+    textAlign:"center"
   },
 });

@@ -20,20 +20,23 @@ import {useState} from 'react';
 import Snackbar from 'react-native-snackbar';
 import Loader from '../components/Loader';
 import React from 'react';
-import { useSelector } from 'react-redux';
+import {useSelector} from 'react-redux';
+import DiscardReasonModal from '../components/DiscardReasonModal';
 
 export default function Podcast({navigation}: PodcastProps) {
   const insets = useSafeAreaInsets();
-  const {user_token} = useSelector((state: any)=> state.user);
+  const {user_token} = useSelector((state: any) => state.user);
   const [selectedPodcastId, setSelectedPodcastId] = useState<string>('');
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(0);
   const [availablePodcasts, setAvailablePodcasts] = useState<PodcastData[]>([]);
   const [progressPage, setProgressPage] = useState(1);
   const [progressTotalPages, setProgressTotalPages] = useState(0);
-  const [progressPodcasts, setProgressPodcasts] = useState<PodcastData[]>(
-    [],
-  );
+  const [progressPodcasts, setProgressPodcasts] = useState<PodcastData[]>([]);
+
+  const [discardPodcastId, setDiscardPodcastId] = useState<string>('');
+  const [discardPodcastModal, setDiscardPodcastModal] =
+    useState<boolean>(false);
 
   const {
     refetch: availablePodcastRefetch,
@@ -41,44 +44,20 @@ export default function Podcast({navigation}: PodcastProps) {
   } = useQuery({
     queryKey: ['get-available-podcasts', page],
     queryFn: async () => {
-      const response = await axios.get(`${FETCH_AVAILABLE_PODCAST}?page=${page}`);
+      const response = await axios.get(
+        `${FETCH_AVAILABLE_PODCAST}?page=${page}`,
+      );
 
-      if(response.data.totalPages){
+      if (response.data.totalPages) {
         const pages = response.data.totalPages;
         setTotalPages(pages);
         const data = response.data.podcasts;
         setAvailablePodcasts(data);
-      }else{
-
-        if(response.data.podcasts){
-           const oldData = availablePodcasts;
-           const newData = response.data.podcasts;
-           setAvailablePodcasts([...oldData, ...newData]);
-        }
-      }
-
-      return response.data.podcasts as PodcastData[];
-    },
-    enabled: !!user_token,
-  });
-
-  const {
-    refetch: progressPodcastRefetch,
-    isLoading: isProgressPodcastLoading,
-  } = useQuery({
-    queryKey: ['get-progress-podcasts', progressPage],
-    queryFn: async () => {
-      const response = await axios.get(`${FETCH_PROGRESS_PODCAST}?page=${progressPage}`);
-      if(response.data.totalPages){
-        const pages = response.data.totalPages;
-        setProgressTotalPages(pages);
-        const data = response.data.podcasts;
-        setProgressPodcasts(data);
-      }else{
-        if(response.data.podcasts){
-          const oldData = progressPodcasts;
+      } else {
+        if (response.data.podcasts) {
+          const oldData = availablePodcasts;
           const newData = response.data.podcasts;
-          setProgressPodcasts([...oldData, ...newData]);
+          setAvailablePodcasts([...oldData, ...newData]);
         }
       }
 
@@ -86,6 +65,31 @@ export default function Podcast({navigation}: PodcastProps) {
     },
     enabled: !!user_token,
   });
+
+  const {refetch: progressPodcastRefetch, isLoading: isProgressPodcastLoading} =
+    useQuery({
+      queryKey: ['get-progress-podcasts', progressPage],
+      queryFn: async () => {
+        const response = await axios.get(
+          `${FETCH_PROGRESS_PODCAST}?page=${progressPage}`,
+        );
+        if (response.data.totalPages) {
+          const pages = response.data.totalPages;
+          setProgressTotalPages(pages);
+          const data = response.data.podcasts;
+          setProgressPodcasts(data);
+        } else {
+          if (response.data.podcasts) {
+            const oldData = progressPodcasts;
+            const newData = response.data.podcasts;
+            setProgressPodcasts([...oldData, ...newData]);
+          }
+        }
+
+        return response.data.podcasts as PodcastData[];
+      },
+      enabled: !!user_token,
+    });
 
   const handlePodcastClick = (
     item: PodcastData,
@@ -97,15 +101,13 @@ export default function Podcast({navigation}: PodcastProps) {
       pickPodcastMutation.mutate(item._id);
     }
     // 3 -> View podcast details
-    if(index === 3){
+    if (index === 3) {
       navigateToDetails(item._id);
     }
     // 1 -> Discard podcast
     if (index === 1) {
-      discardPodcastMutation.mutate({
-        id: item._id,
-        reason: reason,
-      });
+      setDiscardPodcastId(item._id);
+      setDiscardPodcastModal(true);
     }
     // 2 -> Approve podcast
     if (index === 2) {
@@ -113,7 +115,7 @@ export default function Podcast({navigation}: PodcastProps) {
     }
   };
 
-  const navigateToDetails = (id: string) =>{
+  const navigateToDetails = (id: string) => {
     navigation.navigate('PodcastDetail', {
       trackId: id,
     });
@@ -232,7 +234,7 @@ export default function Podcast({navigation}: PodcastProps) {
           renderTabBar={renderTabBar}
           containerStyle={styles.tabsContainer}>
           {/* Availables Tab */}
-          <Tabs.Tab name="Availables">
+          <Tabs.Tab name="Availables" label="Availables">
             <View style={{flex: 1, marginTop: hp(7)}}>
               <View style={styles.reasonTabContainer}>
                 <Tabs.FlatList
@@ -241,7 +243,7 @@ export default function Podcast({navigation}: PodcastProps) {
                     item?._id?.toString() ?? index.toString()
                   }
                   refreshing={isAvailablePodcastLoading}
-                  onRefresh={()=>{
+                  onRefresh={() => {
                     setPage(1);
                     availablePodcastRefetch();
                   }}
@@ -271,8 +273,8 @@ export default function Podcast({navigation}: PodcastProps) {
                       </Text>
                     </View>
                   }
-                  onEndReached={()=>{
-                    if(page < totalPages){
+                  onEndReached={() => {
+                    if (page < totalPages) {
                       setPage(page + 1);
                     }
                   }}
@@ -283,7 +285,7 @@ export default function Podcast({navigation}: PodcastProps) {
           </Tabs.Tab>
 
           {/* Inprogress Tab */}
-          <Tabs.Tab name="Inprogress">
+          <Tabs.Tab name="Inprogress" label="Inprogress">
             <View style={{flex: 1, marginTop: hp(7)}}>
               <View style={styles.reasonTabContainer}>
                 <Tabs.FlatList
@@ -292,7 +294,7 @@ export default function Podcast({navigation}: PodcastProps) {
                     item?._id?.toString() ?? `progress-${index}`
                   }
                   refreshing={isProgressPodcastLoading}
-                  onRefresh={()=>{
+                  onRefresh={() => {
                     setProgressPage(1);
                     progressPodcastRefetch();
                   }}
@@ -322,8 +324,8 @@ export default function Podcast({navigation}: PodcastProps) {
                       </Text>
                     </View>
                   }
-                  onEndReached={()=>{
-                    if(progressPage < progressTotalPages){
+                  onEndReached={() => {
+                    if (progressPage < progressTotalPages) {
                       setProgressPage(progressPage + 1);
                     }
                   }}
@@ -347,6 +349,24 @@ export default function Podcast({navigation}: PodcastProps) {
         sortingType={sortingType}
       />
     */}
+
+        <DiscardReasonModal
+          visible={discardPodcastModal}
+          callback={(reason: string) => {
+            if (discardPodcastId !== '') {
+              discardPodcastMutation.mutate({
+                id: discardPodcastId,
+                reason: reason,
+              });
+            }
+            //handleClick(item, 1, reason);
+            setDiscardPodcastModal(false);
+          }}
+          dismiss={() => {
+            setDiscardPodcastId('');
+            setDiscardPodcastModal(false);
+          }}
+        />
 
         <FAB
           style={styles.fab}

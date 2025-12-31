@@ -12,7 +12,7 @@ import {hp, wp} from '../helper/Metric';
 import {PodcastData} from '../type';
 import {BUTTON_COLOR, PRIMARY_COLOR} from '../helper/Theme';
 import {msToTime, StatusEnum} from '../helper/Utils';
-import DiscardReasonModal from './DiscardReasonModal';
+
 import { GET_STORAGE_DATA } from '../helper/APIUtils';
 
 interface PodcastProps {
@@ -104,8 +104,9 @@ const handleAnimation = () => {
     {
       name: 'Discard Podcast',
       action: () => {
-        setDiscardModalVisible(true);
+        //setDiscardModalVisible(true);
         //onclick(item, 1);
+        handleClick(item, 1, "");
         handleAnimation();
       },
       icon: 'times-circle',
@@ -126,8 +127,9 @@ const handleAnimation = () => {
     {
       name: 'Discard Podcast',
       action: () => {
-        setDiscardModalVisible(true);
+        //setDiscardModalVisible(true);
         //onclick(item, 1);
+        handleClick(item, 1, "");
         handleAnimation();
       },
       icon: 'ban',
@@ -223,7 +225,7 @@ const handleAnimation = () => {
         <Text style={styles.durationText}>{msToTime(item.duration)}</Text>
       </View>
 
-      <DiscardReasonModal
+      {/* <DiscardReasonModal
         visible={discardModalVisible}
         callback={(reason: string) => {
           handleClick(item, 1, reason);
@@ -232,7 +234,7 @@ const handleAnimation = () => {
         dismiss={() => {
           setDiscardModalVisible(false);
         }}
-      />
+      /> */}
     </View>
   );
 };

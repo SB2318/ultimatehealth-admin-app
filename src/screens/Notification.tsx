@@ -1,21 +1,21 @@
-import {
-  Alert,
-  FlatList,
-  StyleSheet,
-  Text,
-  View,
-} from 'react-native';
-import {NotificationProps, NotificationD, NotificationType} from '../type';
-import {ON_PRIMARY_COLOR, PRIMARY_COLOR} from '../helper/Theme';
-import NotificationItem from '../components/NotificationItem';
-import Snackbar from 'react-native-snackbar';
-import {useMutation, useQuery} from '@tanstack/react-query';
-import {useSelector} from 'react-redux';
-import React, {useEffect, useState} from 'react';
+import { useMutation, useQuery } from '@tanstack/react-query';
 import axios from 'axios';
-import Loader from '../components/Loader';
-import { PROD_URL } from '../helper/APIUtils';
+import React, { useEffect, useState } from 'react';
+import {
+    Alert,
+    FlatList,
+    StyleSheet,
+    Text,
+    View,
+} from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import Snackbar from 'react-native-snackbar';
+import { useSelector } from 'react-redux';
+import Loader from '../components/Loader';
+import NotificationItem from '../components/NotificationItem';
+import { PROD_URL } from '../helper/APIUtils';
+import { ON_PRIMARY_COLOR, PRIMARY_COLOR } from '../helper/Theme';
+import { NotificationD, NotificationProps, NotificationType } from '../type';
 
 export default function Notification({navigation}: NotificationProps) {
   const {user_token} = useSelector((state: any) => state.user);
@@ -212,7 +212,7 @@ export default function Notification({navigation}: NotificationProps) {
           <View style={styles.emptyContainer}>
             {/**
                  *  <Image
-                  source={require('../assets/article_default.jpg')}
+                  source={require('../assets/article.png')}
                   style={styles.emptyImgStyle}
                 />
                  */}

@@ -1,9 +1,8 @@
-import {useState} from 'react';
-import {FlatList, Image, StyleSheet, Text, TouchableOpacity, View} from 'react-native';
-import {ON_PRIMARY_COLOR, PRIMARY_COLOR} from '../../helper/Theme';
-import {ArticleData} from '../../type';
+import React, { useState } from 'react';
+import { FlatList, Image, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { hp } from '../../helper/Metric';
-import React from 'react';
+import { ON_PRIMARY_COLOR, PRIMARY_COLOR } from '../../helper/Theme';
+import { ArticleData } from '../../type';
 
 type Props = {
   inProgressArticle: ArticleData[];
@@ -77,7 +76,7 @@ export default function HomeArticle({
           ListEmptyComponent={
             <View style={styles.emptyContainer}>
               <Image
-                source={require('../../../assets/images/article_default.jpg')}
+                source={require('../../../assets/images/article.png')}
                 style={styles.image}
               />
               <Text style={styles.message}>No Article Found</Text>
@@ -141,8 +140,8 @@ const styles = StyleSheet.create({
     },
  
  image: {
-      height: 160,
-    width: 260,
+      height: 190,
+    width: 190,
     //borderRadius: 80,
     resizeMode: 'cover',
     marginTop: hp(10),

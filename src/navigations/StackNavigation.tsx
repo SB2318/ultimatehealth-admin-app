@@ -74,7 +74,7 @@ const StackNavigation = () => {
               onPress={() => {
                 navigation.goBack();
               }}>
-              <FontAwesome size={25} name="arrow-left" color="white" />
+              <FontAwesome size={26} name="arrow-left" color="white" />
             </TouchableOpacity>
           ),
         })}
@@ -230,6 +230,7 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(0,0,0,0.4)',
     paddingHorizontal: 8,
     paddingVertical: 6,
+    //width: 80,
     borderRadius: 50,
   },
   headerLeftButtonEditorScreen: {

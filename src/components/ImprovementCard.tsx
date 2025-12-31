@@ -66,8 +66,8 @@ import WebView from 'react-native-webview';
       {
           name: 'Discard Improvement',
           action: () => {
-            setDiscardModalVisible(true)
-            //onclick(item, 1);
+            //setDiscardModalVisible(true)
+            onclick(item, 1, "");
             handleAnimation();
           },
           icon: 'times-circle',
@@ -80,8 +80,8 @@ import WebView from 'react-native-webview';
       {
           name: 'Discard Improvement',
           action: () => {
-            setDiscardModalVisible(true)
-            //onclick(item, 1);
+            //setDiscardModalVisible(true)
+            onclick(item, 1, "");
             handleAnimation();
           },
           icon: 'ban',
@@ -213,7 +213,7 @@ import WebView from 'react-native-webview';
               )
              }
 
-              <DiscardReasonModal
+              {/* <DiscardReasonModal
                 visible={discardModalVisible}
                 callback={(reason: string)=>{
                    onclick(item, 1, reason);
@@ -223,7 +223,7 @@ import WebView from 'react-native-webview';
                   setDiscardModalVisible(false)
                 }}
 
-               />
+               /> */}
             </View>
   
             {/* Like, Save, and Comment Actions */}

@@ -1,66 +1,66 @@
 /* eslint-disable react-native/no-inline-styles */
-import {
-  Image,
-  StyleSheet,
-  Text,
-  TouchableOpacity,
-  View,
-  ScrollView,
-  FlatList,
-  Alert,
-  Dimensions,
-} from 'react-native';
-import React, {useEffect, useMemo, useRef, useState} from 'react';
-import {useMutation, useQuery} from '@tanstack/react-query';
-import {BUTTON_COLOR, ON_PRIMARY_COLOR, PRIMARY_COLOR} from '../helper/Theme';
-import AntDesign from '@expo/vector-icons/AntDesign';
-import MaterialIcon from '@expo/vector-icons/MaterialIcons';
 import AutoHeightWebView from '@brown-bear/react-native-autoheight-webview';
-import {useSafeAreaInsets} from 'react-native-safe-area-context';
-import {
-  Admin,
-  Comment,
-  ImprovementScreenProp,
-  EditRequest,
-  PocketBaseResponse,
-  PlagiarismResponse,
-  ScoreData,
-  CopyrightCheckerResponse,
-} from '../type';
-import {Feather, Entypo, Ionicons} from '@expo/vector-icons';
+import { Entypo, Feather, Ionicons } from '@expo/vector-icons';
+import AntDesign from '@expo/vector-icons/AntDesign';
 import FontAwesome from '@expo/vector-icons/FontAwesome';
-import {useDispatch, useSelector} from 'react-redux';
-import WebView from 'react-native-webview';
-import {baseHeight, height, hp, scalePerChar, wp} from '../helper/Metric';
-import {
-  CHECK_GRAMMAR,
-  CHECK_PLAGIARISM,
-  DELETE_IMPROVEMENT_RECORD_PB,
-  DISCARD_IMPROVEMENT,
-  GET_IMPROVEMENT_BY_ID,
-  GET_IMPROVEMENT_CONTENT,
-  GET_PROFILE_API,
-  PUBLISH_IMPROVEMENT,
-  PUBLISH_IMPROVEMENT_POCKETBASE,
-} from '../helper/APIUtils';
+import MaterialIcon from '@expo/vector-icons/MaterialIcons';
+import { useMutation, useQuery } from '@tanstack/react-query';
 import axios from 'axios';
-
-import {useSocket} from '../components/SocketContext';
-
-import {setUserHandle} from '../stores/UserSlice';
-import {actions, RichEditor, RichToolbar} from 'react-native-pell-rich-editor';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import {
-  checkImageCopyright,
-  createFeebackHTMLStructure,
-  StatusEnum,
-} from '../helper/Utils';
-import CommentCardItem from './CommentCardItem';
+    Alert,
+    Dimensions,
+    FlatList,
+    Image,
+    ScrollView,
+    StyleSheet,
+    Text,
+    TouchableOpacity,
+    View,
+} from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import WebView from 'react-native-webview';
+import { useDispatch, useSelector } from 'react-redux';
+import {
+    CHECK_GRAMMAR,
+    CHECK_PLAGIARISM,
+    DELETE_IMPROVEMENT_RECORD_PB,
+    DISCARD_IMPROVEMENT,
+    GET_IMPROVEMENT_BY_ID,
+    GET_IMPROVEMENT_CONTENT,
+    GET_PROFILE_API,
+    PUBLISH_IMPROVEMENT,
+    PUBLISH_IMPROVEMENT_POCKETBASE,
+} from '../helper/APIUtils';
+import { height, hp, wp } from '../helper/Metric';
+import { BUTTON_COLOR, ON_PRIMARY_COLOR, PRIMARY_COLOR } from '../helper/Theme';
+import {
+    Admin,
+    Comment,
+    CopyrightCheckerResponse,
+    EditRequest,
+    ImprovementScreenProp,
+    PlagiarismResponse,
+    PocketBaseResponse,
+    ScoreData,
+} from '../type';
+
+import { useSocket } from '../components/SocketContext';
+
+import { actions, RichEditor, RichToolbar } from 'react-native-pell-rich-editor';
+import Snackbar from 'react-native-snackbar';
+import CopyrightCheckerModal from '../components/CopyrightCheckerModal';
 import DiscardReasonModal from '../components/DiscardReasonModal';
 import Loader from '../components/Loader';
-import Snackbar from 'react-native-snackbar';
 import PlagiarismModal from '../components/PlagiarismModal';
 import ScorecardModal from '../components/ScoreCardModal';
-import CopyrightCheckerModal from '../components/CopyrightCheckerModal';
+import {
+    checkImageCopyright,
+    createFeebackHTMLStructure,
+    StatusEnum,
+} from '../helper/Utils';
+import { setUserHandle } from '../stores/UserSlice';
+import CommentCardItem from './CommentCardItem';
 
 const ImprovementReviewScreen = ({
   navigation,
@@ -532,7 +532,7 @@ const ImprovementReviewScreen = ({
             />
           ) : (
             <Image
-              source={require('../../assets/images/article_default.jpg')}
+              source={require('../../assets/images/article.png')}
               style={styles.image}
             />
           )}
@@ -893,8 +893,8 @@ const styles = StyleSheet.create({
     position: 'relative',
   },
   image: {
-    height: 300,
-    width: '100%',
+    height: 190,
+    width: 190,
     objectFit: 'cover',
   },
 

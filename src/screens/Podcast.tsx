@@ -16,10 +16,10 @@ import {
   PICK_PODCAST,
 } from '../helper/APIUtils';
 import axios from 'axios';
-import {useState} from 'react';
+import React, {useState} from 'react';
 import Snackbar from 'react-native-snackbar';
 import Loader from '../components/Loader';
-import React from 'react';
+//import React from 'react';
 import {useSelector} from 'react-redux';
 import DiscardReasonModal from '../components/DiscardReasonModal';
 
@@ -388,8 +388,8 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    // backgroundColor: ON_PRIMARY_COLOR,
-    backgroundColor: '#ffffff',
+     backgroundColor: ON_PRIMARY_COLOR,
+    //backgroundColor: '#ffffff',
   },
   text: {
     fontSize: 20,
@@ -413,13 +413,13 @@ const styles = StyleSheet.create({
   scrollViewContentContainer: {
     paddingHorizontal: 16,
     marginTop: 16,
-    //backgroundColor: ON_PRIMARY_COLOR,
-    backgroundColor: '#ffffff',
+    backgroundColor: ON_PRIMARY_COLOR,
+    //backgroundColor: '#ffffff',
   },
   flatListContentContainer: {
     paddingHorizontal: 16,
-    // backgroundColor: ON_PRIMARY_COLOR,
-    backgroundColor: '#ffffff',
+     backgroundColor: ON_PRIMARY_COLOR,
+  //  backgroundColor: 'red',
   },
 
   profileImage: {
@@ -449,7 +449,7 @@ const styles = StyleSheet.create({
     shadowOpacity: 0,
     shadowOffset: {width: 0, height: 0},
     shadowColor: 'white',
-    backgroundColor: '#ffffff',
+    backgroundColor: ON_PRIMARY_COLOR,
   },
   message: {
     fontSize: 17,
@@ -479,7 +479,7 @@ const styles = StyleSheet.create({
   reasonTabContainer: {
     paddingHorizontal: wp(2),
     paddingTop: hp(2),
-    backgroundColor: '#ffffff',
+    backgroundColor: ON_PRIMARY_COLOR,
     flex: 0,
     width: '100%',
     justifyContent: 'center',

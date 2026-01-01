@@ -147,7 +147,7 @@ const PodcastCard = ({
       justifyContent="space-between"
       gap="$3"
       padding="$2"
-      margin="$2"
+      margin="$1"
       backgroundColor="white"
       borderRadius={16}
       // Android

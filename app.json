@@ -66,6 +66,12 @@
             "backgroundColor": "#00BFFF"
           }
         }
+      ],
+      [
+        "expo-audio",
+        {
+          "microphonePermission": "Allow UltimateHealth to access your microphone."
+        }
       ]
     ],
     "experiments": {

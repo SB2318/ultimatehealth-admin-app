@@ -1,11 +1,11 @@
 import {Image, StyleSheet, Text, View} from 'react-native';
 import {PodcastData, PodcastProps} from '../type';
-import {BUTTON_COLOR} from '../helper/Theme';
+import {BUTTON_COLOR, ON_PRIMARY_COLOR} from '../helper/Theme';
 import {FAB} from 'react-native-paper';
 import AntDesign from '@expo/vector-icons/AntDesign';
 import {MaterialTabBar, Tabs} from 'react-native-collapsible-tab-view';
 import {hp, wp} from '../helper/Metric';
-import {useSafeAreaInsets} from 'react-native-safe-area-context';
+import {SafeAreaView, useSafeAreaInsets} from 'react-native-safe-area-context';
 import PodcastCard from '../components/PodcastCard';
 import {useMutation, useQuery} from '@tanstack/react-query';
 import {
@@ -227,8 +227,8 @@ export default function Podcast({navigation}: PodcastProps) {
     return <Loader />;
   }
   return (
-    <View style={styles.container}>
-      <View style={[styles.innerContainer, {paddingTop: insets.top}]}>
+    <SafeAreaView style={styles.container}>
+      <View style={[styles.innerContainer]}>
         <Tabs.Container
           initialIndex={0}
           renderTabBar={renderTabBar}
@@ -379,7 +379,7 @@ export default function Podcast({navigation}: PodcastProps) {
           }}
         />
       </View>
-    </View>
+    </SafeAreaView>
   );
 }
 
@@ -400,7 +400,7 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   tabsContainer: {
-    backgroundColor: '#ffffff',
+    backgroundColor: ON_PRIMARY_COLOR,
     overflow: 'hidden',
   },
   image: {

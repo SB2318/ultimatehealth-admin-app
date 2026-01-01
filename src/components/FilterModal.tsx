@@ -229,7 +229,7 @@ const styles = StyleSheet.create({
     flex: 1,
     alignItems: 'center',
     width: '100%',
-    backgroundColor: ON_PRIMARY_COLOR
+    backgroundColor: 'white'
   },
   title: {
     fontSize: 18,

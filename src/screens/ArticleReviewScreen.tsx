@@ -23,10 +23,8 @@ import {
   ScoreData,
 } from '../type';
 
-import {Entypo, Feather, Ionicons} from '@expo/vector-icons';
 
 import AutoHeightWebView from '@brown-bear/react-native-autoheight-webview';
-import FontAwesome from '@expo/vector-icons/FontAwesome';
 import axios from 'axios';
 import {useDispatch, useSelector} from 'react-redux';
 import {
@@ -42,10 +40,9 @@ import {hp, wp} from '../helper/Metric';
 
 import {useSocket} from '../components/SocketContext';
 
-import {actions, RichEditor, RichToolbar} from 'react-native-pell-rich-editor';
 import {SafeAreaView} from 'react-native-safe-area-context';
 import Snackbar from 'react-native-snackbar';
-import {Text, YStack} from 'tamagui';
+import {Button, Spinner, Text, TextArea, YStack} from 'tamagui';
 import CopyrightCheckerModal from '../components/CopyrightCheckerModal';
 import DiscardReasonModal from '../components/DiscardReasonModal';
 import Loader from '../components/Loader';
@@ -53,7 +50,6 @@ import PlagiarismModal from '../components/PlagiarismModal';
 import ScorecardModal from '../components/ScoreCardModal';
 import {
   checkImageCopyright,
-  createFeebackHTMLStructure,
   StatusEnum,
 } from '../helper/Utils';
 import {setUserHandle} from '../stores/UserSlice';
@@ -62,8 +58,8 @@ import CommentCardItem from './CommentCardItem';
 const ReviewScreen = ({route}: ReviewScreenProp) => {
   const {articleId, destination, recordId} = route.params;
   const {user_id} = useSelector((state: any) => state.user);
-  const RichText = useRef(null);
   const [feedback, setFeedback] = useState('');
+  const [loading, setLoading] = useState(false);
 
   const SCREEN_WIDTH = Dimensions.get('window').width;
   const TOOLTIP_WIDTH = 140;
@@ -77,7 +73,6 @@ const ReviewScreen = ({route}: ReviewScreenProp) => {
   const [discardToolTip, setDiscardToolTip] = useState(false);
   const [publishToolTip, setPublishToolTip] = useState(false);
   const [iconX, setIconX] = useState(0);
-
 
   const [copyRightResults, setCopyRightResults] = useState<
     CopyrightCheckerResponse[]
@@ -107,15 +102,13 @@ const ReviewScreen = ({route}: ReviewScreenProp) => {
 
   const flatListRef = useRef<FlatList<Comment>>(null);
 
-  //const webViewRef = useRef<WebView>(null);
 
-  function handleHeightChange(_height) {}
 
   const getTooltipLeft = (iconX: number) => {
     const half = TOOLTIP_WIDTH / 2;
 
     // center align
-    let left = iconX - half + 18; 
+    let left = iconX - half + 18;
 
     if (left < 8) left = 8;
 
@@ -189,9 +182,7 @@ const ReviewScreen = ({route}: ReviewScreenProp) => {
       );
     }
   };
-  function editorInitializedCallback() {
-    RichText.current?.registerToolbar(function (_items) {});
-  }
+
   const {data: article} = useQuery({
     queryKey: ['get-article-by-id'],
     queryFn: async () => {
@@ -258,6 +249,7 @@ const ReviewScreen = ({route}: ReviewScreenProp) => {
     socket.on('new-feedback', data => {
       console.log('new comment loaded', data);
       setFeedback('');
+      setLoading(false);
       setComments(prevComments => {
         const newComments = [data, ...prevComments];
         // Scroll to the first index after adding the new comment
@@ -405,7 +397,6 @@ const ReviewScreen = ({route}: ReviewScreenProp) => {
     <SafeAreaView
       style={styles.container}
       onLayout={e => setIconX(e.nativeEvent.layout.x)}
-
       onTouchStart={activeToolTips}
       onTouchEnd={toolTipsOff}>
       <ScrollView
@@ -426,12 +417,12 @@ const ReviewScreen = ({route}: ReviewScreenProp) => {
 
           {destination !== StatusEnum.PUBLISHED && (
             <TouchableOpacity
-              style={{...styles.topIcon, marginTop: hp(1) }}
+              style={{...styles.topIcon, marginTop: hp(1)}}
               onPress={handleCheckCopyright}>
               <MaterialIcon name="plagiarism" size={32} color={PRIMARY_COLOR} />
 
               {imageToolTip && (
-                <View style= {[styles.tooltip, { left: getTooltipLeft(iconX) }]}>
+                <View style={[styles.tooltip, {left: getTooltipLeft(iconX)}]}>
                   <Text style={styles.tooltipText}>copyright</Text>
                 </View>
               )}
@@ -454,7 +445,7 @@ const ReviewScreen = ({route}: ReviewScreenProp) => {
                 <AntDesign name="poweroff" size={23} color={'white'} />
 
                 {discardToolTip && (
-                  <View style= {[styles.tooltip, { left: getTooltipLeft(iconX) }]}>
+                  <View style={[styles.tooltip, {left: getTooltipLeft(iconX)}]}>
                     <Text style={styles.tooltipText}>discard</Text>
                   </View>
                 )}
@@ -477,7 +468,7 @@ const ReviewScreen = ({route}: ReviewScreenProp) => {
                 <AntDesign name="google" size={24} color={'white'} />
 
                 {grammarToolTip && (
-                  <View style= {[styles.tooltip, { left: getTooltipLeft(iconX) }]}>
+                  <View style={[styles.tooltip, {left: getTooltipLeft(iconX)}]}>
                     <Text style={styles.tooltipText}>grammar</Text>
                   </View>
                 )}
@@ -497,9 +488,8 @@ const ReviewScreen = ({route}: ReviewScreenProp) => {
                     backgroundColor: '#660099',
                   },
                 ]}>
-
-                   {plagrismToolTip && (
-                  <View style= {[styles.tooltip, { left: getTooltipLeft(iconX) }]}>
+                {plagrismToolTip && (
+                  <View style={[styles.tooltip, {left: getTooltipLeft(iconX)}]}>
                     <Text style={styles.tooltipText}>plagiarism</Text>
                   </View>
                 )}
@@ -508,7 +498,6 @@ const ReviewScreen = ({route}: ReviewScreenProp) => {
                   name="published-with-changes"
                   color={'white'}
                 />
-               
               </TouchableOpacity>
             )}
 
@@ -534,7 +523,7 @@ const ReviewScreen = ({route}: ReviewScreenProp) => {
                   color={'white'}
                 />
                 {publishToolTip && (
-                  <View style= {[styles.tooltip, { left: getTooltipLeft(iconX) }]}>
+                  <View style={[styles.tooltip, {left: getTooltipLeft(iconX)}]}>
                     <Text style={styles.tooltipText}>publish</Text>
                   </View>
                 )}
@@ -596,120 +585,67 @@ const ReviewScreen = ({route}: ReviewScreenProp) => {
             />
           </View>
         </View>
-        {destination !== StatusEnum.DISCARDED &&
-        destination !== StatusEnum.UNASSIGNED &&
-        destination !== StatusEnum.PUBLISHED &&
-        article?.reviewer_id !== null ? (
-          <View style={styles.inputContainer}>
-            <RichToolbar
-              style={[styles.richBar]}
-              editor={RichText}
-              disabled={false}
-              iconTint={'white'}
-              selectedIconTint={'black'}
-              disabledIconTint={'purple'}
-              iconSize={30}
-              actions={[
-                actions.setBold,
-                actions.setItalic,
-                actions.setUnderline,
-                actions.setStrikethrough,
-                actions.heading1,
-                actions.heading2,
-                actions.heading3,
-                actions.heading4,
-                actions.heading5,
-                actions.heading6,
-                actions.alignLeft,
-                actions.alignCenter,
-                actions.alignRight,
-                actions.insertBulletsList,
-                actions.insertOrderedList,
-                actions.insertLink,
-                actions.table,
-                actions.undo,
-                actions.redo,
-                actions.blockquote,
-              ]}
-              iconMap={{
-                [actions.setStrikethrough]: ({tintColor}) => (
-                  <FontAwesome
-                    name="strikethrough"
-                    color={tintColor}
-                    size={26}
-                  />
-                ),
-                [actions.alignLeft]: ({tintColor}) => (
-                  <Feather name="align-left" color={tintColor} size={35} />
-                ),
-                [actions.alignCenter]: ({tintColor}) => (
-                  <Feather name="align-center" color={tintColor} size={35} />
-                ),
-                [actions.alignRight]: ({tintColor}) => (
-                  <Feather name="align-right" color={tintColor} size={35} />
-                ),
-                [actions.undo]: ({tintColor}) => (
-                  <Ionicons name="arrow-undo" color={tintColor} size={35} />
-                ),
-                [actions.redo]: ({tintColor}) => (
-                  <Ionicons name="arrow-redo" color={tintColor} size={35} />
-                ),
-                [actions.heading1]: ({tintColor}) => (
-                  <Text style={[styles.tib, {color: tintColor}]}>H1</Text>
-                ),
-                [actions.heading2]: ({tintColor}) => (
-                  <Text style={[styles.tib, {color: tintColor}]}>H2</Text>
-                ),
-                [actions.heading3]: ({tintColor}) => (
-                  <Text style={[styles.tib, {color: tintColor}]}>H3</Text>
-                ),
-                [actions.heading4]: ({tintColor}) => (
-                  <Text style={[styles.tib, {color: tintColor}]}>H4</Text>
-                ),
-                [actions.heading5]: ({tintColor}) => (
-                  <Text style={[styles.tib, {color: tintColor}]}>H5</Text>
-                ),
-                [actions.heading6]: ({tintColor}) => (
-                  <Text style={[styles.tib, {color: tintColor}]}>H6</Text>
-                ),
-                [actions.blockquote]: ({tintColor}) => (
-                  <Entypo name="quote" color={tintColor} size={35} />
-                ),
-              }}
-            />
-            <RichEditor
-              disabled={false}
-              containerStyle={styles.editor}
-              ref={RichText}
-              style={styles.rich}
-              placeholder={'Start conversation with admin'}
-              initialContentHTML={feedback}
-              onChange={text => setFeedback(text)}
-              editorInitializedCallback={editorInitializedCallback}
-              onHeightChange={handleHeightChange}
-              initialHeight={300}
-            />
 
-            {feedback.length > 0 && (
-              <TouchableOpacity
-                style={styles.submitButton}
-                onPress={() => {
-                  // emit socket event for feedback
-                  const ans = createFeebackHTMLStructure(feedback);
-                  socket.emit('add-review-comment', {
-                    articleId: article?._id,
-                    reviewer_id: article?.reviewer_id,
-                    feedback: ans,
-                    isReview: true,
-                    isNote: false,
-                  });
-                }}>
-                <Text style={styles.submitButtonText}>Post</Text>
-              </TouchableOpacity>
-            )}
-          </View>
-        ) : (
-          <YStack
+        {destination !== StatusEnum.DISCARDED &&
+          destination !== StatusEnum.UNASSIGNED &&
+          destination !== StatusEnum.PUBLISHED &&
+          article?.reviewer_id !== null ? (
+            <YStack
+              padding={wp(4)}
+              marginTop={hp(1.2)}
+              borderRadius={10}
+              gap="$3">
+              <TextArea
+                placeholder="Submit your feedback"
+                value={feedback}
+                onChangeText={setFeedback}
+                multiline
+                height={hp(19)}
+                fontSize={wp(4.8)}
+                paddingVertical={10}
+                paddingHorizontal={12}
+                borderRadius={8}
+                borderWidth={1.5}
+                borderColor={PRIMARY_COLOR}
+                backgroundColor="#fff"
+                textAlignVertical="top"
+              />
+
+              {feedback.length > 0 && (
+                <YStack alignItems="flex-end" marginTop={hp(0.5)}>
+                  {loading ? (
+                    <Spinner size="large" color={PRIMARY_COLOR} />
+                  ) : (
+                    <Button
+                      size="$4"
+                      width="45%"
+                      height={44}
+                      backgroundColor={PRIMARY_COLOR}
+                      color="#fff"
+                      borderRadius={8}
+                      onPress={() => {
+                        setLoading(true);
+
+                        socket.emit('add-review-comment', {
+                          articleId: article?._id,
+                          reviewer_id: article?.reviewer_id,
+                          feedback: feedback,
+                          isReview: true,
+                          isNote: false,
+                        });
+
+                        setFeedback('');
+                      }}>
+                      <Text color="#ffffff" fontSize={17}>
+                        Post
+                      </Text>
+                    </Button>
+                  )}
+                </YStack>
+              )}
+            </YStack>
+          ):(
+                <YStack
             alignItems="center"
             justifyContent="center"
             padding="$4"
@@ -736,7 +672,9 @@ const ReviewScreen = ({route}: ReviewScreenProp) => {
               image copyright compliance.
             </Text>
           </YStack>
-        )}
+          )}
+
+      
 
         {comments && destination !== StatusEnum.PUBLISHED && (
           <View style={{padding: wp(4), marginTop: hp(4.5)}}>
@@ -1056,11 +994,11 @@ const styles = StyleSheet.create({
     paddingHorizontal: 4,
     paddingVertical: 4,
     borderRadius: 6,
-    minWidth: 58
+    minWidth: 58,
   },
   tooltipText: {
     color: '#fff',
     fontSize: 9,
-    textAlign:"center"
+    textAlign: 'center',
   },
 });

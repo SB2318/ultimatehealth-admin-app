@@ -1,66 +1,58 @@
-/* eslint-disable react-native/no-inline-styles */
+import React, {useEffect, useRef, useState} from 'react';
 import AutoHeightWebView from '@brown-bear/react-native-autoheight-webview';
-import { Entypo, Feather, Ionicons } from '@expo/vector-icons';
 import AntDesign from '@expo/vector-icons/AntDesign';
-import FontAwesome from '@expo/vector-icons/FontAwesome';
 import MaterialIcon from '@expo/vector-icons/MaterialIcons';
-import { useMutation, useQuery } from '@tanstack/react-query';
+import {useMutation, useQuery} from '@tanstack/react-query';
 import axios from 'axios';
-import React, { useEffect, useMemo, useRef, useState } from 'react';
+
 import {
-    Alert,
-    Dimensions,
-    FlatList,
-    Image,
-    ScrollView,
-    StyleSheet,
-    Text,
-    TouchableOpacity,
-    View,
+  Alert,
+  Dimensions,
+  FlatList,
+  Image,
+  ScrollView,
+  StyleSheet,
+  TouchableOpacity,
+  View,
 } from 'react-native';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import WebView from 'react-native-webview';
-import { useDispatch, useSelector } from 'react-redux';
+import {SafeAreaView, useSafeAreaInsets} from 'react-native-safe-area-context';
+import {useDispatch, useSelector} from 'react-redux';
 import {
-    CHECK_GRAMMAR,
-    CHECK_PLAGIARISM,
-    DELETE_IMPROVEMENT_RECORD_PB,
-    DISCARD_IMPROVEMENT,
-    GET_IMPROVEMENT_BY_ID,
-    GET_IMPROVEMENT_CONTENT,
-    GET_PROFILE_API,
-    PUBLISH_IMPROVEMENT,
-    PUBLISH_IMPROVEMENT_POCKETBASE,
+  CHECK_GRAMMAR,
+  CHECK_PLAGIARISM,
+  DELETE_IMPROVEMENT_RECORD_PB,
+  DISCARD_IMPROVEMENT,
+  GET_IMPROVEMENT_BY_ID,
+  GET_IMPROVEMENT_CONTENT,
+  GET_PROFILE_API,
+  PUBLISH_IMPROVEMENT,
+  PUBLISH_IMPROVEMENT_POCKETBASE,
 } from '../helper/APIUtils';
-import { height, hp, wp } from '../helper/Metric';
-import { BUTTON_COLOR, ON_PRIMARY_COLOR, PRIMARY_COLOR } from '../helper/Theme';
+import {hp, wp} from '../helper/Metric';
+import {BUTTON_COLOR, ON_PRIMARY_COLOR, PRIMARY_COLOR} from '../helper/Theme';
 import {
-    Admin,
-    Comment,
-    CopyrightCheckerResponse,
-    EditRequest,
-    ImprovementScreenProp,
-    PlagiarismResponse,
-    PocketBaseResponse,
-    ScoreData,
+  Admin,
+  Comment,
+  CopyrightCheckerResponse,
+  EditRequest,
+  ImprovementScreenProp,
+  PlagiarismResponse,
+  PocketBaseResponse,
+  ScoreData,
 } from '../type';
 
-import { useSocket } from '../components/SocketContext';
+import {useSocket} from '../components/SocketContext';
 
-import { actions, RichEditor, RichToolbar } from 'react-native-pell-rich-editor';
 import Snackbar from 'react-native-snackbar';
 import CopyrightCheckerModal from '../components/CopyrightCheckerModal';
 import DiscardReasonModal from '../components/DiscardReasonModal';
 import Loader from '../components/Loader';
 import PlagiarismModal from '../components/PlagiarismModal';
 import ScorecardModal from '../components/ScoreCardModal';
-import {
-    checkImageCopyright,
-    createFeebackHTMLStructure,
-    StatusEnum,
-} from '../helper/Utils';
-import { setUserHandle } from '../stores/UserSlice';
+import {checkImageCopyright, StatusEnum} from '../helper/Utils';
+import {setUserHandle} from '../stores/UserSlice';
 import CommentCardItem from './CommentCardItem';
+import {Button, Spinner, TextArea, YStack, Text} from 'tamagui';
 
 const ImprovementReviewScreen = ({
   navigation,
@@ -70,9 +62,19 @@ const ImprovementReviewScreen = ({
   const {requestId, authorId, destination, recordId, articleRecordId} =
     route.params;
   const {user_id} = useSelector((state: any) => state.user);
-  const RichText = useRef();
   const [feedback, setFeedback] = useState('');
-  const [webviewHeight, setWebViewHeight] = useState(0);
+  const [loading, setLoading] = useState(false);
+
+  const SCREEN_WIDTH = Dimensions.get('window').width;
+  const TOOLTIP_WIDTH = 140;
+
+  const [imageToolTip, setImageToolTip] = useState(false);
+  const [grammarToolTip, setGrammarToolTip] = useState(false);
+  const [plagrismToolTip, setPlagrismToolTip] = useState(false);
+  const [discardToolTip, setDiscardToolTip] = useState(false);
+  const [publishToolTip, setPublishToolTip] = useState(false);
+  const [iconX, setIconX] = useState(0);
+
   const [discardModalVisible, setDiscardModalVisible] = useState(false);
   const [discardReason, setDiscardReason] = useState<string>('');
 
@@ -91,8 +93,8 @@ const ImprovementReviewScreen = ({
     source_title: '',
   });
 
-  console.log('Improvement record id', recordId);
-  console.log('Article record Id', articleRecordId);
+  // console.log('Improvement record id', recordId);
+  // console.log('Article record Id', articleRecordId);
   const [copyRightResults, setCopyRightResults] = useState<
     CopyrightCheckerResponse[]
   >([]);
@@ -108,13 +110,6 @@ const ImprovementReviewScreen = ({
 
   const flatListRef = useRef<FlatList<Comment>>(null);
 
-  const webViewRef = useRef<WebView>(null);
-
-  function handleHeightChange(_height) {}
-
-  function editorInitializedCallback() {
-    RichText.current?.registerToolbar(function (_items) {});
-  }
   const {data: improvement} = useQuery({
     queryKey: ['get-improvement-by-id'],
     queryFn: async () => {
@@ -250,7 +245,7 @@ const ImprovementReviewScreen = ({
 
     socket.on('new-feedback', data => {
       console.log('new comment loaded', data);
-
+      setLoading(false);
       setComments(prevComments => {
         const newComments = [data, ...prevComments];
         // Scroll to the first index after adding the new comment
@@ -437,74 +432,37 @@ const ImprovementReviewScreen = ({
     },
   });
 
-  useEffect(() => {
-    if (htmlContent) {
-      setWebViewHeight(htmlContent.length);
-    } else {
-      setWebViewHeight(noDataHtml.length);
+  const getTooltipLeft = (iconX: number) => {
+    const half = TOOLTIP_WIDTH / 2;
+
+    // center align
+    let left = iconX - half + 18;
+
+    if (left < 8) left = 8;
+
+    // right overflow
+    if (left + TOOLTIP_WIDTH > SCREEN_WIDTH - 8) {
+      left = SCREEN_WIDTH - TOOLTIP_WIDTH - 8;
     }
-  }, [htmlContent]);
 
-  const cssCode = `
-      const style = document.createElement('style');
-      style.innerHTML = \`
-        body {
-          font-size: 46px;
-          line-height: 1.5;
-          color: #333;
-        }
-      \`;
-      document.head.appendChild(style);
-    `;
-
-  const scalePerChar = 1 / 1000;
-  const maxMultiplier = 4.3;
-  const baseMultiplier = 0.8;
-
-  const minHeight = useMemo(() => {
-    let content = htmlContent ?? '';
-    const scaleFactor = Math.min(content.length * scalePerChar, maxMultiplier);
-    const scaledHeight = height * (baseMultiplier + scaleFactor);
-    const cappedHeight = Math.min(
-      content.length + 120,
-      Math.min(scaledHeight, height * 6),
-    );
-    return cappedHeight;
-  }, [htmlContent, scalePerChar]);
-
-  /*
-  let contentSource = improvement?.edited_content
-    ? improvement?.edited_content?.endsWith('.html')
-      ? {uri: `${GET_STORAGE_DATA}/${improvement.edited_content}`}
-      : {html: improvement?.edited_content}
-    : improvement?.article.content?.endsWith('.html')
-    ? {uri: `${GET_STORAGE_DATA}/${improvement?.article.content}`}
-    : {html: `${improvement?.article.content}`};
-    */
-
-  //console.log("Content source", contentSource);
-  // eslint-disable-next-line @typescript-eslint/no-shadow
-
-  /*
-  const getContentLength = async (contentSource: {
-    uri?: string;
-    html?: string;
-  }) => {
-    if (contentSource.uri) {
-      try {
-        const response = await fetch(contentSource.uri);
-        const content = await response.text();
-        return content.length - 4000;
-      } catch (error) {
-        console.error('Error fetching URI:', error);
-        return 0;
-      }
-    } else if (contentSource.html) {
-      return contentSource.html.length;
-    }
-    return 0;
+    return left;
   };
-  */
+  const activeToolTips = () => {
+    setImageToolTip(true);
+    setDiscardToolTip(true);
+    setPlagrismToolTip(true);
+    setGrammarToolTip(true);
+    setPublishToolTip(true);
+  };
+
+  const toolTipsOff = () => {
+    setImageToolTip(false);
+    setDiscardToolTip(false);
+    setPlagrismToolTip(false);
+    setGrammarToolTip(false);
+    setPublishToolTip(false);
+  };
+
   if (
     copyrightProgressVisible ||
     grammarCheckMutation.isPending ||
@@ -518,7 +476,11 @@ const ImprovementReviewScreen = ({
   }
 
   return (
-    <View style={styles.container}>
+    <SafeAreaView
+      onLayout={e => setIconX(e.nativeEvent.layout.x)}
+      onTouchStart={activeToolTips}
+      onTouchEnd={toolTipsOff}
+      style={styles.container}>
       <ScrollView
         style={styles.scrollView}
         contentContainerStyle={styles.scrollViewContent}>
@@ -541,6 +503,12 @@ const ImprovementReviewScreen = ({
             style={styles.topIcon}
             onPress={handleCheckCopyright}>
             <MaterialIcon name="plagiarism" size={30} color={PRIMARY_COLOR} />
+
+            {imageToolTip && (
+              <View style={[styles.tooltip, {left: getTooltipLeft(iconX)}]}>
+                <Text style={styles.tooltipText}>copyright</Text>
+              </View>
+            )}
           </TouchableOpacity>
 
           {improvement?.status !== StatusEnum.DISCARDED && (
@@ -556,6 +524,12 @@ const ImprovementReviewScreen = ({
                 },
               ]}>
               <AntDesign name="poweroff" size={27} color={'white'} />
+
+              {discardToolTip && (
+                <View style={[styles.tooltip, {left: getTooltipLeft(iconX)}]}>
+                  <Text style={styles.tooltipText}>discard</Text>
+                </View>
+              )}
             </TouchableOpacity>
           )}
 
@@ -572,6 +546,11 @@ const ImprovementReviewScreen = ({
                 },
               ]}>
               <AntDesign name="google" size={28} color={'white'} />
+              {grammarToolTip && (
+                <View style={[styles.tooltip, {left: getTooltipLeft(iconX)}]}>
+                  <Text style={styles.tooltipText}>grammar</Text>
+                </View>
+              )}
             </TouchableOpacity>
           )}
 
@@ -587,6 +566,11 @@ const ImprovementReviewScreen = ({
                   backgroundColor: '#660099',
                 },
               ]}>
+              {plagrismToolTip && (
+                <View style={[styles.tooltip, {left: getTooltipLeft(iconX)}]}>
+                  <Text style={styles.tooltipText}>plagiarism</Text>
+                </View>
+              )}
               <MaterialIcon
                 size={28}
                 name="published-with-changes"
@@ -634,23 +618,6 @@ const ImprovementReviewScreen = ({
             Author Name: {improvement?.article?.authorName}
           </Text>
           <View style={styles.descriptionContainer}>
-            {/* <WebView
-              style={{
-                padding: 7,
-                //width: '99%',
-                //height: webviewHeight - 3000,
-                minHeight: minHeight,
-                // flex:7,
-                justifyContent: 'center',
-                alignItems: 'center',
-              }}
-              ref={webViewRef}
-              originWhitelist={['*']}
-              injectedJavaScript={cssCode}
-              source={{html: htmlContent ? htmlContent : noDataHtml}}
-              textZoom={100}
-            /> */}
-
             <AutoHeightWebView
               style={{
                 width: Dimensions.get('window').width - 15,
@@ -719,115 +686,89 @@ const ImprovementReviewScreen = ({
 
         {destination !== StatusEnum.DISCARDED &&
           destination !== StatusEnum.UNASSIGNED &&
-          improvement?.reviewer_id !== null && (
-            <View style={styles.inputContainer}>
-              <RichToolbar
-                style={[styles.richBar]}
-                editor={RichText}
-                disabled={false}
-                iconTint={'white'}
-                selectedIconTint={'black'}
-                disabledIconTint={'purple'}
-                iconSize={30}
-                actions={[
-                  actions.setBold,
-                  actions.setItalic,
-                  actions.setUnderline,
-                  actions.setStrikethrough,
-                  actions.heading1,
-                  actions.heading2,
-                  actions.heading3,
-                  actions.heading4,
-                  actions.heading5,
-                  actions.heading6,
-                  actions.alignLeft,
-                  actions.alignCenter,
-                  actions.alignRight,
-                  actions.insertBulletsList,
-                  actions.insertOrderedList,
-                  actions.insertLink,
-                  actions.table,
-                  actions.undo,
-                  actions.redo,
-                  actions.blockquote,
-                ]}
-                iconMap={{
-                  [actions.setStrikethrough]: ({tintColor}) => (
-                    <FontAwesome
-                      name="strikethrough"
-                      color={tintColor}
-                      size={26}
-                    />
-                  ),
-                  [actions.alignLeft]: ({tintColor}) => (
-                    <Feather name="align-left" color={tintColor} size={35} />
-                  ),
-                  [actions.alignCenter]: ({tintColor}) => (
-                    <Feather name="align-center" color={tintColor} size={35} />
-                  ),
-                  [actions.alignRight]: ({tintColor}) => (
-                    <Feather name="align-right" color={tintColor} size={35} />
-                  ),
-                  [actions.undo]: ({tintColor}) => (
-                    <Ionicons name="arrow-undo" color={tintColor} size={35} />
-                  ),
-                  [actions.redo]: ({tintColor}) => (
-                    <Ionicons name="arrow-redo" color={tintColor} size={35} />
-                  ),
-                  [actions.heading1]: ({tintColor}) => (
-                    <Text style={[styles.tib, {color: tintColor}]}>H1</Text>
-                  ),
-                  [actions.heading2]: ({tintColor}) => (
-                    <Text style={[styles.tib, {color: tintColor}]}>H2</Text>
-                  ),
-                  [actions.heading3]: ({tintColor}) => (
-                    <Text style={[styles.tib, {color: tintColor}]}>H3</Text>
-                  ),
-                  [actions.heading4]: ({tintColor}) => (
-                    <Text style={[styles.tib, {color: tintColor}]}>H4</Text>
-                  ),
-                  [actions.heading5]: ({tintColor}) => (
-                    <Text style={[styles.tib, {color: tintColor}]}>H5</Text>
-                  ),
-                  [actions.heading6]: ({tintColor}) => (
-                    <Text style={[styles.tib, {color: tintColor}]}>H6</Text>
-                  ),
-                  [actions.blockquote]: ({tintColor}) => (
-                    <Entypo name="quote" color={tintColor} size={35} />
-                  ),
-                }}
-              />
-              <RichEditor
-                disabled={false}
-                containerStyle={styles.editor}
-                ref={RichText}
-                style={styles.rich}
-                placeholder={'Start conversation with admin'}
-                initialContentHTML={feedback}
-                onChange={text => setFeedback(text)}
-                editorInitializedCallback={editorInitializedCallback}
-                onHeightChange={handleHeightChange}
-                initialHeight={300}
+          improvement?.reviewer_id !== null ? (
+            <YStack
+              padding={wp(4)}
+              marginTop={hp(1.2)}
+              borderRadius={10}
+              gap="$3">
+              <TextArea
+                placeholder="Submit your feedback"
+                value={feedback}
+                onChangeText={setFeedback}
+                multiline
+                height={hp(19)}
+                fontSize={wp(4.8)}
+                paddingVertical={10}
+                paddingHorizontal={12}
+                borderRadius={8}
+                borderWidth={1.5}
+                borderColor={PRIMARY_COLOR}
+                backgroundColor="#fff"
+                textAlignVertical="top"
               />
 
               {feedback.length > 0 && (
-                <TouchableOpacity
-                  style={styles.submitButton}
-                  onPress={() => {
-                    // emit socket event for feedback
-                    const ans = createFeebackHTMLStructure(feedback);
-                    socket.emit('add-review-comment', {
-                      requestId: improvement?._id,
-                      reviewer_id: improvement?.reviewer_id,
-                      feedback: ans,
-                      isReview: true,
-                      isNote: false,
-                    });
-                  }}>
-                  <Text style={styles.submitButtonText}>Post</Text>
-                </TouchableOpacity>
+                <YStack alignItems="flex-end" marginTop={hp(0.5)}>
+                  {loading ? (
+                    <Spinner size="large" color={PRIMARY_COLOR} />
+                  ) : (
+                    <Button
+                      size="$4"
+                      width="45%"
+                      height={44}
+                      backgroundColor={PRIMARY_COLOR}
+                      color="#fff"
+                      borderRadius={8}
+                      onPress={() => {
+                        setLoading(true);
+
+                        socket.emit('add-review-comment', {
+                          requestId: improvement?._id,
+                          reviewer_id: improvement?.reviewer_id,
+                          feedback: feedback,
+                          isReview: true,
+                          isNote: false,
+                        });
+
+                        setFeedback('');
+                      }}>
+                      <Text color="#ffffff" fontSize={17}>
+                        Post
+                      </Text>
+                    </Button>
+                  )}
+                </YStack>
               )}
-            </View>
+            </YStack>
+          ):(
+                <YStack
+            alignItems="center"
+            justifyContent="center"
+            padding="$4"
+            borderRadius="$4"
+            backgroundColor="$gray2"
+            borderWidth={1}
+            borderColor="$gray5"
+            margin="$3">
+            <Text
+              fontSize="$5"
+              fontWeight="600"
+              color="$gray11"
+              textAlign="center">
+              Select this Improvement to start the conversation
+            </Text>
+
+            <Text
+              marginTop="$2"
+              fontSize="$3"
+              color="$gray9"
+              textAlign="center"
+              lineHeight="$4">
+              Review grammar aur plagiarism across our platform, aur verify
+              image copyright compliance.
+            </Text>
+          </YStack>
           )}
 
         {comments && (
@@ -869,7 +810,7 @@ const ImprovementReviewScreen = ({
           data={copyRightResults}
         />
       </ScrollView>
-    </View>
+    </SafeAreaView>
   );
 };
 export default ImprovementReviewScreen;
@@ -1146,5 +1087,19 @@ const styles = StyleSheet.create({
     resizeMode: 'contain',
     zIndex: 5,
     backgroundColor: ON_PRIMARY_COLOR,
+  },
+  tooltip: {
+    position: 'absolute',
+    top: 45,
+    backgroundColor: '#000',
+    paddingHorizontal: 4,
+    paddingVertical: 4,
+    borderRadius: 6,
+    minWidth: 58,
+  },
+  tooltipText: {
+    color: '#fff',
+    fontSize: 9,
+    textAlign: 'center',
   },
 });

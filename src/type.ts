@@ -304,7 +304,8 @@ export type Comment = {
   _id: string;
   id: string;
   articleId: number;
-  userId: Admin;
+  adminId: Admin | null;
+  userId: User | null;
   Profile_image: string | undefined;
   content: string;
   createdAt: string;
@@ -313,9 +314,9 @@ export type Comment = {
   replies: Comment[];
   likedUsers: string[];
   status: string;
-  isEdited: Boolean;
-  isReview: Boolean;
-  isNote: Boolean;
+  isEdited: boolean;
+  isReview: boolean;
+  isNote: boolean;
 };
 
 export type PocketBaseResponse = {
@@ -448,6 +449,7 @@ export type Report = {
 export type User = {
   _id: string;
   user_name: string;
+  user_handle: string;
   Profile_image: string;
   followers: string[];
 };

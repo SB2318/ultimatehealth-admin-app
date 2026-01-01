@@ -41,6 +41,7 @@ export type RootStackParamList = {
   };
   PodcastDetail: {
     trackId: string;
+    audioUrl: string | undefined;
   };
 };
 

@@ -102,7 +102,7 @@ export default function Podcast({navigation}: PodcastProps) {
     }
     // 3 -> View podcast details
     if (index === 3) {
-      navigateToDetails(item._id);
+      navigateToDetails(item._id, item.audio_url);
     }
     // 1 -> Discard podcast
     if (index === 1) {
@@ -115,9 +115,11 @@ export default function Podcast({navigation}: PodcastProps) {
     }
   };
 
-  const navigateToDetails = (id: string) => {
+  const navigateToDetails = (id: string, audio_url: string) => {
     navigation.navigate('PodcastDetail', {
       trackId: id,
+      audioUrl: audio_url
+
     });
   };
 

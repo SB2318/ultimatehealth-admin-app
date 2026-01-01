@@ -260,6 +260,7 @@ export default function WorkHistoryScreen({navigation}: WorkHistoryProps) {
           handleClick={() => {
             navigation.navigate('PodcastDetail', {
               trackId: item._id,
+              audioUrl: item.audio_url
             });
           }}
         />

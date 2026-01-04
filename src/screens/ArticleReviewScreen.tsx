@@ -1,7 +1,7 @@
 import AntDesign from '@expo/vector-icons/AntDesign';
 import MaterialIcon from '@expo/vector-icons/MaterialIcons';
-import {useMutation, useQuery} from '@tanstack/react-query';
-import React, {useEffect, useRef, useState} from 'react';
+import { useMutation, useQuery } from '@tanstack/react-query';
+import React, { useEffect, useRef, useState } from 'react';
 import {
   Alert,
   Dimensions,
@@ -12,7 +12,7 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
-import {BUTTON_COLOR, ON_PRIMARY_COLOR, PRIMARY_COLOR} from '../helper/Theme';
+import { BUTTON_COLOR, ON_PRIMARY_COLOR, PRIMARY_COLOR } from '../helper/Theme';
 import {
   Admin,
   ArticleData,
@@ -26,7 +26,7 @@ import {
 
 import AutoHeightWebView from '@brown-bear/react-native-autoheight-webview';
 import axios from 'axios';
-import {useDispatch, useSelector} from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
 import {
   CHECK_GRAMMAR,
   CHECK_PLAGIARISM,
@@ -36,13 +36,14 @@ import {
   GET_PROFILE_API,
   PUBLISH_ARTICLE,
 } from '../helper/APIUtils';
-import {hp, wp} from '../helper/Metric';
+import { hp, wp } from '../helper/Metric';
 
-import {useSocket} from '../components/SocketContext';
+import { useSocket } from '../components/SocketContext';
 
-import {SafeAreaView} from 'react-native-safe-area-context';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import Snackbar from 'react-native-snackbar';
-import {Button, Spinner, Text, TextArea, YStack} from 'tamagui';
+import { Button, Spinner, Text, TextArea, YStack } from 'tamagui';
+import CommentCardItem from '../components/CommentCardItem';
 import CopyrightCheckerModal from '../components/CopyrightCheckerModal';
 import DiscardReasonModal from '../components/DiscardReasonModal';
 import Loader from '../components/Loader';
@@ -52,8 +53,7 @@ import {
   checkImageCopyright,
   StatusEnum,
 } from '../helper/Utils';
-import {setUserHandle} from '../stores/UserSlice';
-import CommentCardItem from './CommentCardItem';
+import { setUserHandle } from '../stores/UserSlice';
 
 const ReviewScreen = ({route}: ReviewScreenProp) => {
   const {articleId, destination, recordId} = route.params;

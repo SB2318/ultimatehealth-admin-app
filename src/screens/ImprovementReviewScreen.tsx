@@ -1,58 +1,58 @@
-import React, {useEffect, useRef, useState} from 'react';
 import AutoHeightWebView from '@brown-bear/react-native-autoheight-webview';
 import AntDesign from '@expo/vector-icons/AntDesign';
 import MaterialIcon from '@expo/vector-icons/MaterialIcons';
-import {useMutation, useQuery} from '@tanstack/react-query';
+import { useMutation, useQuery } from '@tanstack/react-query';
 import axios from 'axios';
+import React, { useEffect, useRef, useState } from 'react';
 
 import {
-  Alert,
-  Dimensions,
-  FlatList,
-  Image,
-  ScrollView,
-  StyleSheet,
-  TouchableOpacity,
-  View,
+    Alert,
+    Dimensions,
+    FlatList,
+    Image,
+    ScrollView,
+    StyleSheet,
+    TouchableOpacity,
+    View,
 } from 'react-native';
-import {SafeAreaView, useSafeAreaInsets} from 'react-native-safe-area-context';
-import {useDispatch, useSelector} from 'react-redux';
+import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useDispatch, useSelector } from 'react-redux';
 import {
-  CHECK_GRAMMAR,
-  CHECK_PLAGIARISM,
-  DELETE_IMPROVEMENT_RECORD_PB,
-  DISCARD_IMPROVEMENT,
-  GET_IMPROVEMENT_BY_ID,
-  GET_IMPROVEMENT_CONTENT,
-  GET_PROFILE_API,
-  PUBLISH_IMPROVEMENT,
-  PUBLISH_IMPROVEMENT_POCKETBASE,
+    CHECK_GRAMMAR,
+    CHECK_PLAGIARISM,
+    DELETE_IMPROVEMENT_RECORD_PB,
+    DISCARD_IMPROVEMENT,
+    GET_IMPROVEMENT_BY_ID,
+    GET_IMPROVEMENT_CONTENT,
+    GET_PROFILE_API,
+    PUBLISH_IMPROVEMENT,
+    PUBLISH_IMPROVEMENT_POCKETBASE,
 } from '../helper/APIUtils';
-import {hp, wp} from '../helper/Metric';
-import {BUTTON_COLOR, ON_PRIMARY_COLOR, PRIMARY_COLOR} from '../helper/Theme';
+import { hp, wp } from '../helper/Metric';
+import { BUTTON_COLOR, ON_PRIMARY_COLOR, PRIMARY_COLOR } from '../helper/Theme';
 import {
-  Admin,
-  Comment,
-  CopyrightCheckerResponse,
-  EditRequest,
-  ImprovementScreenProp,
-  PlagiarismResponse,
-  PocketBaseResponse,
-  ScoreData,
+    Admin,
+    Comment,
+    CopyrightCheckerResponse,
+    EditRequest,
+    ImprovementScreenProp,
+    PlagiarismResponse,
+    PocketBaseResponse,
+    ScoreData,
 } from '../type';
 
-import {useSocket} from '../components/SocketContext';
+import { useSocket } from '../components/SocketContext';
 
 import Snackbar from 'react-native-snackbar';
+import { Button, Spinner, Text, TextArea, YStack } from 'tamagui';
+import CommentCardItem from '../components/CommentCardItem';
 import CopyrightCheckerModal from '../components/CopyrightCheckerModal';
 import DiscardReasonModal from '../components/DiscardReasonModal';
 import Loader from '../components/Loader';
 import PlagiarismModal from '../components/PlagiarismModal';
 import ScorecardModal from '../components/ScoreCardModal';
-import {checkImageCopyright, StatusEnum} from '../helper/Utils';
-import {setUserHandle} from '../stores/UserSlice';
-import CommentCardItem from './CommentCardItem';
-import {Button, Spinner, TextArea, YStack, Text} from 'tamagui';
+import { checkImageCopyright, StatusEnum } from '../helper/Utils';
+import { setUserHandle } from '../stores/UserSlice';
 
 const ImprovementReviewScreen = ({
   navigation,

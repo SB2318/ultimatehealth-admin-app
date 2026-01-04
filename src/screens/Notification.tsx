@@ -1,65 +1,353 @@
-import { useMutation, useQuery } from '@tanstack/react-query';
-import axios from 'axios';
-import React, { useEffect, useState } from 'react';
-import {
-    Alert,
-    FlatList,
-    StyleSheet,
-    Text,
-    View,
-} from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
-import Snackbar from 'react-native-snackbar';
-import { useSelector } from 'react-redux';
-import Loader from '../components/Loader';
-import NotificationItem from '../components/NotificationItem';
-import { PROD_URL } from '../helper/APIUtils';
-import { ON_PRIMARY_COLOR, PRIMARY_COLOR } from '../helper/Theme';
-import { NotificationD, NotificationProps, NotificationType } from '../type';
+// import { useMutation, useQuery } from '@tanstack/react-query';
+// import axios from 'axios';
+// import React, { useEffect, useState } from 'react';
+// import {
+//     Alert,
+//     FlatList,
+//     StyleSheet,
+//     Text,
+//     View,
+// } from 'react-native';
+// import { SafeAreaView } from 'react-native-safe-area-context';
+// import Snackbar from 'react-native-snackbar';
+// import { useSelector } from 'react-redux';
+// import Loader from '../components/Loader';
+// import NotificationItem from '../components/NotificationItem';
+// import { PROD_URL } from '../helper/APIUtils';
+// import { ON_PRIMARY_COLOR, PRIMARY_COLOR } from '../helper/Theme';
+// import { NotificationD, NotificationProps, NotificationType } from '../type';
 
-export default function Notification({navigation}: NotificationProps) {
+// export default function Notification({navigation}: NotificationProps) {
+//   const {user_token} = useSelector((state: any) => state.user);
+//   const [refreshing, setRefreshing] = useState(false);
+//   const [page, setPage] = React.useState(1);
+//   const [totalPages, setTotalPages] = React.useState(0);
+//   const [notificationData, setNotificationData] = useState<NotificationD[]>([]);
+
+//   const {
+//     isLoading,
+//     isError,
+//     refetch,
+//   } = useQuery({
+//     queryKey: ['get-all-notifications', page],
+//     queryFn: async () => {
+//       try {
+//         const response = await axios.get(
+//           `${PROD_URL}/notifications?role=1&page=${page}`,
+//           {
+//             // headers: {
+//             //  Authorization: `Bearer ${user_token}`,
+//             // },
+//           },
+//         );
+
+//          if(Number(page) === 1){
+//           if(response.data.totalPages){
+//           const totalPage = response.data.totalPages;
+//           setTotalPages(totalPage);
+//           }
+//           setNotificationData(response.data.notifications);
+//         }else{
+//           const oldNotif = notificationData ?? [];
+//           setNotificationData([...oldNotif, ...response.data.notifications]);
+//         }
+//         // console.log('Notification Response', response);
+//         return response.data.notifications as NotificationD[];
+//       } catch (err) {
+//         //console.error('Error fetching articles:', err);
+
+//         return [];
+//       }
+//     },
+//     enabled: !!user_token,
+//   });
+
+//   // Mark Notification as read api integration
+//   const markNotificationMutation = useMutation({
+//     mutationKey: ['mark-notification-as-read'],
+//     mutationFn: async () => {
+//       if (user_token === '') {
+//         Alert.alert('No token found');
+//         return;
+//       }
+//       const res = await axios.put(
+//         `${PROD_URL}/notifications/mark-as-read?role=1`,
+//         {
+//           role: 1,
+//         },
+//         {
+//           // headers: {
+//           //  Authorization: `Bearer ${user_token}`,
+//           //},
+//         },
+//       );
+
+//       return res.data as any;
+//     },
+//     onSuccess: async () => {
+//       //success();
+
+//       Snackbar.show({
+//         text: 'All notifications marked as read',
+//         duration: Snackbar.LENGTH_SHORT,
+//       });
+//     },
+
+//     onError: error => {
+//       console.log(error);
+//       Snackbar.show({
+//         text: 'Internal server error, cannot mark the notification as read!',
+//         duration: Snackbar.LENGTH_SHORT,
+//       });
+//     },
+//   });
+
+//   const deleteNotificationMutation = useMutation({
+//     mutationKey: ['delete-notification-by-id'],
+//     mutationFn: async ({id}: {id: string}) => {
+//       if (user_token === '') {
+//         Alert.alert('No token found');
+//         return;
+//       }
+//       const res = await axios.delete(
+//         `${PROD_URL}/notification/${id}`,
+
+//         {
+//           // headers: {
+//           //  Authorization: `Bearer ${user_token}`,
+//           // },
+//         },
+//       );
+
+//       return res.data as any;
+//     },
+//     onSuccess: async () => {
+//       //success();
+//       refetch();
+//       Snackbar.show({
+//         text: 'Notification deleted',
+//         duration: Snackbar.LENGTH_SHORT,
+//       });
+//     },
+
+//     onError: error => {
+//       console.log(error);
+//       Snackbar.show({
+//         text: 'Internal server error, failed to delete notification!',
+//         duration: Snackbar.LENGTH_SHORT,
+//       });
+//     },
+//   });
+
+//   const handleDeleteAction = (item: NotificationD) => {
+//     console.log('Notification ID', item?._id);
+//     deleteNotificationMutation.mutate({
+//       id: item?._id,
+//     });
+//   };
+
+//   useEffect(() => {
+//     markNotificationMutation.mutate();
+
+//     return () => {};
+//   }, []);
+
+//   const onRefresh = () => {
+//     setRefreshing(true);
+//     refetch();
+//     setRefreshing(false);
+//   };
+
+//   const handleClickAction = (item: NotificationD) => {
+//     if (
+//       item.type === NotificationType.ArticleComment ||
+//       item.type === NotificationType.ArticleSubmitToAdmin
+//     ) {
+//       if (item.articleId) {
+//         navigation.navigate('ArticleReviewScreen', {
+//           articleId: parseInt(item.articleId._id, 10),
+//           authorId: item.articleId.authorId,
+//           destination: item.articleId.status,
+//           recordId: item.articleId?.pb_recordId,
+//         });
+//       }
+//     } else if (
+//       item.type === NotificationType.RevisionSubmitToAdmin ||
+//       item.type === NotificationType.EditRequestComment
+//     ) {
+//       if (item.revisonId) {
+//         navigation.navigate('ImprovementReviewScreen', {
+//           requestId: item.revisonId?._id,
+//           authorId: item.revisonId?.user_id,
+//           destination: item.revisonId?.status,
+//           recordId: item.revisonId?.pb_recordId,
+//           articleRecordId: item.revisonId?.article_recordId,
+//         });
+//       }
+//     }
+//   };
+//   const renderItem = ({item}: {item: NotificationD}) => {
+//     return (
+//       <NotificationItem
+//         item={item}
+//         handleDeleteAction={handleDeleteAction}
+//         handleClickAction={handleClickAction}
+//       />
+//     );
+//   };
+
+//   if (isLoading) {
+//     return <Loader />;
+//   }
+//   return (
+//     <SafeAreaView style={styles.container}>
+//       <FlatList
+//         data={notificationData}
+//         renderItem={renderItem}
+//         keyExtractor={item => item._id.toString()}
+//         contentContainerStyle={styles.flatListContentContainer}
+//         refreshing={refreshing}
+//         onRefresh={onRefresh}
+//         ListEmptyComponent={
+//           <View style={styles.emptyContainer}>
+//             {/**
+//                  *  <Image
+//                   source={require('../assets/article.png')}
+//                   style={styles.emptyImgStyle}
+//                 />
+//                  */}
+//             <Text style={styles.message}>No new notifications</Text>
+//           </View>
+//         }
+//         onEndReached={()=>{
+//           if(page < totalPages){
+//             setPage(page + 1);
+//           }
+//         }}
+//         onEndReachedThreshold={0.5}
+//       />
+//     </SafeAreaView>
+//   );
+// }
+
+// const styles = StyleSheet.create({
+//   container: {
+//     flex: 1,
+//     backgroundColor: ON_PRIMARY_COLOR,
+//     justifyContent: 'center',
+//     //marginTop: 16,
+//   },
+//   header: {
+//     backgroundColor: PRIMARY_COLOR,
+//     paddingHorizontal: 16,
+//     borderBottomLeftRadius: 20,
+//     borderBottomRightRadius: 20,
+//     paddingBottom: 20,
+//   },
+//   content: {
+//     marginTop: 15,
+//     paddingHorizontal: 16,
+//   },
+//   recentPodcastsHeader: {
+//     flexDirection: 'row',
+//     justifyContent: 'space-between',
+//     alignItems: 'center',
+//     marginBottom: 15,
+//   },
+//   recentPodcastsTitle: {
+//     fontSize: 25,
+//     fontWeight: 'bold',
+//     color: 'white',
+//     alignSelf: 'center',
+//   },
+//   seeMoreText: {
+//     fontSize: 16,
+//     fontWeight: '600',
+//   },
+
+//   message: {
+//     fontSize: 16,
+//     color: '#000',
+//     fontFamily: PRIMARY_COLOR,
+//     textAlign: 'center',
+//   },
+//   emptyContainer: {
+//     flex: 1,
+//     justifyContent: 'center',
+//     alignItems: 'center',
+//     padding: 20,
+//     top: 70,
+//   },
+
+//   flatListContentContainer: {
+//     paddingHorizontal: 16,
+//     marginTop: 40,
+//     paddingBottom: 120,
+//   },
+// });
+
+import {Alert, FlatList, StyleSheet, Text} from 'react-native';
+import React, {useEffect} from 'react';
+import {ON_PRIMARY_COLOR, PRIMARY_COLOR} from '../helper/Theme';
+import NotificationItem from '../components/NotificationItem';
+import {useDispatch, useSelector} from 'react-redux';
+import {useMutation, useQuery} from '@tanstack/react-query';
+import axios from 'axios';
+import {YStack} from 'tamagui';
+import {NotificationD, NotificationProps, NotificationType} from '../type';
+import {BellOff} from '@tamagui/lucide-icons';
+import Loader from '../components/Loader';
+import Snackbar from 'react-native-snackbar';
+import {hp} from '../helper/Metric';
+import {PROD_URL} from '../helper/APIUtils';
+import {SafeAreaView} from 'react-native-safe-area-context';
+
+// PodcastsScreen component displays the list of podcasts and includes a PodcastPlayer
+const NotificationScreen = ({navigation}: NotificationProps) => {
+  //const notifications = [];
   const {user_token} = useSelector((state: any) => state.user);
-  const [refreshing, setRefreshing] = useState(false);
+  const [refreshing, setRefreshing] = React.useState(false);
   const [page, setPage] = React.useState(1);
   const [totalPages, setTotalPages] = React.useState(0);
-  const [notificationData, setNotificationData] = useState<NotificationD[]>([]);
+  const {isConnected} = useSelector((state: any) => state.network);
+  const [notificationsData, setNotificationsData] =
+    React.useState<NotificationD[]>();
 
-  const {
-    isLoading,
-    isError,
-    refetch,
-  } = useQuery({
+  const dispatch = useDispatch();
+
+  // console.log(user_token);
+  //  console.log('user_token');
+
+  const {isLoading, refetch} = useQuery({
     queryKey: ['get-all-notifications', page],
     queryFn: async () => {
       try {
         const response = await axios.get(
           `${PROD_URL}/notifications?role=1&page=${page}`,
           {
-            // headers: {
-            //  Authorization: `Bearer ${user_token}`,
-            // },
+            headers: {
+              Authorization: `Bearer ${user_token}`,
+            },
           },
         );
 
-         if(Number(page) === 1){
-          if(response.data.totalPages){
-          const totalPage = response.data.totalPages;
-          setTotalPages(totalPage);
+        if (Number(page) === 1) {
+          if (response.data.totalPages) {
+            const totalPage = response.data.totalPages;
+            setTotalPages(totalPage);
           }
-          setNotificationData(response.data.notifications);
-        }else{
-          const oldNotif = notificationData ?? [];
-          setNotificationData([...oldNotif, ...response.data.notifications]);
+          setNotificationsData(response.data.notifications);
+        } else {
+          const oldNotif = notificationsData ?? [];
+          setNotificationsData([...oldNotif, ...response.data.notifications]);
         }
         // console.log('Notification Response', response);
-        return response.data.notifications as NotificationD[];
+        return response.data.notifications as Notification[];
       } catch (err) {
-        //console.error('Error fetching articles:', err);
-
-        return [];
+        console.error('Error fetching articles:', err);
       }
     },
-    enabled: !!user_token,
+    enabled: isConnected && !!user_token && !!page,
   });
 
   // Mark Notification as read api integration
@@ -68,6 +356,12 @@ export default function Notification({navigation}: NotificationProps) {
     mutationFn: async () => {
       if (user_token === '') {
         Alert.alert('No token found');
+        // dispatch(
+        //   showAlert({
+        //     title: 'Error!',
+        //     message: 'No token found',
+        //   }),
+        // );
         return;
       }
       const res = await axios.put(
@@ -76,9 +370,9 @@ export default function Notification({navigation}: NotificationProps) {
           role: 1,
         },
         {
-          // headers: {
-          //  Authorization: `Bearer ${user_token}`,
-          //},
+          headers: {
+            Authorization: `Bearer ${user_token}`,
+          },
         },
       );
 
@@ -107,15 +401,21 @@ export default function Notification({navigation}: NotificationProps) {
     mutationFn: async ({id}: {id: string}) => {
       if (user_token === '') {
         Alert.alert('No token found');
+        // dispatch(
+        //   showAlert({
+        //     title: 'Error!',
+        //     message: 'No token found',
+        //   }),
+        // );
         return;
       }
       const res = await axios.delete(
         `${PROD_URL}/notification/${id}`,
 
         {
-          // headers: {
-          //  Authorization: `Bearer ${user_token}`,
-          // },
+          headers: {
+            Authorization: `Bearer ${user_token}`,
+          },
         },
       );
 
@@ -138,13 +438,6 @@ export default function Notification({navigation}: NotificationProps) {
       });
     },
   });
-
-  const handleDeleteAction = (item: NotificationD) => {
-    console.log('Notification ID', item?._id);
-    deleteNotificationMutation.mutate({
-      id: item?._id,
-    });
-  };
 
   useEffect(() => {
     markNotificationMutation.mutate();
@@ -186,49 +479,57 @@ export default function Notification({navigation}: NotificationProps) {
       }
     }
   };
+
   const renderItem = ({item}: {item: NotificationD}) => {
     return (
       <NotificationItem
         item={item}
         handleDeleteAction={handleDeleteAction}
-        handleClickAction={handleClickAction}
+        handleClick={handleClickAction}
       />
     );
+  };
+
+  const handleDeleteAction = (item: NotificationD) => {
+    console.log('Notification ID', item?._id);
+    deleteNotificationMutation.mutate({
+      id: item?._id,
+    });
   };
 
   if (isLoading) {
     return <Loader />;
   }
+
   return (
+    // Main container
     <SafeAreaView style={styles.container}>
       <FlatList
-        data={notificationData}
+        data={notificationsData}
         renderItem={renderItem}
         keyExtractor={item => item._id.toString()}
         contentContainerStyle={styles.flatListContentContainer}
         refreshing={refreshing}
         onRefresh={onRefresh}
         ListEmptyComponent={
-          <View style={styles.emptyContainer}>
-            {/**
-                 *  <Image
-                  source={require('../assets/article.png')}
-                  style={styles.emptyImgStyle}
-                />
-                 */}
-            <Text style={styles.message}>No new notifications</Text>
-          </View>
+          <YStack style={styles.emptyContainer} alignItems="center">
+            <BellOff size={64} color="#9CA3AF" />
+
+            <Text style={styles.message}>No Notifications Found</Text>
+          </YStack>
         }
-        onEndReached={()=>{
-          if(page < totalPages){
-            setPage(page + 1);
+        onEndReached={() => {
+          if (page < totalPages) {
+            setPage(prev => prev + 1);
           }
         }}
         onEndReachedThreshold={0.5}
       />
     </SafeAreaView>
   );
-}
+};
+
+export default NotificationScreen;
 
 const styles = StyleSheet.create({
   container: {
@@ -242,10 +543,10 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     borderBottomLeftRadius: 20,
     borderBottomRightRadius: 20,
-    paddingBottom: 20,
+    // paddingBottom: hp(3),
   },
   content: {
-    marginTop: 15,
+    marginTop: hp(3),
     paddingHorizontal: 16,
   },
   recentPodcastsHeader: {
@@ -267,8 +568,9 @@ const styles = StyleSheet.create({
 
   message: {
     fontSize: 16,
+    marginTop: hp(2),
     color: '#000',
-    fontFamily: PRIMARY_COLOR,
+    fontFamily: 'bold',
     textAlign: 'center',
   },
   emptyContainer: {
@@ -281,7 +583,14 @@ const styles = StyleSheet.create({
 
   flatListContentContainer: {
     paddingHorizontal: 16,
-    marginTop: 40,
+    marginTop: 4,
     paddingBottom: 120,
+  },
+  emptyImgStyle: {
+    width: 300,
+    height: 200,
+    borderRadius: 8,
+    marginBottom: 10,
+    resizeMode: 'contain',
   },
 });

@@ -38,6 +38,7 @@
         "android.permission.RECORD_AUDIO",
         "android.permission.MODIFY_AUDIO_SETTINGS"
       ],
+      "googleServicesFile": "./google-services.json",
       "adaptiveIcon": {
         "backgroundColor": "#E6F4FE",
         "foregroundImage": "./assets/images/adaptive-icon.png",
@@ -55,6 +56,8 @@
     },
     "plugins": [
       "expo-router",
+      "@react-native-firebase/app",
+      "expo-notifications",
       [
         "expo-splash-screen",
         {

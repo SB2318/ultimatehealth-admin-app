@@ -5,33 +5,25 @@
  * @format
  */
 
-import React, { useEffect } from 'react';
-import { StatusBar, useColorScheme, View } from 'react-native';
-//import {Colors} from 'react-native/Libraries/NewAppScreen';
-//import {PRIMARY_COLOR} from './src/helper/Theme';
-import { NavigationContainer } from '@react-navigation/native';
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { SafeAreaProvider } from 'react-native-safe-area-context';
-import { FirebaseProvider } from './FirebaseContext';
-import { SocketProvider } from './src/components/SocketContext';
+import React, {useEffect} from 'react';
+import {StatusBar, useColorScheme, View} from 'react-native';
+
+import {NavigationContainer} from '@react-navigation/native';
+import {QueryClient, QueryClientProvider} from '@tanstack/react-query';
+import {SafeAreaProvider} from 'react-native-safe-area-context';
+import {FirebaseProvider} from './FirebaseContext';
+import {SocketProvider} from './src/components/SocketContext';
 import StackNavigation from './src/navigations/StackNavigation';
-//import TrackPlayer, {Capability} from 'react-native-track-player';
-//import PushNotification from 'react-native-push-notification';
-import { addEventListener } from '@react-native-community/netinfo';
+import {addEventListener} from '@react-native-community/netinfo';
 import messaging from '@react-native-firebase/messaging';
-import { useDispatch } from 'react-redux';
+import {useDispatch} from 'react-redux';
 import config from './tamagui.config';
-import { ON_PRIMARY_COLOR } from './src/helper/Theme';
-import { setConnected } from './src/stores/NetworkSlice';
-import { TamaguiProvider } from 'tamagui';
+import {ON_PRIMARY_COLOR} from './src/helper/Theme';
+import {setConnected} from './src/stores/NetworkSlice';
+import {TamaguiProvider} from 'tamagui';
+import {useNotificationListeners} from './src/hooks/useNotificationListener';
 
 const queryClient = new QueryClient();
-
-// type Conf = typeof config;
-
-// declare module '@tamagui/core' {
-//   interface TamaguiCustomConfig extends Conf {}
-// }
 
 function App(): React.JSX.Element {
   const isDarkMode = useColorScheme() === 'dark';
@@ -39,97 +31,10 @@ function App(): React.JSX.Element {
     backgroundColor: isDarkMode ? 'black' : ON_PRIMARY_COLOR,
   };
 
-  //const BarStyle = Platform.OS === 'ios' ? 'dark-content' : 'light-content';
-  //const navigationContainerRef = useRef();
   const dispatch = useDispatch();
+  useNotificationListeners();
 
   useEffect(() => {
-    return () => {
-      //unsubscribe();
-      //onOpenApp();
-    };
-  }, []);
-
-  useEffect(() => {
-    // const init = async () => {
-    //   try {
-    //     await TrackPlayer.setupPlayer();
-
-    //     await TrackPlayer.updateOptions({
-    //       capabilities: [
-    //         Capability.Play,
-    //         Capability.Pause,
-    //         Capability.SkipToNext,
-    //         Capability.SkipToPrevious,
-    //         Capability.Stop,
-    //       ],
-    //       compactCapabilities: [Capability.Play, Capability.Pause],
-    //     });
-
-    //     console.log(' TrackPlayer initialized once');
-    //   } catch (e) {
-    //     console.log(' TrackPlayer already initialized or failed', e);
-    //   }
-    // };
-
-    //init();
-    return () => {
-    //  TrackPlayer.reset();
-    };
-  }, []);
-
-   useEffect(() => {
-    // PushNotification.configure({
-    //   onRegister: (token: any) => {
-    //     console.log('FCM Token:', token);
-    //   },
-
-    //   onNotification: () => {
-    //     // Handle notification action here
-    //   },
-    //   requestPermissions: true, // Automatically request permissions on iOS
-    // });
-
-    // Create notification channels (Android specific)
-    // PushNotification.createChannel(
-    //   {
-    //     channelId: 'default-channel',
-    //     channelName: 'Default Channel',
-    //     channelDescription: 'UltimateHealth Notifications',
-    //     playSound: true,
-    //     soundName: 'default',
-    //     importance: 4,
-    //     vibrate: true,
-    //   },
-    //   (created: any) => console.log(`createChannel returned '${created}'`),
-    // );
-    // const unsubscribe = messaging().onMessage(async remoteMessage => {
-    //   console.log(
-    //     'Foreground notification received from message:',
-    //     remoteMessage,
-    //   );
-    //   //const data = remoteMessage.data;
-    //   // handleNotification(data);
-
-    //   PushNotification.localNotification({
-    //     channelId: 'default-channel',
-    //     title: remoteMessage?.notification?.title,
-    //     message: remoteMessage?.notification?.body,
-    //     playSound: true,
-    //     soundName: 'default',
-    //     priority: 'high',
-    //     visibility: 'public',
-    //   });
-    // });
-
-    // messaging().setBackgroundMessageHandler(async remoteMessage => {
-    //   console.log('Background notification received:', remoteMessage); 
-    //  // const data = remoteMessage.data;
-    //   //handleNotification(data);
-    // });
-
-    // On app open
-
     const unsubscribe1 = addEventListener(state => {
       console.log('Connection type', state.type);
       console.log('Is connected?', state.isConnected);
@@ -138,42 +43,37 @@ function App(): React.JSX.Element {
     });
     const onOpenApp = messaging().onNotificationOpenedApp(remoteMessage => {
       console.log('Notification caused app to open:', remoteMessage);
-      // const data = remoteMessage.data;
-      // handleNotification(data);
     });
 
     return () => {
-     // unsubscribe();
       unsubscribe1();
       onOpenApp();
     };
   }, [dispatch]);
 
   return (
-     <TamaguiProvider config={config}>
+    <TamaguiProvider config={config}>
       <SocketProvider>
-      <QueryClientProvider client={queryClient}>
-    
-        <FirebaseProvider>
-          <SafeAreaProvider>
-            <View
-              style={{
-                flex: 1,
-                backgroundColor: backgroundStyle.backgroundColor,
-              }}>
-              <StatusBar
-                barStyle="dark-content"
-                backgroundColor={backgroundStyle.backgroundColor}
-              />
-              <NavigationContainer>
-                <StackNavigation />
-              </NavigationContainer>
-            </View>
-          </SafeAreaProvider>
-        </FirebaseProvider>
-      
-    </QueryClientProvider>
-    </SocketProvider>
+        <QueryClientProvider client={queryClient}>
+          <FirebaseProvider>
+            <SafeAreaProvider>
+              <View
+                style={{
+                  flex: 1,
+                  backgroundColor: backgroundStyle.backgroundColor,
+                }}>
+                <StatusBar
+                  barStyle="dark-content"
+                  backgroundColor={backgroundStyle.backgroundColor}
+                />
+                <NavigationContainer>
+                  <StackNavigation />
+                </NavigationContainer>
+              </View>
+            </SafeAreaProvider>
+          </FirebaseProvider>
+        </QueryClientProvider>
+      </SocketProvider>
     </TamaguiProvider>
   );
 }

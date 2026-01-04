@@ -151,8 +151,9 @@ function App(): React.JSX.Element {
 
   return (
      <TamaguiProvider config={config}>
-    <QueryClientProvider client={queryClient}>
       <SocketProvider>
+      <QueryClientProvider client={queryClient}>
+    
         <FirebaseProvider>
           <SafeAreaProvider>
             <View
@@ -170,8 +171,9 @@ function App(): React.JSX.Element {
             </View>
           </SafeAreaProvider>
         </FirebaseProvider>
-      </SocketProvider>
+      
     </QueryClientProvider>
+    </SocketProvider>
     </TamaguiProvider>
   );
 }

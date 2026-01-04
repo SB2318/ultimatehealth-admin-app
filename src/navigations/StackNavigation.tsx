@@ -96,7 +96,7 @@ const StackNavigation = () => {
           headerBackTitleVisible: false,
           headerLeft: () => (
             <TouchableOpacity
-              style={styles.headerLeftButtonCommentScreen}
+              style={{...styles.headerLeftButtonCommentScreen, backgroundColor:'none' }}
               onPress={() => {
                 //queryClient.invalidateQueries({queryKey: ['get-user-socials']});
                 navigation.goBack();

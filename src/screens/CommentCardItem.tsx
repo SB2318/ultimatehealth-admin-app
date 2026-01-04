@@ -61,25 +61,25 @@ export default function ReviewItem({item}: {item: Comment}) {
         </Avatar>
 
         {/* Comment Content */}
-        <YStack flex={1} space="$1.5">
+        <YStack flex={1} gap="$1.5">
           <XStack alignItems="center" justifyContent="space-between">
-            <XStack alignItems="center" space="$2">
-              <Text fontWeight="700" color="$gray12" fontSize={18}>
-                {item.adminId ? item.adminId.user_handle : item.userId?.user_handle}
+            <XStack alignItems="center" gap="$2">
+              <Text fontWeight="700" color="$gray700" fontSize={18}>
+                {item.adminId ? item.adminId.user_handle : item.userId?.user_handle || 'not found'}
               </Text>
               {item.isEdited && (
-                <Text color="$gray9" fontSize={15}>
+                <Text color="$gray500" fontSize={15}>
                   (edited)
                 </Text>
               )}
             </XStack>
           </XStack>
 
-          <Paragraph color="$gray11" fontSize={16}>
+          <Paragraph color="$color12" fontSize={16}>
             {item.content}
           </Paragraph>
 
-          <Text color="$gray9" fontSize="$3">
+          <Text color="$color10" fontSize="$3">
             Last updated {formatWithOrdinal(item.updatedAt)}
           </Text>
         </YStack>

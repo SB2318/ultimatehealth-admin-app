@@ -18,7 +18,7 @@ import {PRIMARY_COLOR} from '../helper/Theme';
 import {useDispatch, useSelector} from 'react-redux';
 import Loader from '../components/Loader';
 import CommentItem from '../components/CommentItem';
-import {useSocket} from '../../SocketContext';
+import {useSocket} from '../components/SocketContext';
 import {
   useMentions,
   replaceTriggerValues,
@@ -48,9 +48,9 @@ import {useQuery} from '@tanstack/react-query';
 import axios from 'axios';
 import {StatusEnum} from '../helper/Utils';
 
+
+
 const PodcastDiscussion = ({navigation, route}: PodcastDiscussionProp) => {
-  const socket = useSocket();
-  const dispatch = useDispatch();
   const {podcastId, mentionedUsers} = route.params;
   const [comments, setComments] = useState<Comment[]>([]);
   const [newComment, setNewComment] = useState('');
@@ -62,6 +62,9 @@ const PodcastDiscussion = ({navigation, route}: PodcastDiscussionProp) => {
   const [commentLoading, setCommentLoading] = useState<boolean>(false);
   const [commentLikeLoading, setCommentLikeLoading] = useState<boolean>(false);
   const [mentions, setMentions] = useState<User[]>([]);
+
+  const socket = useSocket();
+  const dispatch = useDispatch();
 
   const {data: podcast, refetch} = useQuery({
     queryKey: ['get-podcast-details'],
@@ -167,7 +170,9 @@ const PodcastDiscussion = ({navigation, route}: PodcastDiscussionProp) => {
                 />
               )}
 
-              <Text style={styles.username2}>{one.user_handle}</Text>
+              <Text style={styles.username2} color="black">
+                {one.user_handle}
+              </Text>
             </Pressable>
           ))}
       </View>
@@ -195,10 +200,7 @@ const PodcastDiscussion = ({navigation, route}: PodcastDiscussionProp) => {
 
   useEffect(() => {
     //console.log('Fetching comments for articleId:', route.params.articleId);
-   if(!socket) {
-    console.log("Socket not found");
-    return;
-   }
+
     if (podcast && podcast.status === StatusEnum.PUBLISHED) {
       socket.emit('fetch-comments', {podcastId: route.params.podcastId});
     }
@@ -340,9 +342,8 @@ const PodcastDiscussion = ({navigation, route}: PodcastDiscussionProp) => {
   };
 
   const handleCommentSubmit = () => {
-
-    if(!socket){
-        return;
+    if (!socket) {
+      return;
     }
     if (!newComment.trim()) {
       Alert.alert('Please enter a comment before submitting.');
@@ -465,7 +466,7 @@ const PodcastDiscussion = ({navigation, route}: PodcastDiscussionProp) => {
               </Paragraph>
 
               <View style={styles.authorContainer}>
-                <TouchableOpacity
+                <Pressable
                   onPress={() => {
                     //  if (article && article?.authorId) {
                     //navigation.navigate('UserProfileScreen', {
@@ -489,12 +490,13 @@ const PodcastDiscussion = ({navigation, route}: PodcastDiscussionProp) => {
                       style={styles.authorImage}
                     />
                   )}
-                </TouchableOpacity>
+                </Pressable>
                 <View>
-                  <Text style={styles.authorName}>
+                  <Text style={styles.authorName} color="$color12">
                     {podcast ? podcast?.user_id.user_name : ''}
                   </Text>
-                  <Text style={styles.authorFollowers}>
+
+                  <Text color="$gray600" style={styles.authorFollowers}>
                     {podcast?.user_id.followers
                       ? podcast?.user_id.followers.length > 1
                         ? `${podcast?.user_id.followers.length} followers`
@@ -522,7 +524,7 @@ const PodcastDiscussion = ({navigation, route}: PodcastDiscussionProp) => {
                     <TouchableOpacity
                       style={styles.submitButton}
                       onPress={handleCommentSubmit}>
-                      <Text style={styles.submitButtonText}>
+                      <Text style={styles.submitButtonText} color={'white'}>
                         {editMode ? '✏️ Update Comment' : '⏩ Submit Comment'}
                       </Text>
                     </TouchableOpacity>

@@ -10,7 +10,7 @@ export default function CommentItem({
   handleMentionClick,
 }: {
   item: Comment;
-  isSelected: Boolean;
+  isSelected: boolean;
   handleMentionClick: (user_handle: string) => void;
 }) {
   const formatWithOrdinal = date => {

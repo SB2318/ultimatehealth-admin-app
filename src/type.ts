@@ -43,6 +43,10 @@ export type RootStackParamList = {
     trackId: string;
     audioUrl: string | undefined;
   };
+  PodcastDiscussion: {
+    podcastId: string;
+    mentionedUsers: User[];
+  };
 };
 
 export type Admin = {
@@ -135,11 +139,10 @@ export type NotificationD = {
 };
 
 export enum NotificationType {
-
   ArticleComment = 'articleComment',
   PodcastComment = 'podcastComment',
   EditRequestComment = 'editRequestComment',
-  ArticleSubmitToAdmin = 'articleSubmitToAdmin', 
+  ArticleSubmitToAdmin = 'articleSubmitToAdmin',
   RevisionSubmitToAdmin = 'revisionSubmitToAdmin',
 }
 
@@ -225,6 +228,10 @@ export type PodcastProps = CompositeScreenProps<
 >;
 
 export type ReportScreenProps = BottomTabScreenProps<TabParamList, 'Report'>;
+export type PodcastDiscussionProp = StackScreenProps<
+  RootStackParamList,
+  'PodcastDiscussion'
+>;
 
 export type ProfileScreenProps = CompositeScreenProps<
   BottomTabScreenProps<TabParamList, 'Profile'>,

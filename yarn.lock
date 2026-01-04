@@ -6385,6 +6385,11 @@ diff-sequences@^29.6.3:
   resolved "https://registry.yarnpkg.com/diff-sequences/-/diff-sequences-29.6.3.tgz#4deaf894d11407c51efc8418012f9e70b84ea921"
   integrity sha512-EjePK1srD3P08o2j4f0ExnylqRs5B9tJjcp9t1krH2qRi8CCdsYfwe9JgSLurFBWwq4uOlipzfk5fHNvwFKr8Q==
 
+diff@5.0.0:
+  version "5.0.0"
+  resolved "https://registry.yarnpkg.com/diff/-/diff-5.0.0.tgz#7ed6ad76d859d030787ec35855f5b1daf31d852b"
+  integrity sha512-/VTCrvm5Z0JGty/BWHljh+BAiw3IK+2j87NGMu8Nwc/f48WoDAC395uomO9ZD117ZOBaHmkX1oyLvkVM/aIT3w==
+
 dir-glob@^3.0.1:
   version "3.0.1"
   resolved "https://registry.yarnpkg.com/dir-glob/-/dir-glob-3.0.1.tgz#56dbf73d992a4a93ba1584f4534063fd2e41717f"
@@ -10324,6 +10329,13 @@ react-native-collapsible-tab-view@^8.0.0:
   integrity sha512-/MRimYn4FB4Dzmypy0J976FVZeX9OEOyFR3fogO68YDHyleSEEgVI2ecrcbtJ4jC8LPT0weDhJPtUQtWtzlQ8A==
   dependencies:
     use-deep-compare "^1.1.0"
+
+react-native-controlled-mentions@^3.1.0:
+  version "3.1.0"
+  resolved "https://registry.yarnpkg.com/react-native-controlled-mentions/-/react-native-controlled-mentions-3.1.0.tgz#a037e76bd738cb0f509049f86df04d3b716616a9"
+  integrity sha512-jkQZmHGXQrux3Vb0l+5b4L3GIc9R+pKhjl/MDxSUv6ya5l2Y34m99ka2U2NIZGpG0yqTYDtjZcqqHyb0lYlqww==
+  dependencies:
+    diff "5.0.0"
 
 react-native-element-dropdown@^2.12.4:
   version "2.12.4"

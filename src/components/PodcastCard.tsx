@@ -1,5 +1,5 @@
 import React from 'react';
-import {StyleSheet, Pressable} from 'react-native';
+import {Pressable} from 'react-native';
 import Animated, {
   useAnimatedStyle,
   useSharedValue,
@@ -7,7 +7,7 @@ import Animated, {
 } from 'react-native-reanimated';
 import ArticleFloatingMenu from './ArticleFloatingMenu';
 //import io from 'socket.io-client';
-import {Entypo, Feather} from '@expo/vector-icons';
+import {Entypo} from '@expo/vector-icons';
 import {hp, wp} from '../helper/Metric';
 import {PodcastData} from '../type';
 import {BUTTON_COLOR, PRIMARY_COLOR} from '../helper/Theme';
@@ -224,13 +224,14 @@ const PodcastCard = ({
           <Text
             fontSize="$5"
             fontWeight="700"
+            color='black'
             numberOfLines={3}
             maxWidth={wp(40)}>
             {item.title}
           </Text>
 
           {/* Host */}
-          <Text fontSize="$3" color="$gray10" marginTop={2}>
+          <Text fontSize="$3" color="$gray700" marginTop={2}>
             {item.user_id.user_name}
           </Text>
 
@@ -282,7 +283,7 @@ const PodcastCard = ({
           <Feather name="chevrons-right" size={26} color="black" />
         </Pressable> */}
 
-        <Text fontSize="$3.5" color="$gray9" marginTop="$1">
+        <Text fontSize="$3.5" color="$color10" marginTop="$1">
           {msToTime(item.duration)}
         </Text>
       </YStack>

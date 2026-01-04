@@ -15,7 +15,7 @@ export const SocketProvider: React.FC<SocketProviderProps> = ({
 
   useEffect(() => {
     // Initialize the socket connection
-    console.log('Socket Url', SOCKET_PROD);
+  //  console.log('Socket Url', SOCKET_PROD);
     const socketConnection = io(`${SOCKET_PROD}`);
 
     setSocket(socketConnection);
@@ -34,9 +34,6 @@ export const SocketProvider: React.FC<SocketProviderProps> = ({
 export const useSocket = () => {
   const socket = useContext(SocketContext);
 
-  if (!socket) {
-    throw new Error('useSocket must be used within a SocketProvider');
-  }
 
   return socket;
 };

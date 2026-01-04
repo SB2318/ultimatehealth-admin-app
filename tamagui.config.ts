@@ -31,6 +31,7 @@ const tokens = createTokens({
     color12: '#111827',
     gray100: '#F5F5F5',
     gray200: '#E0E0E0',
+    green10: '#228B22',
     gray300: '#D6D6D6',
     gray400: '#BDBDBD',
     gray500: '#9E9E9E',

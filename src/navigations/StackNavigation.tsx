@@ -20,6 +20,8 @@ import { PRIMARY_COLOR } from '../helper/Theme';
 import CommentScreen from '../screens/CommentScreen';
 import ReportAction from '../screens/ReportAction';
 import PodcastDetail from '../screens/PodcastDetails';
+import { FontAwesome6 } from '@expo/vector-icons';
+import PodcastDiscussion from '../screens/PodcastDiscussion';
 
 const Stack = createStackNavigator<RootStackParamList>();
 
@@ -80,6 +82,30 @@ const StackNavigation = () => {
         })}
       />
 
+ <Stack.Screen
+        name="PodcastDiscussion"
+        component={PodcastDiscussion}
+        options={({navigation}) => ({
+            headerShown: true,
+          headerTitle: '',
+          headerTintColor: 'white',
+          headerTransparent: false,
+          headerStyle: {
+            backgroundColor: '#000A60',
+          },
+          headerBackTitleVisible: false,
+          headerLeft: () => (
+            <TouchableOpacity
+              style={styles.headerLeftButtonCommentScreen}
+              onPress={() => {
+                //queryClient.invalidateQueries({queryKey: ['get-user-socials']});
+                navigation.goBack();
+              }}>
+              <FontAwesome6 size={25} name="arrow-left" color={'white'} />
+            </TouchableOpacity>
+          ),
+        })}
+      />
 
       <Stack.Screen
         name="ImprovementReviewScreen"

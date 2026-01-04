@@ -665,6 +665,7 @@ import {Button, Theme, XStack, YStack, Text} from 'tamagui';
 import LottieView from 'lottie-react-native';
 import {MaterialIcons} from '@expo/vector-icons';
 import DiscardReasonModal from '../components/DiscardReasonModal';
+import { ActionButtonBar } from '../components/PodcastAction';
 
 const PodcastDetail = ({navigation, route}: PodcastDetailScreenProp) => {
   //const [progress, setProgress] = useState(10);
@@ -893,15 +894,15 @@ const PodcastDetail = ({navigation, route}: PodcastDetailScreenProp) => {
       <YStack
         flex={1}
         backgroundColor="#0B1425"
-        padding="$6"
-        paddingTop="$12"
-        justifyContent="space-between">
+        padding="$4"
+        paddingTop="$6"
+        justifyContent="flex-start">
         {/* TITLE */}
-        <YStack>
-          <Text color="white" fontSize={34} fontWeight="700">
+       
+          <Text color="white" fontSize={28} fontWeight="700" alignSelf='center'>
             {podcast?.title}
           </Text>
-        </YStack>
+    
 
         {/* MAIN WAVE */}
         <YStack alignItems="center" marginTop="$1">
@@ -909,7 +910,7 @@ const PodcastDetail = ({navigation, route}: PodcastDetailScreenProp) => {
             source={require('../../assets/LottieAnimation/wave-loop.json')}
             autoPlay
             loop
-            style={{width: '100%', height: 130}}
+            style={{width: '100%', height: 130, backgroundColor:"red"}}
           />
         </YStack>
 
@@ -943,7 +944,7 @@ const PodcastDetail = ({navigation, route}: PodcastDetailScreenProp) => {
             }}
           />
 
-          <XStack justifyContent="space-between" marginTop="$3">
+          <XStack justifyContent="space-between" marginTop="$1">
             <Text color="#C0C9DA">{formatSecTime(position)}</Text>
             <Text color="#C0C9DA">{formatSecTime(duration)}</Text>
           </XStack>
@@ -953,7 +954,8 @@ const PodcastDetail = ({navigation, route}: PodcastDetailScreenProp) => {
         <XStack
           justifyContent="space-around"
           alignItems="center"
-          marginTop="$2">
+          backgroundColor='red'
+          marginTop="$1">
           <Button
             height={60}
             chromeless
@@ -991,12 +993,14 @@ const PodcastDetail = ({navigation, route}: PodcastDetailScreenProp) => {
         </XStack>
 
         {/* FOOTER OPTIONS */}
-        {podcast && podcast.status === StatusEnum.PUBLISHED ? (
+        {
+          /**
+           * {podcast && podcast.status === StatusEnum.PUBLISHED ? (
           <XStack
             style={styles.footerOptions}
             alignItems="center"
             justifyContent="space-evenly">
-            {/* COMMENTS */}
+            
             <TouchableOpacity
               style={styles.footerItem}
               onPress={() => {
@@ -1101,6 +1105,10 @@ const PodcastDetail = ({navigation, route}: PodcastDetailScreenProp) => {
             </TouchableOpacity>
           </XStack>
         )}
+           */
+        }
+
+        <ActionButtonBar/>
 
         <DiscardReasonModal
           visible={discardModalVisible}
@@ -1196,8 +1204,8 @@ const styles = StyleSheet.create({
   slider: {
     width: '100%',
     height: 36,
-    marginTop: 6,
-    marginBottom: 2,
+    marginTop: 2,
+    marginBottom: 1,
   },
   timeRow: {
     flexDirection: 'row',

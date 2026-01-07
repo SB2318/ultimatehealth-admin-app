@@ -746,7 +746,7 @@ const styles = StyleSheet.create({
   },
   imageContainer: {
     position: 'relative',
-    backgroundColor: 'red'
+    //backgroundColor: 'red'
   },
   image: {
     height: 190,

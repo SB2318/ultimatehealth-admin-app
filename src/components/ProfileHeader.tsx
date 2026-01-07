@@ -4,8 +4,6 @@ import {
     View,
     Image,
     TouchableOpacity,
-    Linking,
-    Alert,
   } from 'react-native';
   import React from 'react';
   import EllipseSvg from '../../assets/svg/EllipseSvg';
@@ -114,12 +112,12 @@ import {
       resizeMode: 'contain',
     },
     nameText: {
-      fontSize: fp(6),
+      fontSize: fp(7),
       fontWeight: 'bold',
       color: 'black',
     },
     usernameText: {
-      fontSize: fp(4),
+      fontSize: fp(4.5),
       fontWeight: 'regular',
       marginTop: 1,
     },

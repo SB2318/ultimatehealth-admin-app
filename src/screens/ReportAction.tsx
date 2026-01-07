@@ -22,6 +22,7 @@ import {
   ReportActionScreenProp,
 } from '../type';
 import {TAKE_ACTION_ON_REPORT} from '../helper/APIUtils';
+import { SafeAreaView } from 'react-native-safe-area-context';
 
 export default function ReportAction({
   navigation,
@@ -80,7 +81,8 @@ export default function ReportAction({
   }
   return (
     <ScrollView style={{backgroundColor: 'white'}}>
-      <View style={styles.container}>
+      <SafeAreaView style={styles.container}>
+      
         {reportActions?.map((reason, index) => (
           <View key={index} style={styles.optionContainer}>
             <RadioButton
@@ -150,7 +152,8 @@ export default function ReportAction({
             </TouchableOpacity>
           </>
         )}
-      </View>
+      
+      </SafeAreaView>
     </ScrollView>
   );
 }
@@ -161,7 +164,7 @@ const styles = StyleSheet.create({
     backgroundColor: 'white',
     justifyContent: 'flex-start',
     alignItems: 'flex-start',
-    padding: 18,
+    padding: hp(2),
   },
   header: {
     fontSize: 18,
@@ -180,6 +183,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: wp(10),
     justifyContent: 'center',
     alignItems: 'center',
+    alignSelf:"center",
     borderRadius: 10,
     width: '96%',
   },
@@ -192,8 +196,9 @@ const styles = StyleSheet.create({
   optionContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingVertical: 4,
-    marginBottom: 10,
+   
+    paddingVertical: hp(1),
+    marginBottom: hp(1),
     backgroundColor: '#fff',
     borderRadius: 8,
   },

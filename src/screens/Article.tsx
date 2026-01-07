@@ -833,7 +833,7 @@ const styles = StyleSheet.create({
   labelStyle: {
     fontWeight: '600',
     fontSize: wp(3.5),
-    color: 'black',
+    //color: 'black',
     textTransform: 'capitalize',
   },
   contentContainerStyle: {

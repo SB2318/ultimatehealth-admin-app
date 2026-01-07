@@ -853,7 +853,7 @@ const styles = StyleSheet.create({
   },
   image: {
     height: 190,
-    width: 190,
+     width: "100%",
     objectFit: 'cover',
   },
 

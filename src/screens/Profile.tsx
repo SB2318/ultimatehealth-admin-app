@@ -5,26 +5,22 @@ import ActivityOverview from '../components/ActivityOverview';
 import {Tabs, MaterialTabBar} from 'react-native-collapsible-tab-view';
 
 import {useDispatch, useSelector} from 'react-redux';
-import {useSafeAreaInsets} from 'react-native-safe-area-context';
+import {SafeAreaView, useSafeAreaInsets} from 'react-native-safe-area-context';
 import ProfileHeader from '../components/ProfileHeader';
-import {
-  GET_PROFILE_API,
- 
-} from '../helper/APIUtils';
+import {GET_PROFILE_API} from '../helper/APIUtils';
 import {ProfileScreenProps, Admin} from '../type';
 import {useQuery} from '@tanstack/react-query';
 import axios from 'axios';
 import Loader from '../components/Loader';
 import {useFocusEffect} from '@react-navigation/native';
 import {setUserHandle} from '../stores/UserSlice';
+import { wp } from '../helper/Metric';
 
 const ProfileScreen = ({navigation}: ProfileScreenProps) => {
-  const {user_token} = useSelector(
-    (state: any) => state.user,
-  );
+  const {user_token} = useSelector((state: any) => state.user);
   const dispatch = useDispatch();
 
-   console.log('User token', user_token);
+  console.log('User token', user_token);
 
   const {
     data: user,
@@ -33,7 +29,6 @@ const ProfileScreen = ({navigation}: ProfileScreenProps) => {
   } = useQuery({
     queryKey: ['get-profile'],
     queryFn: async () => {
-
       const response = await axios.get(`${GET_PROFILE_API}`, {
         //headers: {
         //  Authorization: `Bearer ${user_token}`,
@@ -46,18 +41,14 @@ const ProfileScreen = ({navigation}: ProfileScreenProps) => {
   if (user) {
     dispatch(setUserHandle(user.user_handle));
   }
- 
 
-  const insets = useSafeAreaInsets();
-
- 
+  //const insets = useSafeAreaInsets();
 
   useFocusEffect(
     useCallback(() => {
       refetch();
     }, [refetch]),
   );
-
 
   const renderHeader = () => {
     if (user === undefined) {
@@ -72,25 +63,22 @@ const ProfileScreen = ({navigation}: ProfileScreenProps) => {
           user?.Profile_avtar ||
           'https://images.pexels.com/photos/771742/pexels-photo-771742.jpeg?auto=compress&cs=tinysrgb&dpr=1&w=500'
         }
-    
         userEmailID={user?.email}
-        contriutions=''
-    
+        contriutions=""
         onOverviewClick={() => {
           if (user) {
             navigation.navigate('WorkHistoryScreen');
           }
         }}
-        onEditProfileClick={()=>{
+        onEditProfileClick={() => {
           navigation.navigate('EditProfile');
         }}
-        onLogoutClick={()=>{
-          navigation.navigate('LogoutScreen',{
-            profile_image: user && user.Profile_avtar ? user.Profile_avtar: "",
-            username: user?.user_name
+        onLogoutClick={() => {
+          navigation.navigate('LogoutScreen', {
+            profile_image: user && user.Profile_avtar ? user.Profile_avtar : '',
+            username: user?.user_name,
           });
-        }
-        }
+        }}
       />
     );
   };
@@ -118,16 +106,13 @@ const ProfileScreen = ({navigation}: ProfileScreenProps) => {
   }
 
   return (
-    <View style={styles.container}>
-
-       <View style={{marginVertical: 10, marginHorizontal:10}}>
-            <Text style={styles.btnSMText}>Your Insights</Text>
-        
-          </View>
-      <View style={[styles.innerContainer, {paddingTop: insets.top}]}>
-
-           
+    <SafeAreaView style={styles.container}>
+      <View style={{ marginVertical: 10, marginHorizontal: 10}}>
+        <Text style={styles.btnSMText}>Your Insights</Text>
+      </View>
+      <View style={[styles.innerContainer]}>
         <Tabs.Container
+          initialTabName="Articles" 
           renderHeader={renderHeader}
           renderTabBar={renderTabBar}
           containerStyle={styles.tabsContainer}>
@@ -137,54 +122,40 @@ const ProfileScreen = ({navigation}: ProfileScreenProps) => {
               automaticallyAdjustContentInsets={true}
               contentInsetAdjustmentBehavior="always"
               contentContainerStyle={styles.scrollViewContentContainer}>
-              <ActivityOverview
-               ctype={1}
-              />
+              <ActivityOverview ctype={1} />
             </Tabs.ScrollView>
           </Tabs.Tab>
           {/* Tab 2 */}
-          <Tabs.Tab name="Revisions">
-           
-          <Tabs.ScrollView
+          <Tabs.Tab name="Revision">
+            <Tabs.ScrollView
               automaticallyAdjustContentInsets={true}
               contentInsetAdjustmentBehavior="always"
               contentContainerStyle={styles.scrollViewContentContainer}>
-          <ActivityOverview
-              ctype={2} 
-            />
-
+              <ActivityOverview ctype={2} />
             </Tabs.ScrollView>
           </Tabs.Tab>
 
           {/* Tab 3 */}
-          <Tabs.Tab name="Podcasts">
-           
-          <Tabs.ScrollView
+          <Tabs.Tab name="Podcast">
+            <Tabs.ScrollView
               automaticallyAdjustContentInsets={true}
               contentInsetAdjustmentBehavior="always"
               contentContainerStyle={styles.scrollViewContentContainer}>
-           <ActivityOverview
-              ctype={4} 
-            />
-
+              <ActivityOverview ctype={4} />
             </Tabs.ScrollView>
           </Tabs.Tab>
 
-          <Tabs.Tab name="Reports">
-
-          <Tabs.ScrollView
+          <Tabs.Tab name="Report">
+            <Tabs.ScrollView
               automaticallyAdjustContentInsets={true}
               contentInsetAdjustmentBehavior="always"
               contentContainerStyle={styles.scrollViewContentContainer}>
-            <ActivityOverview
-             ctype={3}  
-            />
+              <ActivityOverview ctype={3} />
             </Tabs.ScrollView>
           </Tabs.Tab>
-       
         </Tabs.Container>
       </View>
-    </View>
+    </SafeAreaView>
   );
 };
 
@@ -227,8 +198,8 @@ const styles = StyleSheet.create({
   },
   labelStyle: {
     fontWeight: '600',
-    fontSize: 14,
-    color: 'black',
+    fontSize: 13,
+   // color: 'black',
     textTransform: 'capitalize',
   },
   contentContainerStyle: {
@@ -257,10 +228,10 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   btnSMText: {
-    fontSize: 17,
+    fontSize: wp(7),
     lineHeight: 20,
     fontWeight: '600',
     //color: '#374151',
-    color:"white"
+    color: 'white',
   },
 });

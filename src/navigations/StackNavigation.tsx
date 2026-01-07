@@ -197,7 +197,11 @@ const StackNavigation = () => {
           headerShown: true,
           title: 'Take action',
           headerTitleAlign:"center",
+          headerTintColor:'white',
           headerBackTitleVisible: false,
+          headerStyle: {
+            backgroundColor: '#000A60',
+          },
           headerShadowVisible: false,
           headerLeft: () => (
             <TouchableOpacity
@@ -205,7 +209,7 @@ const StackNavigation = () => {
               onPress={() => {
                 navigation.goBack();
               }}>
-              <FontAwesome size={25} name="arrow-left" color={PRIMARY_COLOR} />
+              <FontAwesome size={25} name="arrow-left" color={'white'} />
             </TouchableOpacity>
           ),
         })}

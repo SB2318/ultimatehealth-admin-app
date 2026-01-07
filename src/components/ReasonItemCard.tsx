@@ -7,8 +7,8 @@ import Icon from "@expo/vector-icons/Feather";
 
 interface Props {
    reason: Reason,
-   onEditAction: (reason: Reason) =>{},
-   onDeleteAction: (reason: Reason) =>{},
+   onEditAction: (reason: Reason) =>void,
+   onDeleteAction: (reason: Reason) =>void,
 }
 
 export default function ReasonItemCard({reason, onEditAction, onDeleteAction}: Props) {

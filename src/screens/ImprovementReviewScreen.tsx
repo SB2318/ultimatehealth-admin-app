@@ -1,58 +1,58 @@
 import AutoHeightWebView from '@brown-bear/react-native-autoheight-webview';
 import AntDesign from '@expo/vector-icons/AntDesign';
 import MaterialIcon from '@expo/vector-icons/MaterialIcons';
-import { useMutation, useQuery } from '@tanstack/react-query';
+import {useMutation, useQuery} from '@tanstack/react-query';
 import axios from 'axios';
-import React, { useEffect, useRef, useState } from 'react';
+import React, {useEffect, useRef, useState} from 'react';
 
 import {
-    Alert,
-    Dimensions,
-    FlatList,
-    Image,
-    ScrollView,
-    StyleSheet,
-    TouchableOpacity,
-    View,
+  Alert,
+  Dimensions,
+  FlatList,
+  Image,
+  ScrollView,
+  StyleSheet,
+  TouchableOpacity,
+  View,
 } from 'react-native';
-import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
-import { useDispatch, useSelector } from 'react-redux';
+import {SafeAreaView, useSafeAreaInsets} from 'react-native-safe-area-context';
+import {useDispatch, useSelector} from 'react-redux';
 import {
-    CHECK_GRAMMAR,
-    CHECK_PLAGIARISM,
-    DELETE_IMPROVEMENT_RECORD_PB,
-    DISCARD_IMPROVEMENT,
-    GET_IMPROVEMENT_BY_ID,
-    GET_IMPROVEMENT_CONTENT,
-    GET_PROFILE_API,
-    PUBLISH_IMPROVEMENT,
-    PUBLISH_IMPROVEMENT_POCKETBASE,
+  CHECK_GRAMMAR,
+  CHECK_PLAGIARISM,
+  DELETE_IMPROVEMENT_RECORD_PB,
+  DISCARD_IMPROVEMENT,
+  GET_IMPROVEMENT_BY_ID,
+  GET_IMPROVEMENT_CONTENT,
+  GET_PROFILE_API,
+  PUBLISH_IMPROVEMENT,
+  PUBLISH_IMPROVEMENT_POCKETBASE,
 } from '../helper/APIUtils';
-import { hp, wp } from '../helper/Metric';
-import { BUTTON_COLOR, ON_PRIMARY_COLOR, PRIMARY_COLOR } from '../helper/Theme';
+import {hp, wp} from '../helper/Metric';
+import {BUTTON_COLOR, ON_PRIMARY_COLOR, PRIMARY_COLOR} from '../helper/Theme';
 import {
-    Admin,
-    Comment,
-    CopyrightCheckerResponse,
-    EditRequest,
-    ImprovementScreenProp,
-    PlagiarismResponse,
-    PocketBaseResponse,
-    ScoreData,
+  Admin,
+  Comment,
+  CopyrightCheckerResponse,
+  EditRequest,
+  ImprovementScreenProp,
+  PlagiarismResponse,
+  PocketBaseResponse,
+  ScoreData,
 } from '../type';
 
-import { useSocket } from '../components/SocketContext';
+import {useSocket} from '../components/SocketContext';
 
 import Snackbar from 'react-native-snackbar';
-import { Button, Spinner, Text, TextArea, YStack } from 'tamagui';
+import {Button, Spinner, Text, TextArea, YStack} from 'tamagui';
 import CommentCardItem from '../components/CommentCardItem';
 import CopyrightCheckerModal from '../components/CopyrightCheckerModal';
 import DiscardReasonModal from '../components/DiscardReasonModal';
 import Loader from '../components/Loader';
 import PlagiarismModal from '../components/PlagiarismModal';
 import ScorecardModal from '../components/ScoreCardModal';
-import { checkImageCopyright, StatusEnum } from '../helper/Utils';
-import { setUserHandle } from '../stores/UserSlice';
+import {checkImageCopyright, StatusEnum} from '../helper/Utils';
+import {setUserHandle} from '../stores/UserSlice';
 
 const ImprovementReviewScreen = ({
   navigation,
@@ -506,7 +506,9 @@ const ImprovementReviewScreen = ({
 
             {imageToolTip && (
               <View style={[styles.tooltip, {left: getTooltipLeft(iconX)}]}>
-                <Text style={styles.tooltipText}>copyright</Text>
+                <Text style={styles.tooltipText} color="white">
+                  copyright
+                </Text>
               </View>
             )}
           </TouchableOpacity>
@@ -527,7 +529,9 @@ const ImprovementReviewScreen = ({
 
               {discardToolTip && (
                 <View style={[styles.tooltip, {left: getTooltipLeft(iconX)}]}>
-                  <Text style={styles.tooltipText}>discard</Text>
+                  <Text style={styles.tooltipText} color="white">
+                    discard
+                  </Text>
                 </View>
               )}
             </TouchableOpacity>
@@ -548,7 +552,9 @@ const ImprovementReviewScreen = ({
               <AntDesign name="google" size={28} color={'white'} />
               {grammarToolTip && (
                 <View style={[styles.tooltip, {left: getTooltipLeft(iconX)}]}>
-                  <Text style={styles.tooltipText}>grammar</Text>
+                  <Text style={styles.tooltipText} color="white">
+                    grammar
+                  </Text>
                 </View>
               )}
             </TouchableOpacity>
@@ -568,7 +574,9 @@ const ImprovementReviewScreen = ({
               ]}>
               {plagrismToolTip && (
                 <View style={[styles.tooltip, {left: getTooltipLeft(iconX)}]}>
-                  <Text style={styles.tooltipText}>plagiarism</Text>
+                  <Text style={styles.tooltipText} color="white">
+                    plagiarism
+                  </Text>
                 </View>
               )}
               <MaterialIcon
@@ -601,20 +609,20 @@ const ImprovementReviewScreen = ({
         </View>
         <View style={styles.contentContainer}>
           {improvement && improvement.article?.tags && (
-            <Text style={styles.categoryText}>
+            <Text style={styles.categoryText} color={BUTTON_COLOR}>
               {improvement.article.tags.map(tag => tag.name).join(' | ')}
             </Text>
           )}
 
           {improvement && improvement.article && (
             <>
-              <Text style={styles.titleText}>
+              <Text style={styles.titleText} color={ON_PRIMARY_COLOR}>
                 Title: {improvement.article?.title}
               </Text>
             </>
           )}
 
-          <Text style={styles.authorName}>
+          <Text style={styles.authorName} color="$color12">
             Author Name: {improvement?.article?.authorName}
           </Text>
           <View style={styles.descriptionContainer}>
@@ -665,7 +673,9 @@ const ImprovementReviewScreen = ({
                 });
               }
             }}>
-            <Text style={styles.submitButtonText}>See old article</Text>
+            <Text style={styles.submitButtonText} color="white">
+              See old article
+            </Text>
           </TouchableOpacity>
         )}
 
@@ -680,96 +690,104 @@ const ImprovementReviewScreen = ({
                 });
               }
             }}>
-            <Text style={styles.submitButtonText}>Detect Content Loss</Text>
+            <Text style={styles.submitButtonText} color="white">
+              Detect Content Loss
+            </Text>
           </TouchableOpacity>
         )}
 
         {destination !== StatusEnum.DISCARDED &&
-          destination !== StatusEnum.UNASSIGNED &&
-          improvement?.reviewer_id !== null ? (
-            <YStack
-              padding={wp(4)}
-              marginTop={hp(1.2)}
-              borderRadius={10}
-              gap="$3">
-              <TextArea
-                placeholder="Submit your feedback"
-                value={feedback}
-                onChangeText={setFeedback}
-                multiline
-                height={hp(19)}
-                fontSize={wp(4.8)}
-                paddingVertical={10}
-                paddingHorizontal={12}
-                borderRadius={8}
-                borderWidth={1.5}
-                borderColor={PRIMARY_COLOR}
-                backgroundColor="#fff"
-                textAlignVertical="top"
-              />
+        destination !== StatusEnum.UNASSIGNED &&
+        improvement?.reviewer_id !== null ? (
+          <YStack
+            padding={wp(4)}
+            marginTop={hp(1.2)}
+            borderRadius={10}
+            gap="$3">
+            <TextArea
+              placeholder="Submit your feedback"
+              value={feedback}
+              onChangeText={setFeedback}
+              multiline
+              height={hp(19)}
+              fontSize={wp(4.8)}
+              paddingVertical={10}
+              paddingHorizontal={12}
+              borderRadius={8}
+              borderWidth={1.5}
+              borderColor={PRIMARY_COLOR}
+              backgroundColor="#fff"
+              textAlignVertical="top"
+            />
 
-              {feedback.length > 0 && (
-                <YStack alignItems="flex-end" marginTop={hp(0.5)}>
-                  {loading ? (
-                    <Spinner size="large" color={PRIMARY_COLOR} />
-                  ) : (
-                    <Button
-                      size="$4"
-                      width="45%"
-                      height={44}
-                      backgroundColor={PRIMARY_COLOR}
-                      color="#fff"
-                      borderRadius={8}
-                      onPress={() => {
-                        setLoading(true);
+            {feedback.length > 0 && (
+              <YStack alignItems="flex-end" marginTop={hp(0.5)}>
+                {loading ? (
+                  <Spinner size="large" color={PRIMARY_COLOR} />
+                ) : (
+                  <Button
+                    size="$4"
+                    width="45%"
+                    height={44}
+                    backgroundColor={PRIMARY_COLOR}
+                    color="#fff"
+                    borderRadius={8}
+                    onPress={() => {
+                      setLoading(true);
 
-                        socket.emit('add-review-comment', {
-                          requestId: improvement?._id,
-                          reviewer_id: improvement?.reviewer_id,
-                          feedback: feedback,
-                          isReview: true,
-                          isNote: false,
-                        });
+                      socket.emit('add-review-comment', {
+                        requestId: improvement?._id,
+                        reviewer_id: improvement?.reviewer_id,
+                        feedback: feedback,
+                        isReview: true,
+                        isNote: false,
+                      });
 
-                        setFeedback('');
-                      }}>
-                      <Text color="#ffffff" fontSize={17}>
-                        Post
-                      </Text>
-                    </Button>
-                  )}
-                </YStack>
-              )}
-            </YStack>
-          ):(
-                <YStack
-            alignItems="center"
-            justifyContent="center"
-            padding="$4"
-            borderRadius="$4"
-            backgroundColor="$gray2"
-            borderWidth={1}
-            borderColor="$gray5"
-            margin="$3">
-            <Text
-              fontSize="$5"
-              fontWeight="600"
-              color="$gray11"
-              textAlign="center">
-              Select this Improvement to start the conversation
-            </Text>
-
-            <Text
-              marginTop="$2"
-              fontSize="$3"
-              color="$gray9"
-              textAlign="center"
-              lineHeight="$4">
-              Review grammar aur plagiarism across our platform, aur verify
-              image copyright compliance.
-            </Text>
+                      setFeedback('');
+                    }}>
+                    <Text color="#ffffff" fontSize={17}>
+                      Post
+                    </Text>
+                  </Button>
+                )}
+              </YStack>
+            )}
           </YStack>
-          )}
+        ) : (
+          <>
+            {improvement &&
+            improvement.status === StatusEnum.UNASSIGNED 
+             ? (
+              <YStack
+                alignItems="center"
+                justifyContent="center"
+                padding="$4"
+                borderRadius="$4"
+                backgroundColor="$gray200"
+                borderWidth={1}
+                borderColor="$gray500"
+                margin="$3">
+                <Text
+                  fontSize="$4"
+                  fontWeight="600"
+                  color="$gray700"
+                  textAlign="center">
+                  Select this improvement to start the conversation
+                </Text>
+
+                <Text
+                  marginTop="$2"
+                  fontSize="$3.5"
+                  color="$gray500"
+                  textAlign="center"
+                  lineHeight="$4">
+                  Review grammar aur plagiarism across our platform, aur verify
+                  image copyright compliance.
+                </Text>
+              </YStack>
+            ) : null}
+          </>
+        )}
 
         {comments && (
           <View style={{padding: wp(4), marginTop: hp(4.5)}}>

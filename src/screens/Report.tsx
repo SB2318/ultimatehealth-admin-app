@@ -313,7 +313,7 @@ export default function ReportScreen({navigation}) {
           renderTabBar={renderTabBar}
           containerStyle={styles.tabsContainer}>
           <Tabs.Tab name="Reasons">
-            <View style={{flex: 1}}>
+            <View style={{flex: 1, marginBottom: hp(10)}}>
               <View style={styles.reasonTabContainer}>
                 <TouchableOpacity
                   style={styles.addButton}
@@ -347,10 +347,11 @@ export default function ReportScreen({navigation}) {
                             {
                               text: 'Confirm',
                               onPress: () =>
-                                deleteReasonMutation.mutate(item._id),
+                              deleteReasonMutation.mutate(item._id),
                               style: 'destructive',
                             },
                           ],
+                          
                         );
                       }}
                     />
@@ -372,7 +373,7 @@ export default function ReportScreen({navigation}) {
           </Tabs.Tab>
 
           <Tabs.Tab name="Pending">
-            <View style={{flex: 1}}>
+            <View style={{flex: 1, marginBottom: hp(4)}}>
               <Tabs.FlatList
                 data={pendingReports ? pendingReports : []}
                 keyExtractor={item => item._id}
@@ -411,7 +412,7 @@ export default function ReportScreen({navigation}) {
           </Tabs.Tab>
 
           <Tabs.Tab name="Assigned">
-            <View style={{flex: 1}}>
+            <View style={{flex: 1, marginBottom: hp(4)}}>
               <Tabs.FlatList
                 data={assignedReports ? assignedReports : []}
                 keyExtractor={item => item._id}
@@ -540,7 +541,7 @@ const styles = StyleSheet.create({
   },
   labelStyle: {
     fontWeight: '600',
-    fontSize: 16,
+    fontSize: 14,
     color: 'black',
     textTransform: 'capitalize',
   },
@@ -615,5 +616,7 @@ const styles = StyleSheet.create({
     paddingBottom: hp(5),
     paddingTop: hp(1),
     gap: hp(1.5),
+    //backgroundColor: 'red',
+    //marginBottom: hp(36)
   },
 });

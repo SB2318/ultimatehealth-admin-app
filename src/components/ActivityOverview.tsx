@@ -386,25 +386,24 @@
 
 // export default ActivityOverview;
 
-import {StyleSheet, Alert, Dimensions} from 'react-native';
-import {useCallback, useEffect, useState} from 'react';
+import {StyleSheet, Dimensions} from 'react-native';
+import {useCallback, useState} from 'react';
 
-import {YStack, XStack, Text, Card, ScrollView, Image, View} from 'tamagui';
+import {YStack, Text, Card, ScrollView, View} from 'tamagui';
 
-import {ON_PRIMARY_COLOR, PRIMARY_COLOR} from '../helper/Theme';
+import {PRIMARY_COLOR} from '../helper/Theme';
 //import {LineChart} from 'react-native-gifted-charts';
-import {LineChart} from 'react-native-chart-kit';
+import {LineChart, BarChart} from 'react-native-chart-kit';
 import {useQuery} from '@tanstack/react-query';
 import moment from 'moment';
 import {fp, hp} from '../helper/Metric';
 import {useDispatch, useSelector} from 'react-redux';
 import axios from 'axios';
 import {
-  GET_IMAGE,
   GET_MONTHLY_CONTRIBUTION,
   GET_YEARLY_CONTRIBUTION,
 } from '../helper/APIUtils';
-import {ArticleData, LineDataItem} from '../type';
+import {LineDataItem} from '../type';
 import Loader from './Loader';
 
 import {useFocusEffect} from '@react-navigation/native';
@@ -421,7 +420,7 @@ const ActivityOverview = ({ctype}: {ctype: number}) => {
     new Date().getMonth(),
   );
   const [isYearSelected, setYearChange] = useState<number>(-1);
-  const [selectedYear, setSelectedYear] = useState<number>(-1);
+  const [selectedYear, setSelectedYear] = useState<number>(new Date().getFullYear());
 
   const monthlyDrops = [
     {label: 'Monthly', value: -1},
@@ -456,10 +455,13 @@ const ActivityOverview = ({ctype}: {ctype: number}) => {
       try {
         // console.log('URL', url);
         const date = new Date();
-        const year = selectedYear !== -1 ? date.getFullYear() : selectedYear;
+        console.log("selected year month", selectedYear);
+        const year = selectedYear === 0 ? date.getFullYear() : selectedYear;
         const month = Number(selectedMonth) + 1;
+        //console.log("selected year final", year);
         let url = `${GET_MONTHLY_CONTRIBUTION}?year=${year}&month=${month}&cType=${ctype}`;
-        // console.log("Month Url", url);
+         console.log("Month Url", url);
+         console.log("User token", user_token);
         const response = await axios.get(url, {
           // headers: {
           //  Authorization: `Bearer ${user_token}`,
@@ -472,7 +474,7 @@ const ActivityOverview = ({ctype}: {ctype: number}) => {
         console.error('Error fetching articles writes monthly:', err);
       }
     },
-    enabled: !!(user_token && selectedMonth !== -1),
+    enabled: !!(user_token && selectedMonth !== 1),
   });
 
   // GET YEARLY READ REPORT
@@ -484,7 +486,9 @@ const ActivityOverview = ({ctype}: {ctype: number}) => {
     queryKey: ['get-yearly-read-reports'],
     queryFn: async () => {
       try {
-        let url = `${GET_YEARLY_CONTRIBUTION}?year=${selectedYear}&cType=${ctype}`;
+        const date = new Date();
+        let url = `${GET_YEARLY_CONTRIBUTION}?year=${selectedYear === 0 ? date.getFullYear(): selectedYear }&cType=${ctype}`;
+        console.log("Yearly reads url", url);
         const response = await axios.get(url, {
           // headers: {
           //  Authorization: `Bearer ${user_token}`,
@@ -497,7 +501,8 @@ const ActivityOverview = ({ctype}: {ctype: number}) => {
         console.error('Error fetching articles reads yearly:', err);
       }
     },
-    enabled: !!(user_token && selectedYear !== -1),
+   // enabled: !!(user_token && selectedYear !== -1),
+    enabled: !!selectedYear && !!user_token,
   });
 
   useFocusEffect(
@@ -515,32 +520,23 @@ const ActivityOverview = ({ctype}: {ctype: number}) => {
     <Loader />;
   }
 
-  const processData = (data: any) => {
-    if (!data) {
-      return [];
+  const processData = (data: any[]) => {
+    if ( !data || !Array.isArray(data) || data.length === 0) {
+      return [0,0,0,0,0,0];
     }
 
-    console.log(
-      'data',
-      data.map((item: any) => ({
-        value: item.value, // Ensure the value is an integer
-        label: item.label,
-      })),
-    );
-    return data.map((item: any) => ({
-      value: item.value, // Ensure the value is an integer
-      label: item.label,
-    }));
+    return data.map(item => {
+      const val = Number(item.value);
+      return isFinite(val) ? val : 0;
+    });
   };
 
-  const processLabels = (data: any) => {
-    if (!data) {
-      return [];
+  const processLabels = (data: any[]) => {
+    if (!data || !Array.isArray(data) || data.length === 0) {
+      return ['-'];
     }
 
-    //console.log("Label data", data)
-
-    return data.map((item: any) => item.date?.substring(8) ?? '-');
+    return data.map(item => (item.date ? item.date.substring(8) : '-'));
   };
 
   const getTrendMessage = () => {
@@ -560,7 +556,7 @@ const ActivityOverview = ({ctype}: {ctype: number}) => {
     ];
 
     // If month selected
-    if (selectedMonth !== -1) {
+    if (selectedMonth !== 1) {
       const monthName = monthNames[selectedMonth];
       const year = moment().year(); // current year
       return `Your ${
@@ -569,7 +565,7 @@ const ActivityOverview = ({ctype}: {ctype: number}) => {
     }
 
     // If year selected
-    if (selectedYear !== -1) {
+    if (selectedYear !== 0) {
       return `Your ${
         userState === 0 ? 'Reading' : 'Writing'
       } activity for the year ${selectedYear}`;
@@ -583,7 +579,7 @@ const ActivityOverview = ({ctype}: {ctype: number}) => {
   const ChartSection = () => {
     return (
       <View>
-        {(selectedMonth !== -1 || selectedYear !== -1) && (
+        {(selectedMonth !== -1 || selectedYear !== 0) && (
           <ScrollView horizontal marginTop="$5" paddingHorizontal="$3">
             <Card
               //elevate
@@ -604,7 +600,7 @@ const ActivityOverview = ({ctype}: {ctype: number}) => {
               <LineChart
                 data={{
                   labels: processLabels(
-                    selectedMonth !== -1
+                    selectedMonth !== 1
                       ? monthlyWriteReport
                       : isYearSelected
                       ? yearlyReadReport
@@ -614,7 +610,7 @@ const ActivityOverview = ({ctype}: {ctype: number}) => {
                   datasets: [
                     {
                       data: processData(
-                        selectedMonth !== -1
+                        selectedMonth !== 1
                           ? monthlyWriteReport
                           : isYearSelected
                           ? yearlyReadReport
@@ -639,7 +635,7 @@ const ActivityOverview = ({ctype}: {ctype: number}) => {
                   backgroundGradientFrom: '#fff',
                   backgroundGradientTo: '#fff',
                   // decimalPlaces: 0,
-                  color: opacity => `rgba(0,0,0,${opacity})`,
+                  color: opacity => `${PRIMARY_COLOR}`,
                   labelColor: () => '#6A6A6A',
                   propsForDots: {
                     r: '5',
@@ -669,6 +665,78 @@ const ActivityOverview = ({ctype}: {ctype: number}) => {
       </View>
     );
   };
+
+  const BarChartSection = () => {
+  return (
+    <View>
+      {(selectedMonth !== -1 || selectedYear !== 0) && (
+        <ScrollView horizontal marginTop="$5" paddingHorizontal="$3">
+          <Card
+            padding="$4"
+            borderRadius="$4"
+            backgroundColor="$background"
+            bordered
+            borderWidth={0.6}
+          >
+            <Text fontSize={19} fontWeight="700" marginBottom="$3">
+              {userState === 0 ? 'Reading Trend' : 'Writing Trend'}
+            </Text>
+
+            <Text fontSize={14} color="#6A6A6A" marginBottom="$3">
+              {getTrendMessage()}
+            </Text>
+
+            <BarChart
+             yAxisLabel=""
+            yAxisSuffix=""
+              data={{
+                labels: processLabels(
+                  selectedMonth !== 1
+                    ? monthlyWriteReport || []
+                    : isYearSelected
+                    ? yearlyReadReport || []
+                    : monthlyWriteReport || [],
+                ),
+                datasets: [
+                  {
+                    data: processData(
+                      selectedMonth !== 1
+                        ? monthlyWriteReport || []
+                        : isYearSelected
+                        ? yearlyReadReport || []
+                        : monthlyWriteReport || [],
+                    ),
+                  },
+                ],
+              }}
+              width={screenWidth - 40}
+              height={350}
+              fromZero
+              showValuesOnTopOfBars
+              withInnerLines={false}
+              chartConfig={{
+                backgroundColor: '#fff',
+                backgroundGradientFrom: '#fff',
+                backgroundGradientTo: '#fff',
+                decimalPlaces: 0,
+                color: () => PRIMARY_COLOR,     // bar color
+                labelColor: () => '#6A6A6A',
+                barPercentage: 0.6,
+                propsForBackgroundLines: {
+                  strokeWidth: 0,
+                },
+              }}
+              style={{
+                borderRadius: 8,
+              }}
+            />
+          </Card>
+        </ScrollView>
+      )}
+    </View>
+  );
+};
+
 
   return (
     <ScrollView flex={1} backgroundColor="$background" paddingBottom="$12">
@@ -735,7 +803,8 @@ const ActivityOverview = ({ctype}: {ctype: number}) => {
       </YStack>
 
       {/* Chart Section */}
-      <ChartSection/>
+      {/* <ChartSection /> */}
+      <BarChartSection/>
     </ScrollView>
   );
 };

@@ -18,6 +18,7 @@ import { wp } from '../helper/Metric';
 
 const ProfileScreen = ({navigation}: ProfileScreenProps) => {
   const {user_token} = useSelector((state: any) => state.user);
+  const {isConnected} = useSelector((state: any) => state.network);
   const dispatch = useDispatch();
 
   console.log('User token', user_token);
@@ -36,6 +37,7 @@ const ProfileScreen = ({navigation}: ProfileScreenProps) => {
       });
       return response.data as Admin;
     },
+    enabled: !!isConnected && !!user_token
   });
 
   if (user) {

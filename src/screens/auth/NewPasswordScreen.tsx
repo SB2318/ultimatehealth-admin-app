@@ -20,19 +20,20 @@ import {
 import {SafeAreaView} from 'react-native-safe-area-context';
 import Icon from '@expo/vector-icons/Ionicons';
 import {AntDesign, Entypo} from '@expo/vector-icons';
+import Snackbar from 'react-native-snackbar';
+import { useSelector } from 'react-redux';
 
 export default function NewPasswordScreen({navigation, route}) {
   const {email} = route.params;
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
+  const {isConnected} = useSelector((state: any)=> state.network);
   const isDarkMode = useColorScheme() === 'dark';
- // const {user_token, user_id} = useSelector((state: any) => state.user);
+  // const {user_token, user_id} = useSelector((state: any) => state.user);
   const [passwordVerify, setPasswordVerify] = useState(false);
   const [secureTextEntry, setSecureTextEntry] = useState(true);
   const [secureNewTextEntry, setSecureNewTextEntry] = useState(true);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
-
-
 
   const handleSecureEntryClickEvent = () => {
     setSecureTextEntry(!secureTextEntry);
@@ -66,6 +67,14 @@ export default function NewPasswordScreen({navigation, route}) {
       return;
     } else {
       //navigation.navigate('LoginScreen');
+
+      if (!isConnected) {
+        Snackbar.show({
+          text: 'You are currently offline',
+          duration: Snackbar.LENGTH_SHORT,
+        });
+        return;
+      }
       setErrorMessage(null);
       changePasswordMutation.mutate();
     }

@@ -65,6 +65,7 @@ const PodcastDetail = ({navigation, route}: PodcastDetailScreenProp) => {
         console.error('Error fetching podcast:', err);
       }
     },
+    enabled: !!isConnected && !!user_token
   });
 
   // const [source, setSource] = useState<string  | null>(null);

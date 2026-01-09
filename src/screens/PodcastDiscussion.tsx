@@ -56,6 +56,7 @@ const PodcastDiscussion = ({navigation, route}: PodcastDiscussionProp) => {
   const [newComment, setNewComment] = useState('');
   const flatListRef = useRef<FlatList<Comment>>(null);
   const {user_id, user_token} = useSelector((state: any) => state.user);
+   const {isConnected} = useSelector((state: any) => state.network);
   const [selectedCommentId, setSelectedCommentId] = useState<string>('');
   const [editMode, setEditMode] = useState<boolean>(false);
   const [editCommentId, setEditCommentId] = useState<string | null>(null);
@@ -86,6 +87,7 @@ const PodcastDiscussion = ({navigation, route}: PodcastDiscussionProp) => {
         console.error('Error fetching podcast:', err);
       }
     },
+    enabled: !!isConnected && !!user_token
   });
 
   // mention triggers for v3
@@ -201,7 +203,7 @@ const PodcastDiscussion = ({navigation, route}: PodcastDiscussionProp) => {
   useEffect(() => {
     //console.log('Fetching comments for articleId:', route.params.articleId);
 
-    if (podcast && podcast.status === StatusEnum.PUBLISHED) {
+    if (podcast && podcast.status === StatusEnum.PUBLISHED && isConnected) {
       socket.emit('fetch-comments', {podcastId: route.params.podcastId});
     }
 

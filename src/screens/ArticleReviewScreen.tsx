@@ -53,7 +53,8 @@ import {setUserHandle} from '../stores/UserSlice';
 
 const ReviewScreen = ({route}: ReviewScreenProp) => {
   const {articleId, destination, recordId} = route.params;
-  const {user_id} = useSelector((state: any) => state.user);
+  const {user_id, user_token} = useSelector((state: any) => state.user);
+  const {isConnected} = useSelector((state: any) => state.network);
   const [feedback, setFeedback] = useState('');
   const [loading, setLoading] = useState(false);
 
@@ -152,6 +153,8 @@ const ReviewScreen = ({route}: ReviewScreenProp) => {
           {
             text: 'OK',
             onPress: async () => {
+
+              
               try {
                 setCopyrightProgressVisible(true);
 
@@ -188,6 +191,7 @@ const ReviewScreen = ({route}: ReviewScreenProp) => {
 
       return response.data.article as ArticleData;
     },
+    enabled: !!isConnected && !!user_token,
   });
 
   const {data: htmlContent} = useQuery({
@@ -197,6 +201,7 @@ const ReviewScreen = ({route}: ReviewScreenProp) => {
       //console.log('HTML RES', response.data);
       return response.data.htmlContent as string;
     },
+    enabled: !!isConnected && !!user_token,
   });
 
   const noDataHtml = '<p>No Data found</p>';
@@ -211,6 +216,7 @@ const ReviewScreen = ({route}: ReviewScreenProp) => {
       });
       return response.data as Admin;
     },
+    enabled: !!isConnected && !!user_token,
   });
 
   if (user) {
@@ -455,7 +461,16 @@ const ReviewScreen = ({route}: ReviewScreenProp) => {
               <TouchableOpacity
                 onPress={() => {
                   // Grammar checker
-                  grammarCheckMutation.mutate();
+
+                  if(isConnected){
+                   grammarCheckMutation.mutate();
+                  }else{
+                    Snackbar.show({
+                      text: "You are currently offline",
+                      duration: Snackbar.LENGTH_SHORT
+                    });
+                  }
+                  
                 }}
                 style={[
                   styles.playButton,
@@ -480,7 +495,15 @@ const ReviewScreen = ({route}: ReviewScreenProp) => {
               <TouchableOpacity
                 onPress={() => {
                   // Palagrism Checker
-                  plagiarismCheckMutation.mutate();
+                  if(isConnected){
+                     plagiarismCheckMutation.mutate();
+                  }else{
+                    Snackbar.show({
+                      text: "You are currently offline",
+                      duration: Snackbar.LENGTH_SHORT
+                    });
+                  }
+                  
                 }}
                 style={[
                   styles.plaButton,
@@ -508,10 +531,18 @@ const ReviewScreen = ({route}: ReviewScreenProp) => {
               <TouchableOpacity
                 onPress={() => {
                   // Publish article
-                  publishArticleMutation.mutate({
-                    articleId: article ? article._id : '0',
-                    reviewer_id: user_id,
-                  });
+
+                  if (isConnected) {
+                    publishArticleMutation.mutate({
+                      articleId: article ? article._id : '0',
+                      reviewer_id: user_id,
+                    });
+                  } else {
+                    Snackbar.show({
+                      text: 'You are currently offline',
+                      duration: Snackbar.LENGTH_SHORT,
+                    });
+                  }
                 }}
                 style={[
                   styles.pubButton,
@@ -695,10 +726,17 @@ const ReviewScreen = ({route}: ReviewScreenProp) => {
           visible={discardModalVisible}
           callback={(reason: string) => {
             //onclick(item, 1, reason);
-            discardArticleMutation.mutate({
-              articleId: article ? article._id : '0',
-              reason: reason,
-            });
+            if (isConnected) {
+              discardArticleMutation.mutate({
+                articleId: article ? article._id : '0',
+                reason: reason,
+              });
+            } else {
+              Snackbar.show({
+                text: 'You are currently offline',
+                duration: Snackbar.LENGTH_SHORT,
+              });
+            }
             setDiscardModalVisible(false);
           }}
           dismiss={() => {
@@ -750,7 +788,7 @@ const styles = StyleSheet.create({
   },
   image: {
     height: 190,
-    width: "100%",
+    width: '100%',
     objectFit: 'cover',
   },
 

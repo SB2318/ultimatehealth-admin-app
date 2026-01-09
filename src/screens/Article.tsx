@@ -1,4 +1,3 @@
-import React from 'react';
 import {
   View,
   Text,
@@ -8,7 +7,7 @@ import {
   TouchableOpacity,
 } from 'react-native';
 import {BUTTON_COLOR, ON_PRIMARY_COLOR} from '../helper/Theme';
-import {useEffect, useRef} from 'react';
+import React, {useEffect, useRef, useCallback, useState} from 'react';
 import {Tabs, MaterialTabBar} from 'react-native-collapsible-tab-view';
 import {useDispatch, useSelector} from 'react-redux';
 import axios from 'axios';
@@ -26,7 +25,6 @@ import {
   PROD_URL,
   UNASSIGN_ARTICLE,
 } from '../helper/APIUtils';
-import {useCallback, useState} from 'react';
 import {useFocusEffect} from '@react-navigation/native';
 import {SafeAreaView, useSafeAreaInsets} from 'react-native-safe-area-context';
 import ReviewCard from '../components/ReviewCard';
@@ -51,6 +49,7 @@ import DiscardReasonModal from '../components/DiscardReasonModal';
 
 export default function HomeScreen({navigation}: ArticleProps) {
   const {user_id, user_token} = useSelector((state: any) => state.user);
+  const {isConnected} = useSelector((state: any) => state.network);
   const {
     filteredAvailableArticles,
     filteredProgressArticles,
@@ -154,7 +153,7 @@ export default function HomeScreen({navigation}: ArticleProps) {
       }
       return response.data.articles as ArticleData[];
     },
-    enabled: !!user_token,
+    enabled: !!user_token && !!isConnected,
   });
 
   const {
@@ -182,7 +181,7 @@ export default function HomeScreen({navigation}: ArticleProps) {
       }
       return response.data.articles as ArticleData[];
     },
-    enabled: !!user_token,
+    enabled: !!user_token && !!isConnected,
   });
 
   const pickArticleMutation = useMutation({
@@ -452,12 +451,26 @@ export default function HomeScreen({navigation}: ArticleProps) {
           onclick={(item, index, reason) => {
             if (index === 0) {
               // Pick article
-              pickArticleMutation.mutate(item._id);
+              if (isConnected) {
+                pickArticleMutation.mutate(item._id);
+              } else {
+                Snackbar.show({
+                  text: 'You are currently offline',
+                  duration: Snackbar.LENGTH_SHORT,
+                });
+              }
             } else if (index === 2) {
               // unassign yourself
-              unassignFromArticleMutation.mutate({
-                articleId: item._id,
-              });
+              if (isConnected) {
+                unassignFromArticleMutation.mutate({
+                  articleId: item._id,
+                });
+              } else {
+                Snackbar.show({
+                  text: 'You are currently offline',
+                  duration: Snackbar.LENGTH_SHORT,
+                });
+              }
             } else {
               // Display discard reason or screen
               setDiscardArticleId(item._id);
@@ -476,7 +489,7 @@ export default function HomeScreen({navigation}: ArticleProps) {
       );
     },
     [
-      discardArticleMutation,
+      isConnected,
       navigation,
       pickArticleMutation,
       selectedCardId,
@@ -622,9 +635,6 @@ export default function HomeScreen({navigation}: ArticleProps) {
   });
 
   if (
-    deleteTagMutation.isPending ||
-    updateTagMutation.isPending ||
-    addTagMutation.isPending ||
     isAvailableArticleLoading ||
     isProgressArticleLoading
   ) {
@@ -675,7 +685,16 @@ export default function HomeScreen({navigation}: ArticleProps) {
                             },
                             {
                               text: 'Confirm',
-                              onPress: () => deleteTagMutation.mutate(item._id),
+                              onPress: () => {
+                                if (isConnected) {
+                                  deleteTagMutation.mutate(item._id);
+                                } else {
+                                  Snackbar.show({
+                                    text: 'You are currently offline',
+                                    duration: Snackbar.LENGTH_SHORT,
+                                  });
+                                }
+                              },
                               style: 'destructive',
                             },
                           ],
@@ -735,12 +754,26 @@ export default function HomeScreen({navigation}: ArticleProps) {
           visible={addTagModalVisible}
           onTagChange={(tag, name) => {
             if (tag) {
-              updateTagMutation.mutate({
-                name: name,
-                id: tag.id.toString(),
-              });
+              if (isConnected) {
+                updateTagMutation.mutate({
+                  name: name,
+                  id: tag.id.toString(),
+                });
+              } else {
+                Snackbar.show({
+                  text: 'You are currently offline',
+                  duration: Snackbar.LENGTH_SHORT,
+                });
+              }
             } else {
-              addTagMutation.mutate(name);
+              if (isConnected) {
+                addTagMutation.mutate(name);
+              } else {
+                Snackbar.show({
+                  text: 'You are currently offline',
+                  duration: Snackbar.LENGTH_SHORT,
+                });
+              }
             }
           }}
           onReasonChange={() => {}}
@@ -765,20 +798,26 @@ export default function HomeScreen({navigation}: ArticleProps) {
             console.log('discard modal click-', articleDiscardModal);
             // onclick(item, 1, reason);
             if (discardArticleId !== '') {
-              discardArticleMutation.mutate({
-                articleId: discardArticleId,
-                reason: reason,
-              });
-            }else{
+              if (isConnected) {
+                discardArticleMutation.mutate({
+                  articleId: discardArticleId,
+                  reason: reason,
+                });
+              } else {
+                Snackbar.show({
+                  text: 'You are currently offline',
+                  duration: Snackbar.LENGTH_SHORT,
+                });
+              }
+            } else {
               Snackbar.show({
-                text: "Article id not found, please try again",
-                duration: Snackbar.LENGTH_SHORT
+                text: 'Article id not found, please try again',
+                duration: Snackbar.LENGTH_SHORT,
               });
             }
-          
           }}
           dismiss={() => {
-            setDiscardArticleId("");
+            setDiscardArticleId('');
             setArticleDiscardModal(false);
           }}
         />

@@ -9,7 +9,9 @@ export type RootStackParamList = {
   LoginScreen: undefined;
   SignUpScreen: undefined;
   NewPasswordScreen: undefined;
-  OtpScreen: undefined;
+  OtpScreen: {
+    email: string;
+  };
   TabScreen: undefined;
   ArticleReviewScreen: {
     articleId: number;

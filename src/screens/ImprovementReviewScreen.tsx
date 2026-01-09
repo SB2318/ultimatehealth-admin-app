@@ -61,7 +61,8 @@ const ImprovementReviewScreen = ({
   const insets = useSafeAreaInsets();
   const {requestId, authorId, destination, recordId, articleRecordId} =
     route.params;
-  const {user_id} = useSelector((state: any) => state.user);
+  const {user_id, user_token} = useSelector((state: any) => state.user);
+  const {isConnected} = useSelector((state: any) => state.network);
   const [feedback, setFeedback] = useState('');
   const [loading, setLoading] = useState(false);
 
@@ -126,6 +127,7 @@ const ImprovementReviewScreen = ({
 
       return response.data as EditRequest;
     },
+    enabled: !!user_token && !!isConnected,
   });
 
   const {data: htmlContent} = useQuery({
@@ -140,6 +142,7 @@ const ImprovementReviewScreen = ({
       const response = await axios.get(url);
       return response.data.htmlContent as string;
     },
+    enabled: !!user_token && !!isConnected,
   });
 
   const noDataHtml = '<p>No Data found</p>';
@@ -155,6 +158,7 @@ const ImprovementReviewScreen = ({
       // console.log("Response", response);
       return response.data as Admin;
     },
+    enabled: !!isConnected && !!user_token,
   });
 
   if (user) {
@@ -541,6 +545,13 @@ const ImprovementReviewScreen = ({
             <TouchableOpacity
               onPress={() => {
                 // Grammar checker
+                if (!isConnected) {
+                  Snackbar.show({
+                    text: 'You are currently offline',
+                    duration: Snackbar.LENGTH_SHORT,
+                  });
+                  return;
+                }
                 grammarCheckMutation.mutate();
               }}
               style={[
@@ -564,6 +575,13 @@ const ImprovementReviewScreen = ({
             <TouchableOpacity
               onPress={() => {
                 // Palagrism Checker
+                if (!isConnected) {
+                  Snackbar.show({
+                    text: 'You are currently offline',
+                    duration: Snackbar.LENGTH_SHORT,
+                  });
+                  return;
+                }
                 plagiarismCheckMutation.mutate();
               }}
               style={[
@@ -591,6 +609,13 @@ const ImprovementReviewScreen = ({
             <TouchableOpacity
               onPress={() => {
                 // Publish article
+                if (!isConnected) {
+                  Snackbar.show({
+                    text: 'You are currently offline',
+                    duration: Snackbar.LENGTH_SHORT,
+                  });
+                  return;
+                }
                 publishImprovementInPBMutation.mutate();
               }}
               style={[
@@ -755,9 +780,7 @@ const ImprovementReviewScreen = ({
           </YStack>
         ) : (
           <>
-            {improvement &&
-            improvement.status === StatusEnum.UNASSIGNED 
-             ? (
+            {improvement && improvement.status === StatusEnum.UNASSIGNED ? (
               <YStack
                 alignItems="center"
                 justifyContent="center"
@@ -801,6 +824,14 @@ const ImprovementReviewScreen = ({
           visible={discardModalVisible}
           callback={(reason: string) => {
             //onclick(item, 1, reason);
+
+            if (!isConnected) {
+              Snackbar.show({
+                text: 'You are currently offline',
+                duration: Snackbar.LENGTH_SHORT,
+              });
+              return;
+            }
             setDiscardReason(reason);
             discardImprovementPBMutation.mutate();
             setDiscardModalVisible(false);
@@ -853,7 +884,7 @@ const styles = StyleSheet.create({
   },
   image: {
     height: 190,
-     width: "100%",
+    width: '100%',
     objectFit: 'cover',
   },
 

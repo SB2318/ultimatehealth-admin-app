@@ -34,7 +34,7 @@ import AddTagModal from '../components/AddTagModal';
 
 export default function ReportScreen({navigation}) {
   const {user_token} = useSelector((state: any) => state.user);
-
+  const {isConnected} = useSelector((state: any) => state.network);
   //const bottomBarHeight = useBottomTabBarHeight();
   const bottomSheetModalRef = useRef<BottomSheetModal>(null);
   const insets = useSafeAreaInsets();
@@ -58,30 +58,30 @@ export default function ReportScreen({navigation}) {
     setAddTagModalVisible(false);
     setSelectedReason(null);
   };
-  const {
-    refetch: pendingReportFetch,
-    isLoading: isPendingReportLoading,
-  } = useQuery({
-    queryKey: ['get-pending-reports', pendingPage],
-    queryFn: async () => {
-      const response = await axios.get(`${GET_PENDING_REPORTS}?page=${pendingPage}`);
-      if (Number(pendingPage) === 1) {
-        if (response.data.totalPages) {
-          setTotalPendingPage(response.data.totalPages);
+  const {refetch: pendingReportFetch, isLoading: isPendingReportLoading} =
+    useQuery({
+      queryKey: ['get-pending-reports', pendingPage],
+      queryFn: async () => {
+        const response = await axios.get(
+          `${GET_PENDING_REPORTS}?page=${pendingPage}`,
+        );
+        if (Number(pendingPage) === 1) {
+          if (response.data.totalPages) {
+            setTotalPendingPage(response.data.totalPages);
+          }
+          if (response.data.pendingReports) {
+            setPendingReports(response.data.pendingReports);
+          }
+        } else {
+          if (response.data.pendingReports) {
+            let d = response.data.pendingReports as Report[];
+            setPendingReports([...pendingReports, ...d]);
+          }
         }
-        if (response.data.pendingReports) {
-          setPendingReports(response.data.pendingReports);
-        }
-      } else {
-        if (response.data.pendingReports) {
-        let d = response.data.pendingReports as Report[];
-        setPendingReports([...pendingReports, ...d]);
-        }
-      }
-      return response.data.pendingReports as Report[];
-    },
-    enabled: !!user_token,
-  });
+        return response.data.pendingReports as Report[];
+      },
+      enabled: !!user_token && !!isConnected,
+    });
 
   //console.log('Pending Reports', pendingReports);
   const {
@@ -90,24 +90,26 @@ export default function ReportScreen({navigation}) {
   } = useQuery({
     queryKey: ['get-assigned-reports', assignReportPage],
     queryFn: async () => {
-      const response = await axios.get(`${GET_ASSIGNED_REPORTS}?page=${assignReportPage}`);
+      const response = await axios.get(
+        `${GET_ASSIGNED_REPORTS}?page=${assignReportPage}`,
+      );
 
-      if(Number(assignReportPage) === 1){
-
+      if (Number(assignReportPage) === 1) {
         let pages = response.data.totalPages;
         setTotalAssignReportPage(pages);
 
-        if(response.data.reports){
+        if (response.data.reports) {
           setAssignedReports(response.data.reports);
         }
-      }else{
+      } else {
         const d = assignedReports;
         const newData = response.data.reports;
-        setAssignedReports([...d,...newData]);
+        setAssignedReports([...d, ...newData]);
       }
 
       return response.data.reports as Report[];
     },
+    enabled: !!isConnected && !!user_token,
   });
 
   // console.log("Assigned Reports", assignedReports);
@@ -122,9 +124,8 @@ export default function ReportScreen({navigation}) {
       const response = await axios.get(`${GET_REPORT_REASONS}`);
       return response.data as Report[];
     },
+    enabled: !!isConnected && !!user_token,
   });
-
-
 
   const onReportReasonRefresh = () => {
     setReasonRefresh(true);
@@ -179,6 +180,13 @@ export default function ReportScreen({navigation}) {
 
   const onTakeActionReport = (report: Report) => {
     if (report.action_taken === reportActionEnum.PENDING) {
+      if (!isConnected) {
+        Snackbar.show({
+          text: 'You are currently offline',
+          duration: Snackbar.LENGTH_SHORT,
+        });
+        return;
+      }
       Alert.alert(
         'Take Over Report',
         'Are you sure you want to take over this report? Once you do, you are expected to complete the action.',
@@ -294,9 +302,6 @@ export default function ReportScreen({navigation}) {
   };
 
   if (
-    addReasonMutation.isPending ||
-    updateReasonMutation.isPending ||
-    deleteReasonMutation.isPending ||
     isPendingReportLoading ||
     isRefetchAssignReportLoading ||
     reportReasonLoading ||
@@ -336,6 +341,13 @@ export default function ReportScreen({navigation}) {
                         setAddTagModalVisible(true);
                       }}
                       onDeleteAction={(item: Reason) => {
+                        if (!isConnected) {
+                          Snackbar.show({
+                            text: 'You are currently offline',
+                            duration: Snackbar.LENGTH_SHORT,
+                          });
+                          return;
+                        }
                         Alert.alert(
                           'Alert!',
                           'Are you sure you want to delete this reason?',
@@ -347,11 +359,10 @@ export default function ReportScreen({navigation}) {
                             {
                               text: 'Confirm',
                               onPress: () =>
-                              deleteReasonMutation.mutate(item._id),
+                                deleteReasonMutation.mutate(item._id),
                               style: 'destructive',
                             },
                           ],
-                          
                         );
                       }}
                     />
@@ -378,7 +389,7 @@ export default function ReportScreen({navigation}) {
                 data={pendingReports ? pendingReports : []}
                 keyExtractor={item => item._id}
                 refreshing={isPendingReportLoading}
-                onRefresh={()=>{
+                onRefresh={() => {
                   setPendingPage(1);
                   pendingReportFetch();
                 }}
@@ -400,7 +411,7 @@ export default function ReportScreen({navigation}) {
                 }
                 //contentContainerStyle={styles.container}
                 showsVerticalScrollIndicator={false}
-                onEndReached={()=>{
+                onEndReached={() => {
                   if (pendingPage < totalPendingPage) {
                     setPendingPage(pendingPage + 1);
                     //pendingReportFetch();
@@ -417,7 +428,7 @@ export default function ReportScreen({navigation}) {
                 data={assignedReports ? assignedReports : []}
                 keyExtractor={item => item._id}
                 refreshing={isRefetchAssignReportLoading}
-                onRefresh={()=>{
+                onRefresh={() => {
                   setAssignReportPage(1);
                   refetchAssignReports();
                 }}
@@ -437,9 +448,9 @@ export default function ReportScreen({navigation}) {
                     <Text style={styles.message}>No Report Found</Text>
                   </View>
                 }
-                onEndReached={()=>{
-                  if(assignReportPage < totalAssignReportPage){
-                    setAssignReportPage((prev) => prev + 1);
+                onEndReached={() => {
+                  if (assignReportPage < totalAssignReportPage) {
+                    setAssignReportPage(prev => prev + 1);
                   }
                 }}
                 onEndReachedThreshold={0.5}
@@ -457,6 +468,13 @@ export default function ReportScreen({navigation}) {
           visible={addTagModalVisible}
           onTagChange={() => {}}
           onReasonChange={(reason, name) => {
+            if (!isConnected) {
+              Snackbar.show({
+                text: 'You are currently offline',
+                duration: Snackbar.LENGTH_SHORT,
+              });
+              return;
+            }
             if (reason) {
               updateReasonMutation.mutate({
                 reason: name,

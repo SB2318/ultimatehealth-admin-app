@@ -5,10 +5,7 @@ import {
   launchImageLibrary,
   ImagePickerResponse,
 } from 'react-native-image-picker';
-import {
-  Alert,
-  Image,
-} from 'react-native';
+import {Alert, Image} from 'react-native';
 import ImageResizer from '@bam.tech/react-native-image-resizer';
 import axios, {AxiosError} from 'axios';
 import {
@@ -26,8 +23,10 @@ import EmailVerifiedModal from '../../components/EmailVerifiedModal';
 import {SafeAreaView} from 'react-native-safe-area-context';
 import {ScrollView, YStack, Text, Button, XStack, Input} from 'tamagui';
 import validator from 'email-validator';
+import {useSelector} from 'react-redux';
+import {SignUpScreenProp} from '@/src/type';
 
-export default function SignUpScreen({navigation}) {
+export default function SignUpScreen({navigation}: SignUpScreenProp) {
   const {uploadImage, loading} = useUploadImage();
   const [user_profile_image, setUserProfileImage] = useState('');
   const [name, setName] = useState('');
@@ -40,6 +39,7 @@ export default function SignUpScreen({navigation}) {
   const [token, setToken] = useState('');
   const [isSecureEntry, setIsSecureEntry] = useState(true);
   const [error, setError] = useState('');
+  const {isConnected} = useSelector((state: any) => state.network);
 
   const selectImage = async () => {
     const options: ImageLibraryOptions = {
@@ -169,6 +169,13 @@ export default function SignUpScreen({navigation}) {
   });
 
   const handleVerifyModalCallback = () => {
+    if (!isConnected) {
+      Snackbar.show({
+        text: 'You are currently offline',
+        duration: Snackbar.LENGTH_SHORT,
+      });
+      return;
+    }
     if (token.length > 0) {
       verifyMail.mutate();
     } else {
@@ -256,6 +263,13 @@ export default function SignUpScreen({navigation}) {
         {
           text: 'Cancel',
           onPress: () => {
+            if (!isConnected) {
+              Snackbar.show({
+                text: 'You are currently offline',
+                duration: Snackbar.LENGTH_SHORT,
+              });
+              return;
+            }
             // setUserProfileImage(user?.Profile_image || '');
             setUserProfileImage('');
             Snackbar.show({
@@ -273,6 +287,13 @@ export default function SignUpScreen({navigation}) {
           onPress: async () => {
             try {
               // Upload the resized image
+              if (!isConnected) {
+                Snackbar.show({
+                  text: 'You are currently offline',
+                  duration: Snackbar.LENGTH_SHORT,
+                });
+                return;
+              }
               let result;
               if (user_profile_image && user_profile_image.length > 0) {
                 result = await uploadImage(user_profile_image);

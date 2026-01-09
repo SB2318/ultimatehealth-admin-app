@@ -26,6 +26,7 @@ import DiscardReasonModal from '../components/DiscardReasonModal';
 export default function Podcast({navigation}: PodcastProps) {
   const insets = useSafeAreaInsets();
   const {user_token} = useSelector((state: any) => state.user);
+  const {isConnected} = useSelector((state: any) => state.network);
   const [selectedPodcastId, setSelectedPodcastId] = useState<string>('');
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(0);
@@ -63,7 +64,7 @@ export default function Podcast({navigation}: PodcastProps) {
 
       return response.data.podcasts as PodcastData[];
     },
-    enabled: !!user_token,
+    enabled: !!user_token && !!isConnected,
   });
 
   const {refetch: progressPodcastRefetch, isLoading: isProgressPodcastLoading} =
@@ -88,7 +89,7 @@ export default function Podcast({navigation}: PodcastProps) {
 
         return response.data.podcasts as PodcastData[];
       },
-      enabled: !!user_token,
+      enabled: !!user_token && !!isConnected,
     });
 
   const handlePodcastClick = (
@@ -96,6 +97,13 @@ export default function Podcast({navigation}: PodcastProps) {
     index: number,
     reason: string,
   ) => {
+    if (!isConnected && index !== 3) {
+      Snackbar.show({
+        text: 'You are currently offline',
+        duration: Snackbar.LENGTH_SHORT,
+      });
+      return;
+    }
     // 0 -> pick podcast
     if (index === 0) {
       pickPodcastMutation.mutate(item._id);
@@ -118,8 +126,7 @@ export default function Podcast({navigation}: PodcastProps) {
   const navigateToDetails = (id: string, audio_url: string) => {
     navigation.navigate('PodcastDetail', {
       trackId: id,
-      audioUrl: audio_url
-
+      audioUrl: audio_url,
     });
   };
 
@@ -390,7 +397,7 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-     backgroundColor: ON_PRIMARY_COLOR,
+    backgroundColor: ON_PRIMARY_COLOR,
     //backgroundColor: '#ffffff',
   },
   text: {
@@ -420,8 +427,8 @@ const styles = StyleSheet.create({
   },
   flatListContentContainer: {
     paddingHorizontal: 16,
-     backgroundColor: ON_PRIMARY_COLOR,
-  //  backgroundColor: 'red',
+    backgroundColor: ON_PRIMARY_COLOR,
+    //  backgroundColor: 'red',
   },
 
   profileImage: {

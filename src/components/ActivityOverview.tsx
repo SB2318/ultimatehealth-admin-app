@@ -24,9 +24,7 @@ import {Dropdown} from 'react-native-element-dropdown';
 const ActivityOverview = ({ctype}: {ctype: number}) => {
   const [userState, setUserState] = useState<number>(0);
   const {user_token, user_id} = useSelector((state: any) => state.user);
-  // const dispatch = useDispatch();
-  //const [isFocus, setIsFocus] = useState<boolean>(false);
-  // const [selectedDay, setSelectedDay] = useState<number>(new Date().getDay());
+
   const {isConnected} = useSelector((state: any) => state.user);
   const [selectedMonth, setSelectedMonth] = useState<number>(
     new Date().getMonth(),
@@ -88,7 +86,7 @@ const ActivityOverview = ({ctype}: {ctype: number}) => {
         console.error('Error fetching articles writes monthly:', err);
       }
     },
-    enabled: !!(user_token && selectedMonth !== 1),
+    enabled: !!(user_token && selectedMonth !== 1 && isConnected),
   });
 
   // GET YEARLY READ REPORT
@@ -118,7 +116,7 @@ const ActivityOverview = ({ctype}: {ctype: number}) => {
       }
     },
     // enabled: !!(user_token && selectedYear !== -1),
-    enabled: !!selectedYear && !!user_token,
+    enabled: !!selectedYear && !!user_token && !!isConnected,
   });
 
   useFocusEffect(

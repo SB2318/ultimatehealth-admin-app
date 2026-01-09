@@ -18,11 +18,15 @@ import {
   Input,
 } from 'tamagui';
 import {SafeAreaView} from 'react-native-safe-area-context';
+import {useSelector} from 'react-redux';
+import {OtpScreenProp} from '@/src/type';
+import Snackbar from 'react-native-snackbar';
 
-export default function OtpScreen({navigation, route}) {
+export default function OtpScreen({navigation, route}: OtpScreenProp) {
   const [otp, setOtp] = useState(['', '', '', '']);
   const {email} = route.params;
   const inputs = useRef<(TextInput | null)[]>([]);
+  const {isConnected} = useSelector((state: any) => state.network);
 
   const handleChange = (text: string, index: number) => {
     setErrorMessages(undefined);
@@ -51,6 +55,13 @@ export default function OtpScreen({navigation, route}) {
       setErrorMessages(['Please provide otp inputs']);
       return;
     } else {
+      if (!isConnected) {
+        Snackbar.show({
+          text: 'You are currently offline',
+          duration: Snackbar.LENGTH_SHORT,
+        });
+        return;
+      }
       setErrorMessages(undefined);
       verifyOtpMutation.mutate({
         otp: fullCode,
@@ -211,6 +222,13 @@ export default function OtpScreen({navigation, route}) {
                 Didn’t receive the code?{' '}
                 <Text
                   onPress={() => {
+                    if (!isConnected) {
+                      Snackbar.show({
+                        text: 'You are currently offline',
+                        duration: Snackbar.LENGTH_SHORT,
+                      });
+                      return;
+                    }
                     sendOtpMutation.mutate();
                   }}
                   color="$blue10"

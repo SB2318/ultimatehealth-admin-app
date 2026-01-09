@@ -4,18 +4,21 @@ import {ScrollView, StyleSheet, View} from 'react-native';
 import {ChangesHistoryScreenProp} from '../type';
 import axios from 'axios';
 import {GET_CHANGES_HISTORY} from '../helper/APIUtils';
-import {useMemo, useRef} from 'react';
+import React, {useMemo, useRef} from 'react';
 import WebView from 'react-native-webview';
 import Loader from '../components/Loader';
 import {ON_PRIMARY_COLOR} from '../helper/Theme';
 import {baseHeight, height, scalePerChar} from '../helper/Metric';
-import React from 'react';
+import { useSelector } from 'react-redux';
+
 
 export default function ChangesHistoryScreen({
   route,
 }: ChangesHistoryScreenProp) {
   const {requestId} = route.params;
-  const webViewRef = useRef<WebView>();
+  const webViewRef = useRef<WebView>(null);
+  const {user_token} = useSelector((state: any) => state.user);
+  const {isConnected} = useSelector((state: any) => state.network);
 
   const {data: history, isLoading} = useQuery({
     queryKey: ['get-chages-history'],
@@ -29,6 +32,7 @@ export default function ChangesHistoryScreen({
    // console.log("response", response);
       return response.data.diff as string;
     },
+    enabled: !!isConnected && !!user_token
   });
 
   const cssCode = `

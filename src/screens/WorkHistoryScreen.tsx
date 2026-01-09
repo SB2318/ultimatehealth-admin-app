@@ -32,6 +32,7 @@ import PodcastCard from '../components/PodcastCard';
 export default function WorkHistoryScreen({navigation}: WorkHistoryProps) {
   //const bottomBarHeight = useBottomTabBarHeight();
   const {user_token, user_id} = useSelector((state: any) => state.user);
+  const {isConnected} = useSelector((state: any) => state.network);
   const insets = useSafeAreaInsets();
   const [selectedCardId, setSelectedCardId] = useState<string>('');
 
@@ -82,7 +83,7 @@ export default function WorkHistoryScreen({navigation}: WorkHistoryProps) {
 
       return response.data.articles as EditRequest[];
     },
-    enabled: !!user_token,
+    enabled: !!user_token && !!isConnected,
   });
 
   const {
@@ -110,7 +111,7 @@ export default function WorkHistoryScreen({navigation}: WorkHistoryProps) {
 
       return response.data.articles as ArticleData[];
     },
-    enabled: !!user_token,
+    enabled: !!user_token && !!isConnected,
   });
 
   const {
@@ -135,7 +136,7 @@ export default function WorkHistoryScreen({navigation}: WorkHistoryProps) {
 
       return response.data.podcasts as PodcastData[];
     },
-    enabled: !!user_token,
+    enabled: !!user_token && !!isConnected,
   });
 
   const {
@@ -166,7 +167,7 @@ export default function WorkHistoryScreen({navigation}: WorkHistoryProps) {
 
       return response.data as Report[];
     },
-    enabled: !!user_token,
+    enabled: !!user_token && !!isConnected,
   });
 
   const onViewContent = (report: Report) => {

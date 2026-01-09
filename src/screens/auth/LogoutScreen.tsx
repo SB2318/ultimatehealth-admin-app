@@ -14,12 +14,14 @@ import axios, {AxiosError} from 'axios';
 import {resetUserState} from '../../stores/UserSlice';
 import {useDispatch, useSelector} from 'react-redux';
 import {clearStorage} from '../../helper/Utils';
-import { LogoutScreenProp } from '../../type';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import {LogoutScreenProp} from '../../type';
+import {SafeAreaView} from 'react-native-safe-area-context';
+import Snackbar from 'react-native-snackbar';
 
-const LogoutScreen = ({navigation, route}:LogoutScreenProp) => {
+const LogoutScreen = ({navigation, route}: LogoutScreenProp) => {
   const {profile_image, username} = route.params;
   const {user_token} = useSelector((state: any) => state.user);
+  const {isConnected} = useSelector((state: any) => state.network);
   const dispatch = useDispatch();
 
   const userLogoutMutation = useMutation({
@@ -40,7 +42,6 @@ const LogoutScreen = ({navigation, route}:LogoutScreenProp) => {
       Alert.alert('Success', 'Logout successfully');
       await clearStorage();
       dispatch(resetUserState());
-  ;
       navigation.reset({
         index: 0,
         routes: [{name: 'LoginScreen'}], // Send user to LoginScreen after logout
@@ -76,6 +77,13 @@ const LogoutScreen = ({navigation, route}:LogoutScreenProp) => {
     },
   });
   const handleLogout = () => {
+    if (!isConnected) {
+      Snackbar.show({
+        text: 'You are currently offline',
+        duration: Snackbar.LENGTH_SHORT,
+      });
+      return;
+    }
     userLogoutMutation.mutate();
   };
   return (

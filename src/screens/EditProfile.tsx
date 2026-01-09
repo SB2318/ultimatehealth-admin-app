@@ -28,9 +28,12 @@ import {
 import ImageResizer from '@bam.tech/react-native-image-resizer';
 import useUploadImage from '../hooks/useUploadImage';
 import APILoader from '../components/APILoader';
+import Snackbar from 'react-native-snackbar';
 
 const EditProfile = ({navigation}:EditProfileProp) => {
   const {uploadImage, loading} = useUploadImage();
+
+  const {isConnected} = useSelector((state: any) => state.network);
 
   // Get safe area insets for handling notches and status bars on device
   const insets = useSafeAreaInsets();
@@ -56,6 +59,7 @@ const EditProfile = ({navigation}:EditProfileProp) => {
 
       return response.data as Admin;
     },
+    enabled: !!isConnected && !!user_token
   });
 
   const userGeneralDetailsMutation = useMutation({
@@ -166,6 +170,14 @@ const EditProfile = ({navigation}:EditProfileProp) => {
   };
 
   const handleSubmitGeneralDetails = () => {
+
+    if(!isConnected){
+      Snackbar.show({
+        text: "You are currently offline",
+        duration: Snackbar.LENGTH_SHORT
+      });
+      return;
+    }
     const errorMessage = validateGeneralFields();
     const validatePassword = validateSubmitPassword();
 

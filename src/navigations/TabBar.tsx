@@ -14,6 +14,7 @@ import { hp } from '../helper/Metric';
 const TabBar = ({state, descriptors, navigation}: any) => {
   const isDarkMode = useColorScheme() === 'dark';
   const {user_token} = useSelector((state: any) => state.user);
+  const {isConnected} = useSelector((state: any) => state.network);
 
    const {data: unreadCount, refetch: refetchUnreadCount} = useQuery({
       queryKey: ['get-unread-notifications-count'],
@@ -37,7 +38,7 @@ const TabBar = ({state, descriptors, navigation}: any) => {
           return 0;
         }
       },
-      enabled : !!user_token
+      enabled : !!user_token && !!isConnected
     });
   
     useFocusEffect(

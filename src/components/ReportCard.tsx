@@ -79,7 +79,7 @@ const ReportCard = ({
           <Text style={styles.buttonText}>
             {report.action_taken === reportActionEnum.PENDING
               ? 'Take over report'
-              : resolutions.includes(report.action_taken as reportActionEnum) ? 'Take action further': 'Take action'}
+              : resolutions.includes(report.action_taken as reportActionEnum) ? 'Take further action': 'Take action'}
           </Text>
         </TouchableOpacity>
       </View>

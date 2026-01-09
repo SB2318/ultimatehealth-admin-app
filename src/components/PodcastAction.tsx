@@ -64,6 +64,16 @@ export const ActionButtonBar = ({
             click={discard}
           />
         )}
+
+      {status === StatusEnum.PUBLISHED && (
+        <SizableText
+          size="$3"
+          color="$gray10"
+          textAlign="center"
+          fontWeight="600">
+          This content is live and no further action is required.
+        </SizableText>
+      )}
     </XStack>
   );
 };
@@ -72,7 +82,7 @@ type ActionButtonProps = {
   icon: any;
   label: string;
   color: string;
-  click: ()=> void
+  click: () => void;
 };
 
 const ActionButton = ({icon, label, color, click}: ActionButtonProps) => {

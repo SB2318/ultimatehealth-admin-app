@@ -461,7 +461,7 @@ const PodcastDiscussion = ({navigation, route}: PodcastDiscussionProp) => {
                   🎧 Listen Now
                 </Text>
               </Button>
-              <Paragraph color="$gray10" fontSize={17}>
+              <Paragraph color="$gray700" fontSize={17}>
                 {podcast?.description}
               </Paragraph>
 

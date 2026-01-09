@@ -176,6 +176,7 @@ const PodcastCard = ({
           }}
           height={hp(16)}
           width={wp(29)}
+          alignSelf='center'
           borderRadius={hp(4)}
         />
 
@@ -222,11 +223,11 @@ const PodcastCard = ({
 
           {/* Title */}
           <Text
-            fontSize="$5"
+            fontSize="$4"
             fontWeight="700"
             color='black'
-            numberOfLines={3}
-            maxWidth={wp(40)}>
+            numberOfLines={2}
+            maxWidth={wp(80)}>
             {item.title}
           </Text>
 
@@ -240,9 +241,9 @@ const PodcastCard = ({
             {item.tags?.slice(0, 2).map((tag, index) => (
               <Text
                 key={index}
-                fontSize="$3"
+                fontSize="$2"
                 paddingHorizontal="$3"
-                paddingVertical="$1"
+                //paddingVertical="$1"
                 borderRadius="$6"
                 backgroundColor="$gray3"
                 color={PRIMARY_COLOR}>

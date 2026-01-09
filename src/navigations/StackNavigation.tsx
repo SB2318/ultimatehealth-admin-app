@@ -87,7 +87,7 @@ const StackNavigation = () => {
         component={PodcastDiscussion}
         options={({navigation}) => ({
             headerShown: true,
-          headerTitle: '',
+          headerTitle: 'Check Discussion',
           headerTintColor: 'white',
           headerTransparent: false,
           headerStyle: {

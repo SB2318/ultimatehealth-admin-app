@@ -2,7 +2,7 @@ import React, {useCallback, useState} from 'react';
 import {View, Text, StyleSheet, Image} from 'react-native';
 import {MaterialTabBar, Tabs} from 'react-native-collapsible-tab-view';
 import {PRIMARY_COLOR, ON_PRIMARY_COLOR, BUTTON_COLOR} from '../helper/Theme';
-import {useSafeAreaInsets} from 'react-native-safe-area-context';
+import {SafeAreaView, useSafeAreaInsets} from 'react-native-safe-area-context';
 import {
   ArticleData,
   EditRequest,
@@ -13,7 +13,7 @@ import {
 import Ionicons from '@expo/vector-icons/Ionicons';
 import {FAB} from 'react-native-paper';
 import ReviewCard from '../components/ReviewCard';
-import {hp} from '../helper/Metric';
+import {hp, wp} from '../helper/Metric';
 import {useSelector} from 'react-redux';
 import {useQuery} from '@tanstack/react-query';
 import axios from 'axios';
@@ -287,8 +287,8 @@ export default function WorkHistoryScreen({navigation}: WorkHistoryProps) {
     );
   };
   return (
-    <View style={styles.container}>
-      <View style={[styles.innerContainer, {paddingTop: insets.top}]}>
+    <SafeAreaView style={styles.container}>
+      <View style={[styles.innerContainer]}>
         <Tabs.Container
           //renderHeader={renderHeader}
           renderTabBar={renderTabBar}
@@ -440,7 +440,7 @@ export default function WorkHistoryScreen({navigation}: WorkHistoryProps) {
           navigation.goBack();
         }}
       />
-    </View>
+    </SafeAreaView>
   );
 }
 
@@ -464,8 +464,9 @@ const styles = StyleSheet.create({
     backgroundColor: ON_PRIMARY_COLOR,
   },
   flatListContentContainer: {
-    paddingHorizontal: 16,
-     marginBottom: 80,
+    paddingHorizontal: wp(2),
+    marginBottom: 80,
+  
   },
 
   profileImage: {
@@ -485,7 +486,7 @@ const styles = StyleSheet.create({
   },
   labelStyle: {
     fontWeight: '600',
-    fontSize: 14.6,
+    fontSize: 13,
    // color: 'black',
     textTransform: 'capitalize',
   },
@@ -517,9 +518,9 @@ const styles = StyleSheet.create({
   fab: {
     position: 'absolute',
     right: 20,
-    bottom: 20,
+    bottom: wp(23),
     borderRadius: hp(20),
-    backgroundColor: BUTTON_COLOR, // Customize color
+    backgroundColor: BUTTON_COLOR,
   },
   image: {
     height: 160,

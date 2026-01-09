@@ -262,9 +262,9 @@ const PodcastDetail = ({navigation, route}: PodcastDetailScreenProp) => {
 
         <Text
           color="white"
-          fontSize={34}
+          fontSize={30}
           fontWeight="700"
-          marginTop={hp(3)}
+          marginTop={hp(7)}
           alignSelf="center">
           {podcast?.title}
         </Text>

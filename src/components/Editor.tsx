@@ -26,7 +26,7 @@ export default function Editor({
   return (
     <YStack
       flex={1}
-      backgroundColor="$background"
+      backgroundColor="white"
       borderRadius="$6"
       overflow="hidden"
       borderWidth={1}

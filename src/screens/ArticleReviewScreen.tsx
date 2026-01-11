@@ -643,6 +643,7 @@ const ReviewScreen = ({route}: ReviewScreenProp) => {
               paddingHorizontal={12}
               borderRadius={8}
               borderWidth={1.5}
+              color='#000'
               borderColor={PRIMARY_COLOR}
               backgroundColor="#fff"
               textAlignVertical="top"

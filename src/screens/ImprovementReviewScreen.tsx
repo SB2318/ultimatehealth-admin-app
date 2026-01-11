@@ -732,6 +732,7 @@ const ImprovementReviewScreen = ({
             <TextArea
               placeholder="Submit your feedback"
               value={feedback}
+              color='#000'
               onChangeText={setFeedback}
               multiline
               height={hp(19)}

@@ -32,6 +32,8 @@ const PodcastDetail = ({navigation, route}: PodcastDetailScreenProp) => {
   //const [progress, setProgress] = useState(10);
   const {trackId, audioUrl} = route.params;
 
+  console.log('Podcast Detail Audio URL:', audioUrl);
+
   const [playing, setIsPlaying] = useState(false);
 
   const {user_token, user_id} = useSelector(

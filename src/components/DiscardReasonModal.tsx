@@ -51,14 +51,15 @@ export default function DiscardReasonModal({
         borderTopLeftRadius="$7"
         borderColor={PRIMARY_COLOR}
         borderTopRightRadius="$7"
-        backgroundColor={ON_PRIMARY_COLOR}>
+        backgroundColor={ON_PRIMARY_COLOR}
+        >
         {/* Header Section */}
         <YStack marginTop="$2" marginBottom="$4" gap="$1.5">
           <XStack justifyContent="space-between" alignItems="center">
             <YStack>
               <Text
                 fontSize="$5"
-                color="$gray10"
+                color="$gray700"
                 fontWeight={'700'}
                 marginTop="$-1">
                 Discard Reason

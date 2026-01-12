@@ -404,6 +404,11 @@ export type CopyrightCheckerProps = {
   data: CopyrightCheckerResponse[];
 };
 
+export type ReportReason = {
+  _id: string;
+  reason: string;
+};
+
 export enum reportActionEnum {
   PENDING = 'Pending',
   RESOLVED = 'Resolved',

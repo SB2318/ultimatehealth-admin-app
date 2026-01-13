@@ -141,43 +141,48 @@ const ReviewScreen = ({route}: ReviewScreenProp) => {
   };
 
   const handleCheckCopyright = () => {
-    if (article && article.imageUtils) {
-      Alert.alert(
-        'Image Copyright Check',
-        'Image copyright check might take some time. Would you like to continue?',
-        [
-          {
-            text: 'Cancel',
-            style: 'cancel',
-          },
-          {
-            text: 'OK',
-            onPress: async () => {
+
+     Alert.alert(
+      "Check Image Copyright",
+      "Image copyright feature is coming soon!",
+     );
+    // if (article && article.imageUtils) {
+    //   Alert.alert(
+    //     'Image Copyright Check',
+    //     'Image copyright check might take some time. Would you like to continue?',
+    //     [
+    //       {
+    //         text: 'Cancel',
+    //         style: 'cancel',
+    //       },
+    //       {
+    //         text: 'OK',
+    //         onPress: async () => {
 
               
-              try {
-                setCopyrightProgressVisible(true);
+    //           try {
+    //             setCopyrightProgressVisible(true);
 
-                const data = await checkImageCopyright(article.imageUtils);
-                console.log('DSAE', data);
-                setCopyRightResults(data);
+    //             const data = await checkImageCopyright(article.imageUtils);
+    //             console.log('DSAE', data);
+    //             setCopyRightResults(data);
 
-                setCopyrightProgressVisible(false);
-                setCopyrightModalVisible(true);
-              } catch (error) {
-                console.log('Error during copyright check:', error);
-                Snackbar.show({
-                  text: 'Network error occurs during copyright check, try again!',
-                  duration: Snackbar.LENGTH_SHORT,
-                });
-                setCopyrightProgressVisible(false);
-              }
-            },
-          },
-        ],
-        {cancelable: true},
-      );
-    }
+    //             setCopyrightProgressVisible(false);
+    //             setCopyrightModalVisible(true);
+    //           } catch (error) {
+    //             console.log('Error during copyright check:', error);
+    //             Snackbar.show({
+    //               text: 'Network error occurs during copyright check, try again!',
+    //               duration: Snackbar.LENGTH_SHORT,
+    //             });
+    //             setCopyrightProgressVisible(false);
+    //           }
+    //         },
+    //       },
+    //     ],
+    //     {cancelable: true},
+    //   );
+    // }
   };
 
   const {data: article} = useQuery({

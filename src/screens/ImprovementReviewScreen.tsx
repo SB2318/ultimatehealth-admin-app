@@ -191,41 +191,46 @@ const ImprovementReviewScreen = ({
   };
 
   const handleCheckCopyright = () => {
-    if (improvement && improvement.imageUtils) {
+
       Alert.alert(
-        'Image Copyright Check',
-        'Image copyright check might take some time. Would you like to continue?',
-        [
-          {
-            text: 'Cancel',
-            style: 'cancel',
-          },
-          {
-            text: 'OK',
-            onPress: async () => {
-              try {
-                setCopyrightProgressVisible(true);
+          "Check Image Copyright",
+          "Image copyright feature is coming soon!",
+         );
+    // if (improvement && improvement.imageUtils) {
+    //   Alert.alert(
+    //     'Image Copyright Check',
+    //     'Image copyright check might take some time. Would you like to continue?',
+    //     [
+    //       {
+    //         text: 'Cancel',
+    //         style: 'cancel',
+    //       },
+    //       {
+    //         text: 'OK',
+    //         onPress: async () => {
+    //           try {
+    //             setCopyrightProgressVisible(true);
 
-                const data = await checkImageCopyright(improvement.imageUtils);
-                setCopyRightResults(data);
+    //             const data = await checkImageCopyright(improvement.imageUtils);
+    //             setCopyRightResults(data);
 
-                setCopyrightProgressVisible(false);
-                setCopyrightModalVisible(true);
-              } catch (error) {
-                console.log('Error during copyright check:', error);
+    //             setCopyrightProgressVisible(false);
+    //             setCopyrightModalVisible(true);
+    //           } catch (error) {
+    //             console.log('Error during copyright check:', error);
 
-                Snackbar.show({
-                  text: 'Network error occurs during copyright check, try again!',
-                  duration: Snackbar.LENGTH_SHORT,
-                });
-                setCopyrightProgressVisible(false);
-              }
-            },
-          },
-        ],
-        {cancelable: true},
-      );
-    }
+    //             Snackbar.show({
+    //               text: 'Network error occurs during copyright check, try again!',
+    //               duration: Snackbar.LENGTH_SHORT,
+    //             });
+    //             setCopyrightProgressVisible(false);
+    //           }
+    //         },
+    //       },
+    //     ],
+    //     {cancelable: true},
+    //   );
+    // }
   };
 
   useEffect(() => {

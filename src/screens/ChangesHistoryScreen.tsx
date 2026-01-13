@@ -1,6 +1,6 @@
 /* eslint-disable react-native/no-inline-styles */
 import {useQuery} from '@tanstack/react-query';
-import {ScrollView, StyleSheet, View} from 'react-native';
+import {Dimensions, ScrollView, StyleSheet, View} from 'react-native';
 import {ChangesHistoryScreenProp} from '../type';
 import axios from 'axios';
 import {GET_CHANGES_HISTORY} from '../helper/APIUtils';
@@ -9,62 +9,38 @@ import WebView from 'react-native-webview';
 import Loader from '../components/Loader';
 import {ON_PRIMARY_COLOR} from '../helper/Theme';
 import {baseHeight, height, scalePerChar} from '../helper/Metric';
-import { useSelector } from 'react-redux';
-
+import {useSelector} from 'react-redux';
+import AutoHeightWebView from '@brown-bear/react-native-autoheight-webview';
 
 export default function ChangesHistoryScreen({
   route,
 }: ChangesHistoryScreenProp) {
   const {requestId} = route.params;
-  const webViewRef = useRef<WebView>(null);
   const {user_token} = useSelector((state: any) => state.user);
   const {isConnected} = useSelector((state: any) => state.network);
 
   const {data: history, isLoading} = useQuery({
     queryKey: ['get-chages-history'],
     queryFn: async () => {
-
       //console.log("Headers", axios.defaults.headers);
-     // console.log("request id", requestId);
+      // console.log("request id", requestId);
       const response = await axios.get(
         `${GET_CHANGES_HISTORY}?requestId=${requestId}`,
       );
-   // console.log("response", response);
+      // console.log("response", response);
       return response.data.diff as string;
     },
-    enabled: !!isConnected && !!user_token
+    enabled: !!isConnected && !!user_token,
   });
 
-  const cssCode = `
-      const style = document.createElement('style');
-      style.innerHTML = \`
-        body {
-          font-size: 46px;
-          line-height: 1.5;
-          color: #333;
-        }
-      \`;
-      document.head.appendChild(style);
-    `;
 
-  const scalePerChar = 1 / 1000;
-  const maxMultiplier = 4.3;
-  const baseMultiplier = 0.8;
-
-  const minHeight = useMemo(() => {
-    let content = history ?? '';
-    const scaleFactor = Math.min(content.length * scalePerChar, maxMultiplier);
-    const scaledHeight = height * (baseMultiplier + scaleFactor);
-    const cappedHeight = Math.min(scaledHeight, height * 6);
-    return cappedHeight;
-  }, [history, scalePerChar]);
   if (isLoading) {
     return <Loader />;
   }
   console.log('History Length', history?.length);
   return (
     <ScrollView style={styles.container}>
-      <WebView
+      {/* <WebView
         style={{
           //minHeight: history ? history.length-6000 : 1,
           minHeight: minHeight,
@@ -77,6 +53,26 @@ export default function ChangesHistoryScreen({
         injectedJavaScript={cssCode}
         source={{html: history ? history : '<p>No changes made </p>'}}
         textZoom={100}
+      /> */}
+
+      <AutoHeightWebView
+        style={{
+          width: Dimensions.get('window').width - 15,
+          marginTop: 35,
+        }}
+        customStyle={`* { font-family: 'Times New Roman'; margin-left: 14px; } p { font-size: 16px; }`}
+        onSizeUpdated={size => console.log(size.height)}
+        files={[
+          {
+            href: 'cssfileaddress',
+            type: 'text/css',
+            rel: 'stylesheet',
+          },
+        ]}
+        originWhitelist={['*']}
+        source={{html: history ? history : '<p>No changes made </p>'}}
+        scalesPageToFit={true}
+        viewportContent={'width=device-width, user-scalable=no'}
       />
     </ScrollView>
   );

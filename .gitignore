@@ -18,7 +18,7 @@ xcuserdata
 *.xccheckout
 *.moved-aside
 DerivedData
-FirebaseContext.tsx
+#FirebaseContext.tsx
 *.hmap
 *.ipa
 *.xcuserstate
@@ -36,7 +36,7 @@ local.properties
 .cxx/
 *.keystore
 !debug.keystore
-google-services.json
+#google-services.json
 
 # node.js
 #

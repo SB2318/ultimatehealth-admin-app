@@ -2,7 +2,7 @@
 
 The admin app is the guardian of quality and compliance for the UltimateHealth platform. With smart moderation tools and seamless collaboration features, it ensures every published resource is accurate, respectful, and valuable to users around the world. 🌍💡
 
-## Coming in 2026 FIRST WEEK of JAN
+## Coming in 2026 FIRST WEEK of FEB (EXAM MODE ON)
 
 [![Download Latest APK](https://img.shields.io/badge/Download-APK-blue.svg)](https://drive.google.com/file/d/1fP7yrtD6NpeatRw5KvDUpiC8sWJpjr9_/view?usp=sharing)
 

@@ -1,11 +1,11 @@
 {
   "expo": {
-    "name": "UltimateHealth Admin",
-    "slug": "UltimateHealth",
+    "name": "UHealth-Admin",
+    "slug": "UHealth-Admin",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
-    "scheme": "ultimatehealth",
+    "scheme": "uhealth-admin",
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
     "androidStatusBar": {
@@ -83,7 +83,9 @@
     },
     "extra": {
       "router": {},
-     
+      "eas": {
+        "projectId": "bdd3feee-d70b-4f27-9be5-33edb8b864f4"
+      }
     }
   }
 }

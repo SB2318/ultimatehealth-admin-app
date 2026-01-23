@@ -1,5 +1,3 @@
-
-
 import React, {useEffect, useState} from 'react';
 import {StyleSheet, Platform} from 'react-native';
 import Ionicons from '@expo/vector-icons/Ionicons';
@@ -19,7 +17,7 @@ import {
   PICK_PODCAST,
 } from '../helper/APIUtils';
 import {useSelector} from 'react-redux';
-import {StatusEnum} from '../helper/Utils';
+import {msToTime, StatusEnum} from '../helper/Utils';
 import Snackbar from 'react-native-snackbar';
 import {hp, wp} from '../helper/Metric';
 import Loader from '../components/Loader';
@@ -32,13 +30,11 @@ const PodcastDetail = ({navigation, route}: PodcastDetailScreenProp) => {
   //const [progress, setProgress] = useState(10);
   const {trackId, audioUrl} = route.params;
 
-  console.log('Podcast Detail Audio URL:', audioUrl);
+  //console.log('Podcast Detail Audio URL:', audioUrl);
 
   const [playing, setIsPlaying] = useState(false);
 
-  const {user_token, user_id} = useSelector(
-    (state: any) => state.user,
-  );
+  const {user_token, user_id} = useSelector((state: any) => state.user);
   const {isConnected} = useSelector((state: any) => state.network);
   const [isLoading, setLoading] = useState<boolean>(false);
   const [duration, setDuration] = useState(0);
@@ -67,10 +63,15 @@ const PodcastDetail = ({navigation, route}: PodcastDetailScreenProp) => {
         console.error('Error fetching podcast:', err);
       }
     },
-    enabled: !!isConnected && !!user_token
+    enabled: !!isConnected && !!user_token,
   });
 
   // const [source, setSource] = useState<string  | null>(null);
+  useEffect(() => {
+    if (podcast) {
+      setDuration(Number(podcast.duration));
+    }
+  }, [podcast]);
 
   const source = audioUrl?.startsWith('http')
     ? audioUrl
@@ -263,14 +264,40 @@ const PodcastDetail = ({navigation, route}: PodcastDetailScreenProp) => {
         justifyContent="flex-start">
         {/* TITLE */}
 
-        <Text
-          color="white"
-          fontSize={30}
-          fontWeight="700"
-          marginTop={hp(7)}
-          alignSelf="center">
-          {podcast?.title}
-        </Text>
+        <YStack
+         // style={styles.footerOptions}
+          alignItems="center"
+          justifyContent="space-between">
+          <Text color="white" fontSize={20} fontWeight="700" marginTop={hp(7)}>
+            {podcast?.title}
+          </Text>
+          <Button
+            width={wp(43)}
+            height={hp(8)}
+            marginTop="$6"
+            borderRadius={wp(4)}
+            backgroundColor="#4ACDFF" // Blue color
+            onPress={() => {
+              if (!isConnected) {
+                Snackbar.show({
+                  text: 'You are currently offline',
+                  duration: Snackbar.LENGTH_SHORT,
+                });
+                return;
+              }
+
+              if (podcast) {
+                navigation.navigate('PodcastDiscussion', {
+                  podcastId: podcast._id,
+                  mentionedUsers: podcast.mentionedUsers,
+                });
+              }
+            }}>
+            <Text style={{color: 'white', fontSize: 17, fontWeight: '600'}}>
+              See Description
+            </Text>
+          </Button>
+        </YStack>
 
         {/* MAIN WAVE */}
         <YStack alignItems="center" marginTop="$4">
@@ -289,7 +316,7 @@ const PodcastDetail = ({navigation, route}: PodcastDetailScreenProp) => {
               source={require('../../assets/LottieAnimation/sound-voice-waves.json')}
               autoPlay
               loop
-              style={{width: '100%', height: 120}}
+              style={{width: '100%', height: 100}}
             />
           </YStack>
         )}
@@ -308,6 +335,7 @@ const PodcastDetail = ({navigation, route}: PodcastDetailScreenProp) => {
               if (player) {
                 await player.seekTo(v);
                 setPosition(v);
+                setIsPlaying(false);
               }
             }}
           />
@@ -357,38 +385,6 @@ const PodcastDetail = ({navigation, route}: PodcastDetailScreenProp) => {
             onPress={handleForward}
             icon={<Ionicons name="play-forward" size={26} color="#9BB3C8" />}
           />
-        </XStack>
-
-        <XStack
-          style={styles.footerOptions}
-          alignItems="center"
-          justifyContent="space-evenly">
-          <Button
-            width={wp(43)}
-            height={hp(8)}
-            marginTop="$6"
-            borderRadius={wp(4)}
-            backgroundColor="#4ACDFF" // Blue color
-            onPress={() => {
-              if (!isConnected) {
-                Snackbar.show({
-                  text: 'You are currently offline',
-                  duration: Snackbar.LENGTH_SHORT,
-                });
-                return;
-              }
-
-              if (podcast) {
-                navigation.navigate('PodcastDiscussion', {
-                  podcastId: podcast._id,
-                  mentionedUsers: podcast.mentionedUsers,
-                });
-              }
-            }}>
-            <Text style={{color: 'white', fontSize: 17, fontWeight: '600'}}>
-              See Description
-            </Text>
-          </Button>
         </XStack>
 
         <ActionButtonBar

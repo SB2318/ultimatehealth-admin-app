@@ -18,7 +18,7 @@ xcuserdata
 *.xccheckout
 *.moved-aside
 DerivedData
-FirebaseContext.tsx
+
 *.hmap
 *.ipa
 *.xcuserstate
@@ -36,7 +36,7 @@ local.properties
 .cxx/
 *.keystore
 !debug.keystore
-google-services.json
+
 
 # node.js
 #
@@ -85,3 +85,5 @@ yarn-error.log
 
 expo-env.d.ts
 # @end expo-cli
+google-services.json
+FirebaseContext.tsx

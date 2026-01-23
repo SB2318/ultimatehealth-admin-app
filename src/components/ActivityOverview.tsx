@@ -526,7 +526,7 @@ const ActivityOverview = ({ctype}: {ctype: number}) => {
             onChange={item => {
               setSelectedYear(item.value);
               // setSelectedDay(-1);
-              setSelectedMonth(new Date().getMonth());
+              setSelectedMonth(-1);
               setYearChange(new Date().getFullYear());
               // setIsFocus(false);
             }}

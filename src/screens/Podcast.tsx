@@ -22,6 +22,7 @@ import Loader from '../components/Loader';
 //import React from 'react';
 import {useSelector} from 'react-redux';
 import DiscardReasonModal from '../components/DiscardReasonModal';
+import { StatusEnum } from '../helper/Utils';
 
 export default function Podcast({navigation}: PodcastProps) {
   const insets = useSafeAreaInsets();
@@ -110,10 +111,18 @@ export default function Podcast({navigation}: PodcastProps) {
     }
     // 3 -> View podcast details
     if (index === 3) {
-      navigateToDetails(item._id, item.audio_url);
+      navigateToDetails(item);
     }
     // 1 -> Discard podcast
     if (index === 1) {
+      if(item.status === StatusEnum.UNASSIGNED){
+        Snackbar.show({
+          text:"Please pick the podcast in order to take any action",
+          duration: Snackbar.LENGTH_LONG
+
+        });
+        return;
+      }
       setDiscardPodcastId(item._id);
       setDiscardPodcastModal(true);
     }
@@ -123,10 +132,11 @@ export default function Podcast({navigation}: PodcastProps) {
     }
   };
 
-  const navigateToDetails = (id: string, audio_url: string) => {
+  const navigateToDetails = ( item: PodcastData) => {
     navigation.navigate('PodcastDetail', {
-      trackId: id,
-      audioUrl: audio_url,
+      trackId: item._id,
+      audioUrl: item.audio_url,
+      podcast: item
     });
   };
 

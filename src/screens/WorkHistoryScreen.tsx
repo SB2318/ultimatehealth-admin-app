@@ -261,7 +261,8 @@ export default function WorkHistoryScreen({navigation}: WorkHistoryProps) {
           handleClick={() => {
             navigation.navigate('PodcastDetail', {
               trackId: item._id,
-              audioUrl: item.audio_url
+              audioUrl: item.audio_url,
+              podcast: item
             });
           }}
         />
@@ -369,6 +370,7 @@ export default function WorkHistoryScreen({navigation}: WorkHistoryProps) {
               contentContainerStyle={[
                 styles.flatListContentContainer,
                 {paddingBottom: 15},
+                
               ]}
               keyExtractor={item => item?._id}
               refreshing={isCompletedPodcastLoading}
@@ -465,9 +467,9 @@ const styles = StyleSheet.create({
     backgroundColor: ON_PRIMARY_COLOR,
   },
   flatListContentContainer: {
-    paddingHorizontal: wp(2),
+    paddingHorizontal: wp(1),
     marginBottom: 80,
-  
+    alignItems:"center"
   },
 
   profileImage: {

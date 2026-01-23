@@ -43,6 +43,7 @@ export type RootStackParamList = {
   };
   PodcastDetail: {
     trackId: string;
+    podcast: PodcastData | undefined;
     audioUrl: string | undefined;
   };
   PodcastDiscussion: {

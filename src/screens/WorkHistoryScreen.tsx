@@ -28,6 +28,7 @@ import {StatusEnum} from '../helper/Utils';
 import ReportCard from '../components/ReportCard';
 import ImprovementCard from '../components/ImprovementCard';
 import PodcastCard from '../components/PodcastCard';
+import { Fontisto, MaterialIcons } from '@expo/vector-icons';
 
 export default function WorkHistoryScreen({navigation}: WorkHistoryProps) {
   //const bottomBarHeight = useBottomTabBarHeight();
@@ -85,6 +86,8 @@ export default function WorkHistoryScreen({navigation}: WorkHistoryProps) {
     },
     enabled: !!user_token && !!isConnected,
   });
+
+  //console.log('Completed Articles:', completedArticles);
 
   const {
     refetch: refetchCompletedArticles,
@@ -313,10 +316,12 @@ export default function WorkHistoryScreen({navigation}: WorkHistoryProps) {
               }}
               ListEmptyComponent={
                 <View style={styles.emptyContainer}>
-                  <Image
+                  {/* <Image
                     source={require('../../assets/images/identify-audience.png')}
                     style={styles.image}
-                  />
+                  /> */}
+
+                  <Fontisto name="onenote" size={wp(25)} color={'#6A89A7'} />
                   <Text style={styles.message}>No articles available</Text>
                 </View>
               }
@@ -346,10 +351,11 @@ export default function WorkHistoryScreen({navigation}: WorkHistoryProps) {
               }}
               ListEmptyComponent={
                 <View style={styles.emptyContainer}>
-                  <Image
+                  {/* <Image
                     source={require('../../assets/images/identify-audience.png')}
                     style={styles.image}
-                  />
+                  /> */}
+                  <Fontisto name="onenote" size={wp(25)} color={'#6A89A7'} />
                   <Text style={styles.message}>No revisions available</Text>
                 </View>
               }
@@ -377,10 +383,11 @@ export default function WorkHistoryScreen({navigation}: WorkHistoryProps) {
               onRefresh={refetchCompletedPodcasts}
               ListEmptyComponent={
                 <View style={styles.emptyContainer}>
-                  <Image
+                  {/* <Image
                     source={require('../../assets/images/identify-audience.png')}
                     style={styles.image}
-                  />
+                  /> */}
+                  <MaterialIcons name="podcasts" size={hp(17)} color={'#6A89A7'} style={{marginBottom: hp(2)}} />
                   <Text style={styles.message}>No podcasts available</Text>
                 </View>
               }
@@ -408,10 +415,11 @@ export default function WorkHistoryScreen({navigation}: WorkHistoryProps) {
                 )}
                 ListEmptyComponent={
                   <View style={styles.emptyContainer}>
-                    <Image
+                    {/* <Image
                       source={require('../../assets/images/identify-audience.png')}
                       style={styles.image}
-                    />
+                  /> */}
+                    <MaterialIcons name="report-off" size={wp(25)} color={'#6A89A7'} style={{marginBottom: hp(2)}} />
                     <Text style={styles.message}>No report available</Text>
                   </View>
                 }
@@ -504,7 +512,7 @@ const styles = StyleSheet.create({
   },
   message: {
     fontSize: 16,
-    color: '#555',
+    color: '#6A89A7',
     textAlign: 'center',
   },
   emptyContainer: {

@@ -542,7 +542,7 @@ export default function HomeScreen({navigation}: ArticleProps) {
         {...props}
         indicatorStyle={styles.indicatorStyle}
         style={styles.tabBarStyle}
-        activeColor={BUTTON_COLOR}
+        activeColor={'#384959'}
         inactiveColor="#9098A3"
         labelStyle={styles.labelStyle}
         contentContainerStyle={styles.contentContainerStyle}
@@ -732,11 +732,13 @@ export default function HomeScreen({navigation}: ArticleProps) {
 
           {/* Available Improvements articles */}
           <Tabs.Tab name="Revisions">
-            <Improvement handleNav={handleImprovementReviewNav} />
+            {Improvement ? (
+              <Improvement handleNav={handleImprovementReviewNav} />
+            ) : null}
           </Tabs.Tab>
         </Tabs.Container>
 
-        <FilterModal
+        {/* <FilterModal
           bottomSheetModalRef={bottomSheetModalRef}
           categories={articleCategories}
           handleCategorySelection={handleCategorySelection}
@@ -745,7 +747,7 @@ export default function HomeScreen({navigation}: ArticleProps) {
           handleFilterApply={handleFilterApply}
           setSortingType={setSortingType}
           sortingType={sortingType}
-        />
+        /> */}
 
         <AddTagModal
           type={1}
@@ -780,7 +782,7 @@ export default function HomeScreen({navigation}: ArticleProps) {
           onDismiss={onAddTagModalClose}
         />
 
-        <FAB
+        {/* <FAB
           style={styles.fab}
           small
           icon={({size, color}) => (
@@ -790,7 +792,7 @@ export default function HomeScreen({navigation}: ArticleProps) {
             //navigation.goBack();
             handlePresentModalPress();
           }}
-        />
+        /> */}
 
         <DiscardReasonModal
           visible={articleDiscardModal}

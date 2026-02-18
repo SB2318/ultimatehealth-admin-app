@@ -31,6 +31,7 @@ import Snackbar from 'react-native-snackbar';
 import Loader from '../components/Loader';
 import ReasonItemCard from '../components/ReasonItemCard';
 import AddTagModal from '../components/AddTagModal';
+import { MaterialIcons } from '@expo/vector-icons';
 
 export default function ReportScreen({navigation}) {
   const {user_token} = useSelector((state: any) => state.user);
@@ -293,7 +294,7 @@ export default function ReportScreen({navigation}) {
         {...props}
         indicatorStyle={styles.indicatorStyle}
         style={styles.tabBarStyle}
-        activeColor={PRIMARY_COLOR}
+        activeColor={'black'}
         inactiveColor="#9098A3"
         labelStyle={styles.labelStyle}
         contentContainerStyle={styles.contentContainerStyle}
@@ -371,10 +372,11 @@ export default function ReportScreen({navigation}) {
                   showsVerticalScrollIndicator={false}
                   ListEmptyComponent={
                     <View style={styles.emptyContainer}>
-                      <Image
+                      {/* <Image
                         source={require('../../assets/images/identify-audience.png')}
                         style={styles.image}
-                      />
+                      /> */}
+                      <MaterialIcons name="report-off" size={wp(25)} color={'#6A89A7'} />
                       <Text style={styles.message}>No reason found</Text>
                     </View>
                   }
@@ -402,10 +404,11 @@ export default function ReportScreen({navigation}) {
                 )}
                 ListEmptyComponent={
                   <View style={styles.emptyContainer}>
-                    <Image
+                    {/* <Image
                       source={require('../../assets/images/identify-audience.png')}
                       style={styles.image}
-                    />
+                    /> */}
+                    <MaterialIcons name="report-off" size={wp(25)} color={'#6A89A7'} />
                     <Text style={styles.message}>No report found</Text>
                   </View>
                 }
@@ -441,10 +444,11 @@ export default function ReportScreen({navigation}) {
                 )}
                 ListEmptyComponent={
                   <View style={styles.emptyContainer}>
-                    <Image
+                    {/* <Image
                       source={require('../../assets/images/identify-audience.png')}
                       style={styles.image}
-                    />
+                    /> */}
+                    <MaterialIcons name="report-off" size={wp(25)} color={'#6A89A7'} />
                     <Text style={styles.message}>No Report Found</Text>
                   </View>
                 }
@@ -574,8 +578,9 @@ const styles = StyleSheet.create({
   },
   message: {
     fontSize: 17,
-    color: '#555',
+    color: '#6A89A7',
     fontWeight: '500',
+    marginTop: hp(1),
     textAlign: 'center',
   },
   emptyContainer: {
@@ -634,6 +639,7 @@ const styles = StyleSheet.create({
     paddingBottom: hp(5),
     paddingTop: hp(1),
     gap: hp(1.5),
+    marginTop: hp(2),
     //backgroundColor: 'red',
     //marginBottom: hp(36)
   },

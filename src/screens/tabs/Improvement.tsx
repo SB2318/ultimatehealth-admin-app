@@ -22,9 +22,10 @@ import {
   PICK_IMPROVEMENT,
   UNASSIGN_IMPROVEMENT,
 } from '../../helper/APIUtils';
-import {hp} from '../../helper/Metric';
+import {hp, wp} from '../../helper/Metric';
 import {ON_PRIMARY_COLOR, PRIMARY_COLOR} from '../../helper/Theme';
 import {EditRequest} from '../../type';
+import { Fontisto } from '@expo/vector-icons';
 
 export default function Imrovement({
   handleNav,
@@ -335,10 +336,11 @@ export default function Imrovement({
             onRefresh={onRefresh}
             ListEmptyComponent={
               <View style={styles.emptyContainer}>
-                <Image
+                {/* <Image
                   source={require('../../../assets/images/article.png')}
                   style={styles.image}
-                />
+                /> */}
+                <Fontisto name="onenote" size={wp(25)} color={'#6A89A7'} />
                 <Text style={styles.message}>No Article Found</Text>
               </View>
             }
@@ -437,14 +439,16 @@ const styles = StyleSheet.create({
 
   message: {
     fontSize: 17,
-    color: '#555',
+    color: '#6A89A7',
     fontWeight: '500',
     textAlign: 'center',
+    marginTop: hp(2),
   },
   emptyContainer: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
     padding: 10,
+    marginTop: hp(20),
   },
 });

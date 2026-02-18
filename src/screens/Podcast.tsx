@@ -1,4 +1,4 @@
-import {Image, StyleSheet, Text, View} from 'react-native';
+import {StyleSheet, Text, View} from 'react-native';
 import {PodcastData, PodcastProps} from '../type';
 import {BUTTON_COLOR, ON_PRIMARY_COLOR} from '../helper/Theme';
 import {FAB} from 'react-native-paper';
@@ -23,6 +23,7 @@ import Loader from '../components/Loader';
 import {useSelector} from 'react-redux';
 import DiscardReasonModal from '../components/DiscardReasonModal';
 import { StatusEnum } from '../helper/Utils';
+import { MaterialIcons } from '@expo/vector-icons';
 
 export default function Podcast({navigation}: PodcastProps) {
   const insets = useSafeAreaInsets();
@@ -230,7 +231,7 @@ export default function Podcast({navigation}: PodcastProps) {
         {...props}
         indicatorStyle={styles.indicatorStyle}
         style={styles.tabBarStyle}
-        activeColor={BUTTON_COLOR}
+        activeColor={'black'}
         inactiveColor="#9098A3"
         labelStyle={styles.labelStyle}
         contentContainerStyle={styles.contentContainerStyle}
@@ -254,7 +255,7 @@ export default function Podcast({navigation}: PodcastProps) {
           containerStyle={styles.tabsContainer}>
           {/* Availables Tab */}
           <Tabs.Tab name="Availables" label="Availables">
-            <View style={{flex: 1, marginTop: hp(7)}}>
+            <View style={{flex: 1, marginTop: hp(3)}}>
               <View style={styles.reasonTabContainer}>
                 <Tabs.FlatList
                   data={availablePodcasts ? availablePodcasts : []}
@@ -283,10 +284,11 @@ export default function Podcast({navigation}: PodcastProps) {
                   showsVerticalScrollIndicator={false}
                   ListEmptyComponent={
                     <View style={styles.emptyContainer}>
-                      <Image
+                      {/* <Image
                         source={require('../../assets/images/identify-audience.png')}
                         style={styles.image}
-                      />
+                      /> */}
+                      <MaterialIcons name="podcasts" size={hp(17)} color={'#6A89A7'} style={{marginBottom: hp(2)}} />
                       <Text style={styles.message}>
                         No podcasts available for review
                       </Text>
@@ -305,7 +307,7 @@ export default function Podcast({navigation}: PodcastProps) {
 
           {/* Inprogress Tab */}
           <Tabs.Tab name="Inprogress" label="Inprogress">
-            <View style={{flex: 1, marginTop: hp(7)}}>
+            <View style={{flex: 1, marginTop: hp(3)}}>
               <View style={styles.reasonTabContainer}>
                 <Tabs.FlatList
                   data={Array.isArray(progressPodcasts) ? progressPodcasts : []}
@@ -334,10 +336,7 @@ export default function Podcast({navigation}: PodcastProps) {
                   showsVerticalScrollIndicator={false}
                   ListEmptyComponent={
                     <View style={styles.emptyContainer}>
-                      <Image
-                        source={require('../../assets/images/identify-audience.png')}
-                        style={styles.image}
-                      />
+                      <MaterialIcons name="podcasts" size={hp(17)} color={'#6A89A7'} style={{marginBottom: hp(2)}} />
                       <Text style={styles.message}>
                         No podcasts available for review
                       </Text>
@@ -387,7 +386,7 @@ export default function Podcast({navigation}: PodcastProps) {
           }}
         />
 
-        <FAB
+        {/* <FAB
           style={styles.fab}
           small
           icon={({size, color}) => (
@@ -396,7 +395,7 @@ export default function Podcast({navigation}: PodcastProps) {
           onPress={() => {
             // handlePresentModalPress();
           }}
-        />
+        /> */}
       </View>
     </SafeAreaView>
   );
@@ -419,7 +418,7 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   tabsContainer: {
-    backgroundColor: ON_PRIMARY_COLOR,
+    backgroundColor: 'white',
     overflow: 'hidden',
   },
   image: {
@@ -431,7 +430,7 @@ const styles = StyleSheet.create({
   },
   scrollViewContentContainer: {
     paddingHorizontal: 16,
-    marginTop: 16,
+    marginTop: 10,
     backgroundColor: ON_PRIMARY_COLOR,
     //backgroundColor: '#ffffff',
   },
@@ -452,7 +451,7 @@ const styles = StyleSheet.create({
     backgroundColor: 'white',
   },
   tabBarStyle: {
-    backgroundColor: '#ffffff',
+    //backgroundColor: '#ffffff',
   },
   labelStyle: {
     fontWeight: '600',
@@ -472,7 +471,7 @@ const styles = StyleSheet.create({
   },
   message: {
     fontSize: 17,
-    color: '#555',
+    color: '#6A89A7',
     fontWeight: '500',
     textAlign: 'center',
   },

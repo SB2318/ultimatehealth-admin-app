@@ -1,8 +1,9 @@
 import React, { useState } from 'react';
 import { FlatList, Image, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
-import { hp } from '../../helper/Metric';
+import { hp, wp } from '../../helper/Metric';
 import { ON_PRIMARY_COLOR, PRIMARY_COLOR } from '../../helper/Theme';
 import { ArticleData } from '../../type';
+import { Fontisto } from '@expo/vector-icons';
 
 type Props = {
   inProgressArticle: ArticleData[];
@@ -75,10 +76,11 @@ export default function HomeArticle({
           }}
           ListEmptyComponent={
             <View style={styles.emptyContainer}>
-              <Image
+              {/* <Image
                 source={require('../../../assets/images/article.png')}
                 style={styles.image}
-              />
+              /> */}
+              <Fontisto name="onenote" size={wp(25)} color={'#6A89A7'} />
               <Text style={styles.message}>No Article Found</Text>
             </View>
           }
@@ -131,12 +133,16 @@ const styles = StyleSheet.create({
     width: '100%',
     paddingHorizontal: 0,
     marginBottom: 80,
+   // alignItems:"center",
+   // justifyContent:"center",
     //zIndex: -2,
   },
    flatListContentContainer: {
-   // marginTop: hp(20),
+    //marginTop: hp(20),
       paddingHorizontal: 16,
       backgroundColor: ON_PRIMARY_COLOR,
+     // alignItems: 'center',
+     // justifyContent: 'center',
     },
  
  image: {
@@ -150,14 +156,18 @@ const styles = StyleSheet.create({
 
    message: {
     fontSize: 17,
-    color: '#555',
+    color: '#6A89A7',
     fontWeight: '500',
+    marginTop: hp(3),
     textAlign: 'center',
   },
   emptyContainer: {
     flex: 1,
+    marginTop: hp(20),
+   // backgroundColor: 'red',
     justifyContent: 'center',
     alignItems: 'center',
+    alignSelf: 'center',
     padding: 10,
   },
  

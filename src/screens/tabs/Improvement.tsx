@@ -1,5 +1,7 @@
+import DiscardReasonModal from '@/src/components/DiscardReasonModal';
 import {useMutation, useQuery} from '@tanstack/react-query';
 import axios from 'axios';
+import React, {useCallback, useState} from 'react';
 import {
   Alert,
   FlatList,
@@ -9,6 +11,10 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
+import Snackbar from 'react-native-snackbar';
+import {useSelector} from 'react-redux';
+import ImprovementCard from '../../components/ImprovementCard';
+import Loader from '../../components/Loader';
 import {
   DISCARD_IMPROVEMENT,
   GET_AVAILABLE_IMPROVEMENTS,
@@ -16,14 +22,10 @@ import {
   PICK_IMPROVEMENT,
   UNASSIGN_IMPROVEMENT,
 } from '../../helper/APIUtils';
-import {EditRequest} from '../../type';
-import React, {useCallback, useState} from 'react';
-import {hp} from '../../helper/Metric';
+import {hp, wp} from '../../helper/Metric';
 import {ON_PRIMARY_COLOR, PRIMARY_COLOR} from '../../helper/Theme';
-import ImprovementCard from '../../components/ImprovementCard';
-import Snackbar from 'react-native-snackbar';
-import Loader from '../../components/Loader';
-import {useSelector} from 'react-redux';
+import {EditRequest} from '../../type';
+import { Fontisto } from '@expo/vector-icons';
 
 export default function Imrovement({
   handleNav,
@@ -33,23 +35,30 @@ export default function Imrovement({
     authorId: string,
     destination: string,
     recordId: string,
-    articleRecordId: string
+    articleRecordId: string,
   ) => void;
 }) {
   const [refreshing, setRefreshing] = useState<boolean>(false);
   const [selectedCardId, setSelectedCardId] = useState<string>('');
-  const {user_id} = useSelector((state: any) => state.user);
+  const [discardReqId, setDiscardReId] = useState<string>('');
+  const [discardReqModal, setDiscardReqModal] = useState<boolean>(false);
+  const {user_id, user_token} = useSelector((state: any) => state.user);
+  const {isConnected} = useSelector((state: any) => state.network);
 
   const [selectedCat, setSelectedCat] = useState<string>('Available');
   const categories = ['Available', 'Inprogress'];
 
-  const[availablePage, setAvailablePage] = useState(1);
-  const[totalAvailPage, setTotalAvailPage] = useState(0);
-  const [availableImprovements, setAvailableImprovements] = useState<EditRequest[]>([]);
+  const [availablePage, setAvailablePage] = useState(1);
+  const [totalAvailPage, setTotalAvailPage] = useState(0);
+  const [availableImprovements, setAvailableImprovements] = useState<
+    EditRequest[]
+  >([]);
 
-  const[progressPage, setProgressPage] = useState(1);
-  const[totalProgressPage, setTotalProgressPage] = useState(0);
-  const [progressImprovements, setProgressImprovements] = useState<EditRequest[]>([]);
+  const [progressPage, setProgressPage] = useState(1);
+  const [totalProgressPage, setTotalProgressPage] = useState(0);
+  const [progressImprovements, setProgressImprovements] = useState<
+    EditRequest[]
+  >([]);
 
   const {
     refetch: availableImprovementRefetch,
@@ -57,28 +66,29 @@ export default function Imrovement({
   } = useQuery({
     queryKey: ['get-available-improvements', availablePage],
     queryFn: async () => {
-      const response = await axios.get(`${GET_AVAILABLE_IMPROVEMENTS}?page=${availablePage}`);
+      const response = await axios.get(
+        `${GET_AVAILABLE_IMPROVEMENTS}?page=${availablePage}`,
+      );
 
       console.log('response', response.data);
-      if(Number(availablePage) === 1){
-
-        if(response.data.totalPages){
+      if (Number(availablePage) === 1) {
+        if (response.data.totalPages) {
           let d = response.data.totalPages;
           setTotalAvailPage(d);
         }
-        if(response.data.articles){
-            setAvailableImprovements(response.data.articles);
+        if (response.data.articles) {
+          setAvailableImprovements(response.data.articles);
         }
-      }else{
-         if(response.data.articles){
-           const oldData = availableImprovements;
-           const newData = response.data.articles as EditRequest[];
-           setAvailableImprovements([...oldData, ...newData]);
-         }
+      } else {
+        if (response.data.articles) {
+          const oldData = availableImprovements;
+          const newData = response.data.articles as EditRequest[];
+          setAvailableImprovements([...oldData, ...newData]);
+        }
       }
       return response.data.articles as EditRequest[];
     },
-    //enabled: !!availablePage,
+    enabled: !!isConnected && !!user_token,
   });
 
   const {
@@ -87,36 +97,37 @@ export default function Imrovement({
   } = useQuery({
     queryKey: ['get-progress-improvements', progressPage],
     queryFn: async () => {
-      const response = await axios.get(`${GET_PROGRESS_IMPROVEMENTS}?page=${progressPage}`);
+      const response = await axios.get(
+        `${GET_PROGRESS_IMPROVEMENTS}?page=${progressPage}`,
+      );
 
-      if(Number(progressPage) === 1){
-
-        if(response.data.totalPages){
+      if (Number(progressPage) === 1) {
+        if (response.data.totalPages) {
           let d = response.data.totalPages;
           setTotalProgressPage(d);
         }
-        if(response.data.articles){
-            setProgressImprovements(response.data.articles);
+        if (response.data.articles) {
+          setProgressImprovements(response.data.articles);
         }
-      }else{
-         if(response.data.articles){
-           const oldData = progressImprovements;
-           const newData = response.data.articles as EditRequest[];
-           setProgressImprovements([...oldData, ...newData]);
-         }
+      } else {
+        if (response.data.articles) {
+          const oldData = progressImprovements;
+          const newData = response.data.articles as EditRequest[];
+          setProgressImprovements([...oldData, ...newData]);
+        }
       }
 
       return response.data.articles as EditRequest[];
     },
-    enabled : !!progressPage,
+    enabled: !!progressPage && !!isConnected && !!user_token,
   });
 
   const onRefresh = () => {
     setRefreshing(true);
-    if(selectedCat === categories[0]){
+    if (selectedCat === categories[0]) {
       setAvailablePage(1);
       availableImprovementRefetch();
-    }else{
+    } else {
       setProgressPage(1);
       refetchProgressImprovements();
     }
@@ -211,13 +222,19 @@ export default function Imrovement({
   const renderItem = useCallback(
     ({item}: {item: EditRequest}) => {
       return (
-
         <ImprovementCard
           item={item}
           isSelected={selectedCardId === item._id}
           setSelectedCardId={setSelectedCardId}
           //navigation={navigation}
           onclick={(item: EditRequest, index: number, reason: string) => {
+            if (!isConnected) {
+              Snackbar.show({
+                text: 'You are currently offline',
+                duration: Snackbar.LENGTH_SHORT,
+              });
+              return;
+            }
             if (index === 0) {
               // Pick article
               pickImprovementMutation.mutate({
@@ -231,10 +248,12 @@ export default function Imrovement({
               });
             } else {
               // Display discard reason or screen
-              discardImprovementMutation.mutate({
-                requestId: item._id,
-                discardReason: reason,
-              });
+              // discardImprovementMutation.mutate({
+              //   requestId: item._id,
+              //   discardReason: reason,
+              // });
+              setDiscardReId(item._id);
+              setDiscardReqModal(false);
             }
           }}
           onNavigate={item => {
@@ -243,13 +262,18 @@ export default function Imrovement({
             //  authorId: item.authorId,
             //  destination: item.status,
             //});
-            handleNav(item._id, item.article.authorId, item.status, item.pb_recordId, item.article_recordId);
+            handleNav(
+              item._id,
+              item.article.authorId,
+              item.status,
+              item.pb_recordId,
+              item.article_recordId,
+            );
           }}
         />
       );
     },
     [
-      discardImprovementMutation,
       handleNav,
       pickImprovementMutation,
       selectedCardId,
@@ -312,22 +336,21 @@ export default function Imrovement({
             onRefresh={onRefresh}
             ListEmptyComponent={
               <View style={styles.emptyContainer}>
-                <Image
-                  source={require('../../../assets/article_default.jpg')}
+                {/* <Image
+                  source={require('../../../assets/images/article.png')}
                   style={styles.image}
-                />
+                /> */}
+                <Fontisto name="onenote" size={wp(25)} color={'#6A89A7'} />
                 <Text style={styles.message}>No Article Found</Text>
               </View>
             }
-            onEndReached={()=>{
-              if(selectedCat === categories[0]){
-                 if(availablePage < totalAvailPage){
+            onEndReached={() => {
+              if (selectedCat === categories[0]) {
+                if (availablePage < totalAvailPage) {
                   setAvailablePage(prev => prev + 1);
-                 }
-              }
-              else if(selectedCat === categories[1]){
-
-                if(progressPage < totalProgressPage){
+                }
+              } else if (selectedCat === categories[1]) {
+                if (progressPage < totalProgressPage) {
                   setProgressPage(prev => prev + 1);
                 }
               }
@@ -335,6 +358,29 @@ export default function Imrovement({
             onEndReachedThreshold={0.5}
           />
         </View>
+
+        <DiscardReasonModal
+          visible={discardReqModal}
+          callback={(reason: string) => {
+            console.log('discard modal click-', discardReqModal);
+            // onclick(item, 1, reason);
+            if (discardReqId !== '') {
+              discardImprovementMutation.mutate({
+                requestId: discardReqId,
+                discardReason: reason,
+              });
+            } else {
+              Snackbar.show({
+                text: 'Improvement id not found, please try again',
+                duration: Snackbar.LENGTH_SHORT,
+              });
+            }
+          }}
+          dismiss={() => {
+            setDiscardReId('');
+            setDiscardReqModal(false);
+          }}
+        />
       </View>
     </View>
   );
@@ -383,23 +429,26 @@ const styles = StyleSheet.create({
   },
 
   image: {
-    height: 160,
-    width: 160,
-    borderRadius: 80,
+    height: 190,
+    width: 190,
+    //borderRadius: 80,
     resizeMode: 'cover',
+    marginTop: hp(10),
     marginBottom: hp(4),
   },
 
   message: {
     fontSize: 17,
-    color: '#555',
+    color: '#6A89A7',
     fontWeight: '500',
     textAlign: 'center',
+    marginTop: hp(2),
   },
   emptyContainer: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
     padding: 10,
+    marginTop: hp(20),
   },
 });

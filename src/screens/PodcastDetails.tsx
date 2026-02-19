@@ -1,25 +1,12 @@
-import React from 'react';
-import {useCallback, useEffect, useState} from 'react';
-import {
-  View,
-  Text,
-  StyleSheet,
-  Image,
-  TouchableOpacity,
-  ScrollView,
-  Platform,
-} from 'react-native';
-import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
-import AntDesign from 'react-native-vector-icons/AntDesign';
-
+import React, {useEffect, useState} from 'react';
+import {StyleSheet, Platform} from 'react-native';
+import Ionicons from '@expo/vector-icons/Ionicons';
 import {PodcastData, PodcastDetailScreenProp} from '../type';
 import {BUTTON_COLOR, ON_PRIMARY_COLOR, PRIMARY_COLOR} from '../helper/Theme';
 import Slider from '@react-native-community/slider';
-import TrackPlayer, {
-  State,
-  usePlaybackState,
-  useProgress,
-} from 'react-native-track-player';
+
+import {useAudioPlayer} from 'expo-audio';
+
 import {useMutation, useQuery} from '@tanstack/react-query';
 import axios from 'axios';
 import {
@@ -27,46 +14,34 @@ import {
   DISCARD_PODCAST,
   GET_IMAGE,
   GET_PODCAST_DETAILS,
-  GET_STORAGE_DATA,
   PICK_PODCAST,
 } from '../helper/APIUtils';
 import {useSelector} from 'react-redux';
-import moment from 'moment';
+import {msToTime, StatusEnum} from '../helper/Utils';
 import Snackbar from 'react-native-snackbar';
-import {SafeAreaView, useSafeAreaInsets} from 'react-native-safe-area-context';
-import {hp} from '../helper/Metric';
-import {StatusEnum} from '../helper/Utils';
+import {hp, wp} from '../helper/Metric';
+import Loader from '../components/Loader';
+import {Button, Theme, XStack, YStack, Text} from 'tamagui';
+import LottieView from 'lottie-react-native';
 import DiscardReasonModal from '../components/DiscardReasonModal';
+import {ActionButtonBar} from '../components/PodcastAction';
 
 const PodcastDetail = ({navigation, route}: PodcastDetailScreenProp) => {
   //const [progress, setProgress] = useState(10);
-  const insets = useSafeAreaInsets();
-  const {trackId} = route.params;
-  const playbackState = usePlaybackState();
-  const progress = useProgress();
+  const {trackId, audioUrl} = route.params;
+
+  //console.log('Podcast Detail Audio URL:', audioUrl);
+
+  const [playing, setIsPlaying] = useState(false);
+
   const {user_token, user_id} = useSelector((state: any) => state.user);
   const {isConnected} = useSelector((state: any) => state.network);
-  const [isExpanded, setIsExpanded] = useState<boolean>(false);
+  const [isLoading, setLoading] = useState<boolean>(false);
+  const [duration, setDuration] = useState(0);
+  const [position, setPosition] = useState(0);
+
   const [discardModalVisible, setDiscardModalVisible] =
     useState<boolean>(false);
-
-  const handleListenPress = async () => {
-    const currentState = await TrackPlayer.getPlaybackState();
-
-    console.log('Current state', currentState);
-    console.log('State Playing', State.Playing);
-    console.log('State Ready', State.Ready);
-    console.log('State Stoped', State.Stopped);
-    if (currentState.state === State.Playing) {
-      await TrackPlayer.pause();
-    } else if (
-      currentState.state === State.Paused ||
-      currentState.state === State.Ready ||
-      currentState.state === State.Stopped
-    ) {
-      await TrackPlayer.play();
-    }
-  };
 
   const {data: podcast, refetch} = useQuery({
     queryKey: ['get-podcast-details'],
@@ -88,26 +63,67 @@ const PodcastDetail = ({navigation, route}: PodcastDetailScreenProp) => {
         console.error('Error fetching podcast:', err);
       }
     },
+    enabled: !!isConnected && !!user_token,
   });
 
-  const addTrack = useCallback(async () => {
-    await TrackPlayer.reset();
+  // const [source, setSource] = useState<string  | null>(null);
+  useEffect(() => {
     if (podcast) {
-      await TrackPlayer.add({
-        id: trackId,
-        url: `${GET_IMAGE}/${podcast?.audio_url}`,
-        title: podcast?.title,
-        artist: podcast?.user_id.user_name,
-      });
+      setDuration(Number(podcast.duration));
     }
-  }, [podcast, trackId]);
+  }, [podcast]);
+
+  const source = audioUrl?.startsWith('http')
+    ? audioUrl
+    : `${GET_IMAGE}/${audioUrl}`;
+
+  console.log('source', source);
+  // only initialize once a valid uri exists
+  const player = useAudioPlayer(
+    source ?? require('../../assets/sounds/funny-cartoon-sound-397415.mp3'),
+  );
 
   useEffect(() => {
-    addTrack();
-    return () => {};
-  }, [addTrack]);
+    const interval = setInterval(() => {
+      if (player.playing) {
+        setPosition(player.currentTime || 0);
+        setDuration(player.duration || 1);
+        // setIsPlaying(player.playing || false);
+      }
+    }, 500);
 
-  const formatTime = (seconds: number) => {
+    return () => clearInterval(interval);
+  }, [player.currentTime, player.duration, player.playing]);
+
+  const SKIP_TIME = 5; // seconds
+
+  const handleForward = async () => {
+    if (!player) return;
+
+    let next = position + SKIP_TIME;
+
+    if (next > duration) {
+      next = duration;
+    }
+
+    await player.seekTo(next);
+    setPosition(next);
+  };
+
+  const handleBackward = async () => {
+    if (!player) return;
+
+    let next = position - SKIP_TIME;
+
+    if (next < 0) {
+      next = 0;
+    }
+
+    await player.seekTo(next);
+    setPosition(next);
+  };
+
+  const formatSecTime = (seconds: number) => {
     const hours = Math.floor(seconds / 3600);
     const mins = Math.floor((seconds % 3600) / 60);
     const secs = Math.floor(seconds % 60);
@@ -119,6 +135,39 @@ const PodcastDetail = ({navigation, route}: PodcastDetailScreenProp) => {
     } else {
       return `${mins}:${secs < 10 ? '0' : ''}${secs}`;
     }
+  };
+  // For position update
+
+  useEffect(() => {
+    const interval = setInterval(async () => {
+      if (player) {
+        const status = player.currentStatus;
+        if (status.isLoaded) setPosition(status.currentTime);
+      }
+    }, 500);
+    return () => clearInterval(interval);
+  }, [player, player.currentTime, player.duration, player.playing]);
+
+  const handlePlay = async () => {
+    console.log('Play called', player.currentStatus);
+
+    if (!player) {
+      console.log('enter');
+      return;
+    }
+    //await player.seekTo(0);
+    player.play();
+    //setUiState('playing');
+    setIsPlaying(true);
+  };
+
+  const handlePause = async () => {
+    console.log('Pause called', player.currentStatus);
+    if (!player) return;
+
+    player.pause();
+    //  setUiState('paused');
+    setIsPlaying(false);
   };
 
   const pickPodcastMutation = useMutation({
@@ -173,12 +222,11 @@ const PodcastDetail = ({navigation, route}: PodcastDetailScreenProp) => {
     },
   });
 
-  //console.log("podcast id", trackId);
- // console.log('headers', axios.defaults.headers);
+  //   //console.log("podcast id", trackId);
+  //  // console.log('headers', axios.defaults.headers);
   const approvePodcastMutation = useMutation({
     mutationKey: ['publish-podcast-mutation'],
     mutationFn: async (id: string) => {
-      
       const res = await axios.post(APPROVE_PODCAST, {
         podcast_id: id,
       });
@@ -202,229 +250,190 @@ const PodcastDetail = ({navigation, route}: PodcastDetailScreenProp) => {
     },
   });
 
+  if (isLoading) {
+    return <Loader />;
+  }
+
   return (
-    <SafeAreaView style={styles.container}>
-      <ScrollView>
-        {podcast && podcast.cover_image ? (
-          <Image
-            source={{
-              uri: podcast?.cover_image,
-            }}
-            style={styles.podcastImage}
-          />
-        ) : (
-          <Image
-            source={{
-              uri: 'https://t3.ftcdn.net/jpg/05/10/75/30/360_F_510753092_f4AOmCJAczuGgRLCmHxmowga2tC9VYQP.jpg',
-            }}
-            style={styles.podcastImage}
-          />
-        )}
+    <Theme name="dark">
+      <YStack
+        flex={1}
+        backgroundColor="#0B1425"
+        padding="$4"
+        paddingTop="$6"
+        justifyContent="flex-start">
+        {/* TITLE */}
 
-        <View
-          style={[
-            styles.footer,
-            {
-              paddingBottom:
-                Platform.OS === 'ios' ? insets.bottom : insets.bottom + 20,
-            },
-          ]}>
-          <View style={styles.authorContainer}>
-            <TouchableOpacity
-              onPress={() => {
-                //  if (article && article?.authorId) {
-                //navigation.navigate('UserProfileScreen', {
-                //  authorId: authorId,
-                // });
-              }}>
-              {podcast?.user_id.Profile_image ? (
-                <Image
-                  source={{
-                    uri: podcast?.user_id.Profile_image.startsWith('http')
-                      ? `${podcast?.user_id.Profile_image}`
-                      : `${GET_STORAGE_DATA}/${podcast?.user_id.Profile_image}`,
-                  }}
-                  style={styles.authorImage}
-                />
-              ) : (
-                <Image
-                  source={{
-                    uri: 'https://images.pexels.com/photos/771742/pexels-photo-771742.jpeg?auto=compress&cs=tinysrgb&dpr=1&w=500',
-                  }}
-                  style={styles.authorImage}
-                />
-              )}
-            </TouchableOpacity>
-            <View>
-              <Text style={styles.authorName}>
-                {podcast ? podcast?.user_id.user_name : ''}
-              </Text>
-              <Text style={styles.authorFollowers}>
-                {podcast?.user_id.followers
-                  ? podcast?.user_id.followers.length > 1
-                    ? `${podcast?.user_id.followers.length} followers`
-                    : `${podcast?.user_id.followers.length} follower`
-                  : '0 follower'}
-              </Text>
-            </View>
-          </View>
-        </View>
-
-        <View style={styles.footerOptions}>
-          {/**
-             * <TouchableOpacity
-            style={styles.footerItem}
+        <YStack
+         // style={styles.footerOptions}
+          alignItems="center"
+          justifyContent="space-between">
+          <Text color="white" fontSize={20} fontWeight="700" marginTop={hp(7)}>
+            {podcast?.title}
+          </Text>
+          <Button
+            width={wp(43)}
+            height={hp(8)}
+            marginTop="$6"
+            borderRadius={wp(4)}
+            backgroundColor="#4ACDFF" // Blue color
             onPress={() => {
-              if (isConnected) {
-                if (podcast && podcast.status === StatusEnum.PUBLISHED) {
-                  navigation.navigate('PodcastDiscussion', {
-                    podcastId: podcast?._id,
-                    mentionedUsers: podcast?.mentionedUsers,
-                  });
-                }
-              } else {
+              if (!isConnected) {
                 Snackbar.show({
                   text: 'You are currently offline',
                   duration: Snackbar.LENGTH_SHORT,
                 });
+                return;
+              }
+
+              if (podcast) {
+                navigation.navigate('PodcastDiscussion', {
+                  podcastId: podcast._id,
+                  mentionedUsers: podcast.mentionedUsers,
+                });
               }
             }}>
-            <Ionicons name="chatbubble-outline" size={24} color="#1E1E1E" />
-            <Text style={styles.likeCount}>
-              {podcast?.commentCount ? formatCount(podcast?.commentCount) : 0}
+            <Text style={{color: 'white', fontSize: 17, fontWeight: '600'}}>
+              See Description
             </Text>
-          </TouchableOpacity>
-             */}
+          </Button>
+        </YStack>
 
-          {podcast?.status === StatusEnum.REVIEW_PENDING && (
-            <TouchableOpacity
-              style={{...styles.footerItem, flexDirection: 'column'}}
-              onPress={() => {
-                if (isConnected) {
-                  if (pickPodcastMutation.isPending) {
-                    return;
-                  } else {
-                    pickPodcastMutation.mutate(podcast._id);
-                  }
-                } else {
-                  Snackbar.show({
-                    text: 'You are currently offline',
-                    duration: Snackbar.LENGTH_SHORT,
-                  });
-                }
-              }}>
-              <MaterialIcons name="task-alt" size={30} color="#008080" />
+        {/* MAIN WAVE */}
+        <YStack alignItems="center" marginTop="$4">
+          <LottieView
+            source={require('../../assets/LottieAnimation/wave-loop.json')}
+            autoPlay
+            loop
+            style={{width: '100%', height: 150}}
+          />
+        </YStack>
 
-              <Text style={{...styles.likeCount, color: '#008080'}}>Pick</Text>
-            </TouchableOpacity>
-          )}
+        {/* PLAYING VISUALIZER */}
+        {playing && (
+          <YStack alignItems="center" marginTop="$1">
+            <LottieView
+              source={require('../../assets/LottieAnimation/sound-voice-waves.json')}
+              autoPlay
+              loop
+              style={{width: '100%', height: 100}}
+            />
+          </YStack>
+        )}
 
-          {podcast?.status !== StatusEnum.REVIEW_PENDING &&
-            podcast?.status !== StatusEnum.PUBLISHED &&
-            podcast?.admin_id === user_id && (
-              <TouchableOpacity
-                style={{...styles.footerItem, flexDirection: 'column'}}
-                onPress={() => {
-                  if (isConnected) {
-                    if (approvePodcastMutation.isPending) {
-                      return;
-                    } else {
-                      approvePodcastMutation.mutate(trackId);
-                    }
-                  } else {
-                    Snackbar.show({
-                      text: 'You are currently offline',
-                      duration: Snackbar.LENGTH_SHORT,
-                    });
-                  }
-                }}>
-                <MaterialIcons name="approval" size={30} color="#1E1E1E" />
-                <Text style={{...styles.likeCount, color: '#008080'}}>
-                  Approve
-                </Text>
-              </TouchableOpacity>
-            )}
+        {/* SLIDER + TIME */}
+        <YStack marginTop="$1">
+          <Slider
+            style={styles.slider}
+            minimumValue={0}
+            maximumValue={duration}
+            value={position}
+            minimumTrackTintColor={PRIMARY_COLOR}
+            maximumTrackTintColor="#ccc"
+            thumbTintColor={PRIMARY_COLOR}
+            onSlidingComplete={async v => {
+              if (player) {
+                await player.seekTo(v);
+                setPosition(v);
+                setIsPlaying(false);
+              }
+            }}
+          />
 
-          {podcast?.status !== StatusEnum.PUBLISHED && (
-            <TouchableOpacity
-              style={{...styles.footerItem, flexDirection: 'column'}}
-              onPress={() => {
-                if (isConnected) {
-                  if (discardPodcastMutation.isPending) {
-                    return;
-                  } else {
-                    setDiscardModalVisible(true);
-                  }
-                } else {
-                  Snackbar.show({
-                    text: 'You are currently offline',
-                    duration: Snackbar.LENGTH_SHORT,
-                  });
-                }
-              }}>
-              <MaterialIcons
-                name="indeterminate-check-box"
-                size={29}
-                color="#DC143C"
-              />
-              <Text style={{...styles.likeCount, color: '#DC143C'}}>
-                Discard
-              </Text>
-            </TouchableOpacity>
-          )}
-        </View>
+          <XStack justifyContent="space-between" marginTop="$1">
+            <Text color="#C0C9DA">{formatSecTime(position)}</Text>
+            <Text color="#C0C9DA">{formatSecTime(duration)}</Text>
+          </XStack>
+        </YStack>
 
-        <Text style={styles.episodeTitle}>{podcast?.title}</Text>
-        <View>
-          <Text
-            style={styles.podcastTitle}
-            numberOfLines={isExpanded ? undefined : 3}
-            ellipsizeMode="tail">
-            {podcast?.description}
-          </Text>
-          {podcast &&
-            podcast.description &&
-            podcast?.description?.length > 100 && (
-              <TouchableOpacity onPress={() => setIsExpanded(!isExpanded)}>
-                <Text style={styles.readMoreText}>
-                  {isExpanded ? 'Read Less ' : 'Read More '}
-                </Text>
-              </TouchableOpacity>
-            )}
-        </View>
+        {/* PLAYER BUTTONS */}
+        <XStack
+          justifyContent="space-around"
+          alignItems="center"
+          marginTop="$2">
+          <Button
+            height={60}
+            chromeless
+            onPress={handleBackward}
+            icon={<Ionicons name="play-back" size={26} color="#9BB3C8" />}
+          />
 
-        <View style={styles.tagsContainer}>
-          {podcast?.tags?.map((tag, index) => (
-            <Text key={index} style={styles.tagText}>
-              #{tag.name}
-            </Text>
-          ))}
-        </View>
+          <Button
+            width={60}
+            height={60}
+            borderRadius={30}
+            backgroundColor="#4ACDFF"
+            onPress={() =>
+              player.currentStatus.playing ? handlePause() : handlePlay()
+            }
+            icon={
+              playing ? (
+                <Ionicons name="pause" size={25} color="white" />
+              ) : (
+                <Ionicons name="play" size={25} color="white" />
+              )
+            }
+            elevate
+            shadowColor="#4ACDFF"
+            shadowRadius={30}
+            shadowOffset={{width: 0, height: 0}}
+          />
 
-        <View style={styles.metaInfo}>
-          <Text style={styles.metaText}>
-            {moment(podcast?.updated_at).format('MMMM Do YYYY, h:mm A')}
-          </Text>
-        </View>
+          <Button
+            height={60}
+            chromeless
+            onPress={handleForward}
+            icon={<Ionicons name="play-forward" size={26} color="#9BB3C8" />}
+          />
+        </XStack>
 
-        <Slider
-          style={styles.slider}
-          minimumValue={0}
-          maximumValue={progress.duration}
-          value={progress.position}
-          minimumTrackTintColor={PRIMARY_COLOR}
-          maximumTrackTintColor="#ccc"
-          thumbTintColor={PRIMARY_COLOR}
-          onSlidingComplete={async value => {
-            // seek to selected time
-            await TrackPlayer.seekTo(value);
+        <ActionButtonBar
+          status={podcast?.status || StatusEnum.REVIEW_PENDING}
+          admin_id={podcast?.admin_id ?? ''}
+          user_id={user_id}
+          pick={() => {
+            if (isConnected) {
+              if (pickPodcastMutation.isPending || !podcast) {
+                return;
+              } else {
+                pickPodcastMutation.mutate(podcast?._id);
+              }
+            } else {
+              Snackbar.show({
+                text: 'You are currently offline',
+                duration: Snackbar.LENGTH_SHORT,
+              });
+            }
+          }}
+          approve={() => {
+            if (isConnected) {
+              if (approvePodcastMutation.isPending) {
+                return;
+              } else {
+                approvePodcastMutation.mutate(trackId);
+              }
+            } else {
+              Snackbar.show({
+                text: 'You are currently offline',
+                duration: Snackbar.LENGTH_SHORT,
+              });
+            }
+          }}
+          discard={() => {
+            if (isConnected) {
+              if (discardPodcastMutation.isPending) {
+                return;
+              } else {
+                setDiscardModalVisible(true);
+              }
+            } else {
+              Snackbar.show({
+                text: 'You are currently offline',
+                duration: Snackbar.LENGTH_SHORT,
+              });
+            }
           }}
         />
-
-        <View style={styles.timeRow}>
-          <Text style={styles.time}>{formatTime(progress.position)}</Text>
-          <Text style={styles.time}>{formatTime(progress.duration)}</Text>
-        </View>
 
         <DiscardReasonModal
           visible={discardModalVisible}
@@ -440,27 +449,8 @@ const PodcastDetail = ({navigation, route}: PodcastDetailScreenProp) => {
             setDiscardModalVisible(false);
           }}
         />
-
-        {playbackState.state === State.Buffering && (
-          <Text style={styles.bufferingText}>⏳ Buffering... please wait</Text>
-        )}
-
-        <TouchableOpacity
-          style={[
-            styles.listenButton,
-            playbackState.state === State.Buffering &&
-              styles.listenButtonDisabled,
-          ]}
-          onPress={handleListenPress}
-          disabled={playbackState.state === State.Buffering}>
-          <Text style={styles.listenText}>
-            {playbackState.state === State.Playing
-              ? '⏸️Pause'
-              : '🎧 Listen Now'}
-          </Text>
-        </TouchableOpacity>
-      </ScrollView>
-    </SafeAreaView>
+      </YStack>
+    </Theme>
   );
 };
 
@@ -468,7 +458,7 @@ export default PodcastDetail;
 
 const styles = StyleSheet.create({
   container: {
-    flex: 1,
+    // flex: 1,
     backgroundColor: ON_PRIMARY_COLOR,
     paddingHorizontal: 12,
     paddingTop: Platform.OS === 'android' ? 12 : 0,
@@ -539,8 +529,8 @@ const styles = StyleSheet.create({
   slider: {
     width: '100%',
     height: 36,
-    marginTop: 6,
-    marginBottom: 2,
+    marginTop: 2,
+    marginBottom: 1,
   },
   timeRow: {
     flexDirection: 'row',
@@ -579,7 +569,7 @@ const styles = StyleSheet.create({
     justifyContent: 'space-evenly',
     alignItems: 'center',
     marginTop: 10,
-    marginBottom: 12,
+    marginBottom: hp(6),
     paddingHorizontal: 12,
   },
   footer: {
@@ -633,7 +623,6 @@ const styles = StyleSheet.create({
   likeCount: {
     marginLeft: 4,
     fontSize: 14,
-    color: '#333',
-    fontWeight: '700',
+    color: '#fff',
   },
 });

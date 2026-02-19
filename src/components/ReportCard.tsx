@@ -3,6 +3,7 @@ import {View, Text, StyleSheet, TouchableOpacity} from 'react-native';
 import {Report, reportActionEnum} from '../type';
 import moment from 'moment';
 import {BUTTON_COLOR} from '../helper/Theme';
+import { hp } from '../helper/Metric';
 
 export type ReportCardProps = {
   report: Report;
@@ -78,7 +79,7 @@ const ReportCard = ({
           <Text style={styles.buttonText}>
             {report.action_taken === reportActionEnum.PENDING
               ? 'Take over report'
-              : resolutions.includes(report.action_taken as reportActionEnum) ? 'Take action further': 'Take action'}
+              : resolutions.includes(report.action_taken as reportActionEnum) ? 'Take further action': 'Take action'}
           </Text>
         </TouchableOpacity>
       </View>
@@ -90,8 +91,8 @@ const styles = StyleSheet.create({
   card: {
     backgroundColor: '#fff',
     borderRadius: 12,
-    padding: 18,
-    marginVertical: 12,
+    padding: hp(2),
+    marginVertical: hp(1),
     marginHorizontal: 10,
     elevation: 2,
     shadowColor: '#000',

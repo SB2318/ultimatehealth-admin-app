@@ -1,38 +1,22 @@
-/* eslint-disable react-native/no-inline-styles */
+import AutoHeightWebView from '@brown-bear/react-native-autoheight-webview';
+import AntDesign from '@expo/vector-icons/AntDesign';
+import MaterialIcon from '@expo/vector-icons/MaterialIcons';
+import {useMutation, useQuery} from '@tanstack/react-query';
+import axios from 'axios';
+import React, {useEffect, useRef, useState} from 'react';
+
 import {
+  Alert,
+  Dimensions,
+  FlatList,
   Image,
+  ScrollView,
   StyleSheet,
-  Text,
   TouchableOpacity,
   View,
-  ScrollView,
-  FlatList,
-  Alert,
 } from 'react-native';
-import React, {useEffect, useMemo, useRef, useState} from 'react';
-import {useMutation, useQuery} from '@tanstack/react-query';
-import {BUTTON_COLOR, ON_PRIMARY_COLOR, PRIMARY_COLOR} from '../helper/Theme';
-import AntDesign from 'react-native-vector-icons/AntDesign';
-import MaterialIcon from 'react-native-vector-icons/MaterialIcons';
-import {useSafeAreaInsets} from 'react-native-safe-area-context';
-import {
-  Admin,
-  Comment,
-  ImprovementScreenProp,
-  EditRequest,
-  PocketBaseResponse,
-  PlagiarismResponse,
-  ScoreData,
-  CopyrightCheckerResponse,
-} from '../type';
-import Feather from 'react-native-vector-icons/Feather';
-import Entypo from 'react-native-vector-icons/Entypo';
-import Ionicons from 'react-native-vector-icons/Ionicons';
-
-import FontAwesome from 'react-native-vector-icons/FontAwesome';
+import {SafeAreaView, useSafeAreaInsets} from 'react-native-safe-area-context';
 import {useDispatch, useSelector} from 'react-redux';
-import WebView from 'react-native-webview';
-import {baseHeight, height, hp, scalePerChar, wp} from '../helper/Metric';
 import {
   CHECK_GRAMMAR,
   CHECK_PLAGIARISM,
@@ -44,24 +28,31 @@ import {
   PUBLISH_IMPROVEMENT,
   PUBLISH_IMPROVEMENT_POCKETBASE,
 } from '../helper/APIUtils';
-import axios from 'axios';
+import {hp, wp} from '../helper/Metric';
+import {BUTTON_COLOR, ON_PRIMARY_COLOR, PRIMARY_COLOR} from '../helper/Theme';
+import {
+  Admin,
+  Comment,
+  CopyrightCheckerResponse,
+  EditRequest,
+  ImprovementScreenProp,
+  PlagiarismResponse,
+  PocketBaseResponse,
+  ScoreData,
+} from '../type';
 
 import {useSocket} from '../components/SocketContext';
 
-import {setUserHandle} from '../stores/UserSlice';
-import {actions, RichEditor, RichToolbar} from 'react-native-pell-rich-editor';
-import {
-  checkImageCopyright,
-  createFeebackHTMLStructure,
-  StatusEnum,
-} from '../helper/Utils';
-import CommentCardItem from './CommentCardItem';
+import Snackbar from 'react-native-snackbar';
+import {Button, Spinner, Text, TextArea, YStack} from 'tamagui';
+import CommentCardItem from '../components/CommentCardItem';
+import CopyrightCheckerModal from '../components/CopyrightCheckerModal';
 import DiscardReasonModal from '../components/DiscardReasonModal';
 import Loader from '../components/Loader';
-import Snackbar from 'react-native-snackbar';
 import PlagiarismModal from '../components/PlagiarismModal';
 import ScorecardModal from '../components/ScoreCardModal';
-import CopyrightCheckerModal from '../components/CopyrightCheckerModal';
+import {checkImageCopyright, StatusEnum} from '../helper/Utils';
+import {setUserHandle} from '../stores/UserSlice';
 
 const ImprovementReviewScreen = ({
   navigation,
@@ -70,10 +61,21 @@ const ImprovementReviewScreen = ({
   const insets = useSafeAreaInsets();
   const {requestId, authorId, destination, recordId, articleRecordId} =
     route.params;
-  const {user_id} = useSelector((state: any) => state.user);
-  const RichText = useRef();
+  const {user_id, user_token} = useSelector((state: any) => state.user);
+  const {isConnected} = useSelector((state: any) => state.network);
   const [feedback, setFeedback] = useState('');
-  const [webviewHeight, setWebViewHeight] = useState(0);
+  const [loading, setLoading] = useState(false);
+
+  const SCREEN_WIDTH = Dimensions.get('window').width;
+  const TOOLTIP_WIDTH = 140;
+
+  const [imageToolTip, setImageToolTip] = useState(false);
+  const [grammarToolTip, setGrammarToolTip] = useState(false);
+  const [plagrismToolTip, setPlagrismToolTip] = useState(false);
+  const [discardToolTip, setDiscardToolTip] = useState(false);
+  const [publishToolTip, setPublishToolTip] = useState(false);
+  const [iconX, setIconX] = useState(0);
+
   const [discardModalVisible, setDiscardModalVisible] = useState(false);
   const [discardReason, setDiscardReason] = useState<string>('');
 
@@ -92,8 +94,8 @@ const ImprovementReviewScreen = ({
     source_title: '',
   });
 
-  console.log("Improvement record id", recordId);
-  console.log("Article record Id", articleRecordId);
+  // console.log('Improvement record id', recordId);
+  // console.log('Article record Id', articleRecordId);
   const [copyRightResults, setCopyRightResults] = useState<
     CopyrightCheckerResponse[]
   >([]);
@@ -109,13 +111,6 @@ const ImprovementReviewScreen = ({
 
   const flatListRef = useRef<FlatList<Comment>>(null);
 
-  const webViewRef = useRef<WebView>(null);
-
-  function handleHeightChange(_height) {}
-
-  function editorInitializedCallback() {
-    RichText.current?.registerToolbar(function (_items) {});
-  }
   const {data: improvement} = useQuery({
     queryKey: ['get-improvement-by-id'],
     queryFn: async () => {
@@ -132,6 +127,7 @@ const ImprovementReviewScreen = ({
 
       return response.data as EditRequest;
     },
+    enabled: !!user_token && !!isConnected,
   });
 
   const {data: htmlContent} = useQuery({
@@ -146,6 +142,7 @@ const ImprovementReviewScreen = ({
       const response = await axios.get(url);
       return response.data.htmlContent as string;
     },
+    enabled: !!user_token && !!isConnected,
   });
 
   const noDataHtml = '<p>No Data found</p>';
@@ -161,6 +158,7 @@ const ImprovementReviewScreen = ({
       // console.log("Response", response);
       return response.data as Admin;
     },
+    enabled: !!isConnected && !!user_token,
   });
 
   if (user) {
@@ -193,41 +191,46 @@ const ImprovementReviewScreen = ({
   };
 
   const handleCheckCopyright = () => {
-    if (improvement && improvement.imageUtils) {
+
       Alert.alert(
-        'Image Copyright Check',
-        'Image copyright check might take some time. Would you like to continue?',
-        [
-          {
-            text: 'Cancel',
-            style: 'cancel',
-          },
-          {
-            text: 'OK',
-            onPress: async () => {
-              try {
-                setCopyrightProgressVisible(true);
+          "Check Image Copyright",
+          "Image copyright feature is coming soon!",
+         );
+    // if (improvement && improvement.imageUtils) {
+    //   Alert.alert(
+    //     'Image Copyright Check',
+    //     'Image copyright check might take some time. Would you like to continue?',
+    //     [
+    //       {
+    //         text: 'Cancel',
+    //         style: 'cancel',
+    //       },
+    //       {
+    //         text: 'OK',
+    //         onPress: async () => {
+    //           try {
+    //             setCopyrightProgressVisible(true);
 
-                const data = await checkImageCopyright(improvement.imageUtils);
-                setCopyRightResults(data);
+    //             const data = await checkImageCopyright(improvement.imageUtils);
+    //             setCopyRightResults(data);
 
-                setCopyrightProgressVisible(false);
-                setCopyrightModalVisible(true);
-              } catch (error) {
-                console.log('Error during copyright check:', error);
+    //             setCopyrightProgressVisible(false);
+    //             setCopyrightModalVisible(true);
+    //           } catch (error) {
+    //             console.log('Error during copyright check:', error);
 
-                Snackbar.show({
-                  text: 'Network error occurs during copyright check, try again!',
-                  duration: Snackbar.LENGTH_SHORT,
-                });
-                setCopyrightProgressVisible(false);
-              }
-            },
-          },
-        ],
-        {cancelable: true},
-      );
-    }
+    //             Snackbar.show({
+    //               text: 'Network error occurs during copyright check, try again!',
+    //               duration: Snackbar.LENGTH_SHORT,
+    //             });
+    //             setCopyrightProgressVisible(false);
+    //           }
+    //         },
+    //       },
+    //     ],
+    //     {cancelable: true},
+    //   );
+    // }
   };
 
   useEffect(() => {
@@ -251,7 +254,7 @@ const ImprovementReviewScreen = ({
 
     socket.on('new-feedback', data => {
       console.log('new comment loaded', data);
-
+      setLoading(false);
       setComments(prevComments => {
         const newComments = [data, ...prevComments];
         // Scroll to the first index after adding the new comment
@@ -438,71 +441,37 @@ const ImprovementReviewScreen = ({
     },
   });
 
-  useEffect(() => {
-    if (htmlContent) {
-      setWebViewHeight(htmlContent.length);
-    } else {
-      setWebViewHeight(noDataHtml.length);
+  const getTooltipLeft = (iconX: number) => {
+    const half = TOOLTIP_WIDTH / 2;
+
+    // center align
+    let left = iconX - half + 18;
+
+    if (left < 8) left = 8;
+
+    // right overflow
+    if (left + TOOLTIP_WIDTH > SCREEN_WIDTH - 8) {
+      left = SCREEN_WIDTH - TOOLTIP_WIDTH - 8;
     }
-  }, [htmlContent]);
 
-  const cssCode = `
-      const style = document.createElement('style');
-      style.innerHTML = \`
-        body {
-          font-size: 46px;
-          line-height: 1.5;
-          color: #333;
-        }
-      \`;
-      document.head.appendChild(style);
-    `;
-
-  const scalePerChar = 1 / 1000;
-  const maxMultiplier = 4.3;
-  const baseMultiplier = 0.8;
-
-  const minHeight = useMemo(() => {
-    let content = htmlContent ?? '';
-    const scaleFactor = Math.min(content.length * scalePerChar, maxMultiplier);
-    const scaledHeight = height * (baseMultiplier + scaleFactor);
-    const cappedHeight = Math.min(content.length + 120, Math.min(scaledHeight, height * 6));
-    return cappedHeight;
-  }, [htmlContent, scalePerChar]);
-
-  /*
-  let contentSource = improvement?.edited_content
-    ? improvement?.edited_content?.endsWith('.html')
-      ? {uri: `${GET_STORAGE_DATA}/${improvement.edited_content}`}
-      : {html: improvement?.edited_content}
-    : improvement?.article.content?.endsWith('.html')
-    ? {uri: `${GET_STORAGE_DATA}/${improvement?.article.content}`}
-    : {html: `${improvement?.article.content}`};
-    */
-
-  //console.log("Content source", contentSource);
-  // eslint-disable-next-line @typescript-eslint/no-shadow
-
-  /*
-  const getContentLength = async (contentSource: {
-    uri?: string;
-    html?: string;
-  }) => {
-    if (contentSource.uri) {
-      try {
-        const response = await fetch(contentSource.uri);
-        const content = await response.text();
-        return content.length - 4000;
-      } catch (error) {
-        console.error('Error fetching URI:', error);
-        return 0;
-      }
-    } else if (contentSource.html) {
-      return contentSource.html.length;
-    }
-    return 0;
+    return left;
   };
-  */
+  const activeToolTips = () => {
+    setImageToolTip(true);
+    setDiscardToolTip(true);
+    setPlagrismToolTip(true);
+    setGrammarToolTip(true);
+    setPublishToolTip(true);
+  };
+
+  const toolTipsOff = () => {
+    setImageToolTip(false);
+    setDiscardToolTip(false);
+    setPlagrismToolTip(false);
+    setGrammarToolTip(false);
+    setPublishToolTip(false);
+  };
+
   if (
     copyrightProgressVisible ||
     grammarCheckMutation.isPending ||
@@ -516,7 +485,11 @@ const ImprovementReviewScreen = ({
   }
 
   return (
-    <View style={styles.container}>
+    <SafeAreaView
+      onLayout={e => setIconX(e.nativeEvent.layout.x)}
+      onTouchStart={activeToolTips}
+      onTouchEnd={toolTipsOff}
+      style={styles.container}>
       <ScrollView
         style={styles.scrollView}
         contentContainerStyle={styles.scrollViewContent}>
@@ -530,7 +503,7 @@ const ImprovementReviewScreen = ({
             />
           ) : (
             <Image
-              source={require('../../assets/article_default.jpg')}
+              source={require('../../assets/images/article.png')}
               style={styles.image}
             />
           )}
@@ -539,6 +512,14 @@ const ImprovementReviewScreen = ({
             style={styles.topIcon}
             onPress={handleCheckCopyright}>
             <MaterialIcon name="plagiarism" size={30} color={PRIMARY_COLOR} />
+
+            {imageToolTip && (
+              <View style={[styles.tooltip, {left: getTooltipLeft(iconX)}]}>
+                <Text style={styles.tooltipText} color="white">
+                  copyright
+                </Text>
+              </View>
+            )}
           </TouchableOpacity>
 
           {improvement?.status !== StatusEnum.DISCARDED && (
@@ -554,6 +535,14 @@ const ImprovementReviewScreen = ({
                 },
               ]}>
               <AntDesign name="poweroff" size={27} color={'white'} />
+
+              {discardToolTip && (
+                <View style={[styles.tooltip, {left: getTooltipLeft(iconX)}]}>
+                  <Text style={styles.tooltipText} color="white">
+                    discard
+                  </Text>
+                </View>
+              )}
             </TouchableOpacity>
           )}
 
@@ -561,6 +550,13 @@ const ImprovementReviewScreen = ({
             <TouchableOpacity
               onPress={() => {
                 // Grammar checker
+                if (!isConnected) {
+                  Snackbar.show({
+                    text: 'You are currently offline',
+                    duration: Snackbar.LENGTH_SHORT,
+                  });
+                  return;
+                }
                 grammarCheckMutation.mutate();
               }}
               style={[
@@ -570,6 +566,13 @@ const ImprovementReviewScreen = ({
                 },
               ]}>
               <AntDesign name="google" size={28} color={'white'} />
+              {grammarToolTip && (
+                <View style={[styles.tooltip, {left: getTooltipLeft(iconX)}]}>
+                  <Text style={styles.tooltipText} color="white">
+                    grammar
+                  </Text>
+                </View>
+              )}
             </TouchableOpacity>
           )}
 
@@ -577,6 +580,13 @@ const ImprovementReviewScreen = ({
             <TouchableOpacity
               onPress={() => {
                 // Palagrism Checker
+                if (!isConnected) {
+                  Snackbar.show({
+                    text: 'You are currently offline',
+                    duration: Snackbar.LENGTH_SHORT,
+                  });
+                  return;
+                }
                 plagiarismCheckMutation.mutate();
               }}
               style={[
@@ -585,6 +595,13 @@ const ImprovementReviewScreen = ({
                   backgroundColor: '#660099',
                 },
               ]}>
+              {plagrismToolTip && (
+                <View style={[styles.tooltip, {left: getTooltipLeft(iconX)}]}>
+                  <Text style={styles.tooltipText} color="white">
+                    plagiarism
+                  </Text>
+                </View>
+              )}
               <MaterialIcon
                 size={28}
                 name="published-with-changes"
@@ -597,6 +614,13 @@ const ImprovementReviewScreen = ({
             <TouchableOpacity
               onPress={() => {
                 // Publish article
+                if (!isConnected) {
+                  Snackbar.show({
+                    text: 'You are currently offline',
+                    duration: Snackbar.LENGTH_SHORT,
+                  });
+                  return;
+                }
                 publishImprovementInPBMutation.mutate();
               }}
               style={[
@@ -615,38 +639,42 @@ const ImprovementReviewScreen = ({
         </View>
         <View style={styles.contentContainer}>
           {improvement && improvement.article?.tags && (
-            <Text style={styles.categoryText}>
+            <Text style={styles.categoryText} color={BUTTON_COLOR}>
               {improvement.article.tags.map(tag => tag.name).join(' | ')}
             </Text>
           )}
 
           {improvement && improvement.article && (
             <>
-              <Text style={styles.titleText}>
+              <Text style={styles.titleText} color={ON_PRIMARY_COLOR}>
                 Title: {improvement.article?.title}
               </Text>
             </>
           )}
 
-          <Text style={styles.authorName}>
+          <Text style={styles.authorName} color="$color12">
             Author Name: {improvement?.article?.authorName}
           </Text>
           <View style={styles.descriptionContainer}>
-            <WebView
+            <AutoHeightWebView
               style={{
-                padding: 7,
-                //width: '99%',
-                //height: webviewHeight - 3000,
-                minHeight: minHeight,
-                // flex:7,
-                justifyContent: 'center',
-                alignItems: 'center',
+                width: Dimensions.get('window').width - 15,
+                marginTop: 35,
+                 marginBottom: hp(15)
               }}
-              ref={webViewRef}
+              customStyle={`* { font-family: 'Times New Roman'; } p { font-size: 16px; }`}
+              onSizeUpdated={size => console.log(size.height)}
+              files={[
+                {
+                  href: 'cssfileaddress',
+                  type: 'text/css',
+                  rel: 'stylesheet',
+                },
+              ]}
               originWhitelist={['*']}
-              injectedJavaScript={cssCode}
-              source={{html: htmlContent ? htmlContent : noDataHtml}}
-              textZoom={100}
+              source={{html: htmlContent ?? noDataHtml}}
+              scalesPageToFit={true}
+              viewportContent={'width=device-width, user-scalable=no'}
             />
           </View>
         </View>
@@ -676,7 +704,9 @@ const ImprovementReviewScreen = ({
                 });
               }
             }}>
-            <Text style={styles.submitButtonText}>See old article</Text>
+            <Text style={styles.submitButtonText} color="white">
+              See old article
+            </Text>
           </TouchableOpacity>
         )}
 
@@ -691,122 +721,103 @@ const ImprovementReviewScreen = ({
                 });
               }
             }}>
-            <Text style={styles.submitButtonText}>Detect Content Loss</Text>
+            <Text style={styles.submitButtonText} color="white">
+              Detect Content Loss
+            </Text>
           </TouchableOpacity>
         )}
 
         {destination !== StatusEnum.DISCARDED &&
-          destination !== StatusEnum.UNASSIGNED &&
-          improvement?.reviewer_id !== null && (
-            <View style={styles.inputContainer}>
-              <RichToolbar
-                style={[styles.richBar]}
-                editor={RichText}
-                disabled={false}
-                iconTint={'white'}
-                selectedIconTint={'black'}
-                disabledIconTint={'purple'}
-                iconSize={30}
-                actions={[
-                  actions.setBold,
-                  actions.setItalic,
-                  actions.setUnderline,
-                  actions.setStrikethrough,
-                  actions.heading1,
-                  actions.heading2,
-                  actions.heading3,
-                  actions.heading4,
-                  actions.heading5,
-                  actions.heading6,
-                  actions.alignLeft,
-                  actions.alignCenter,
-                  actions.alignRight,
-                  actions.insertBulletsList,
-                  actions.insertOrderedList,
-                  actions.insertLink,
-                  actions.table,
-                  actions.undo,
-                  actions.redo,
-                  actions.blockquote,
-                ]}
-                iconMap={{
-                  [actions.setStrikethrough]: ({tintColor}) => (
-                    <FontAwesome
-                      name="strikethrough"
-                      color={tintColor}
-                      size={26}
-                    />
-                  ),
-                  [actions.alignLeft]: ({tintColor}) => (
-                    <Feather name="align-left" color={tintColor} size={35} />
-                  ),
-                  [actions.alignCenter]: ({tintColor}) => (
-                    <Feather name="align-center" color={tintColor} size={35} />
-                  ),
-                  [actions.alignRight]: ({tintColor}) => (
-                    <Feather name="align-right" color={tintColor} size={35} />
-                  ),
-                  [actions.undo]: ({tintColor}) => (
-                    <Ionicons name="arrow-undo" color={tintColor} size={35} />
-                  ),
-                  [actions.redo]: ({tintColor}) => (
-                    <Ionicons name="arrow-redo" color={tintColor} size={35} />
-                  ),
-                  [actions.heading1]: ({tintColor}) => (
-                    <Text style={[styles.tib, {color: tintColor}]}>H1</Text>
-                  ),
-                  [actions.heading2]: ({tintColor}) => (
-                    <Text style={[styles.tib, {color: tintColor}]}>H2</Text>
-                  ),
-                  [actions.heading3]: ({tintColor}) => (
-                    <Text style={[styles.tib, {color: tintColor}]}>H3</Text>
-                  ),
-                  [actions.heading4]: ({tintColor}) => (
-                    <Text style={[styles.tib, {color: tintColor}]}>H4</Text>
-                  ),
-                  [actions.heading5]: ({tintColor}) => (
-                    <Text style={[styles.tib, {color: tintColor}]}>H5</Text>
-                  ),
-                  [actions.heading6]: ({tintColor}) => (
-                    <Text style={[styles.tib, {color: tintColor}]}>H6</Text>
-                  ),
-                  [actions.blockquote]: ({tintColor}) => (
-                    <Entypo name="quote" color={tintColor} size={35} />
-                  ),
-                }}
-              />
-              <RichEditor
-                disabled={false}
-                containerStyle={styles.editor}
-                ref={RichText}
-                style={styles.rich}
-                placeholder={'Start conversation with admin'}
-                initialContentHTML={feedback}
-                onChange={text => setFeedback(text)}
-                editorInitializedCallback={editorInitializedCallback}
-                onHeightChange={handleHeightChange}
-                initialHeight={300}
-              />
+        destination !== StatusEnum.UNASSIGNED &&
+        improvement?.reviewer_id !== null ? (
+          <YStack
+            padding={wp(4)}
+            marginTop={hp(1.2)}
+            borderRadius={10}
+            gap="$3">
+            <TextArea
+              placeholder="Submit your feedback"
+              value={feedback}
+              color='#000'
+              onChangeText={setFeedback}
+              multiline
+              height={hp(19)}
+              fontSize={wp(4.8)}
+              paddingVertical={10}
+              paddingHorizontal={12}
+              borderRadius={8}
+              borderWidth={1.5}
+              borderColor={PRIMARY_COLOR}
+              backgroundColor="#fff"
+              textAlignVertical="top"
+            />
 
-              {feedback.length > 0 && (
-                <TouchableOpacity
-                  style={styles.submitButton}
-                  onPress={() => {
-                    // emit socket event for feedback
-                    const ans = createFeebackHTMLStructure(feedback);
-                    socket.emit('add-review-comment', {
-                      requestId: improvement?._id,
-                      reviewer_id: improvement?.reviewer_id,
-                      feedback: ans,
-                      isReview: true,
-                      isNote: false,
-                    });
-                  }}>
-                  <Text style={styles.submitButtonText}>Post</Text>
-                </TouchableOpacity>
-              )}
-            </View>
-          )}
+            {feedback.length > 0 && (
+              <YStack alignItems="flex-end" marginTop={hp(0.5)}>
+                {loading ? (
+                  <Spinner size="large" color={PRIMARY_COLOR} />
+                ) : (
+                  <Button
+                    size="$4"
+                    width="45%"
+                    height={44}
+                    backgroundColor={PRIMARY_COLOR}
+                    color="#fff"
+                    borderRadius={8}
+                    onPress={() => {
+                      setLoading(true);
+
+                      socket.emit('add-review-comment', {
+                        requestId: improvement?._id,
+                        reviewer_id: improvement?.reviewer_id,
+                        feedback: feedback,
+                        isReview: true,
+                        isNote: false,
+                      });
+
+                      setFeedback('');
+                    }}>
+                    <Text color="#ffffff" fontSize={17}>
+                      Post
+                    </Text>
+                  </Button>
+                )}
+              </YStack>
+            )}
+          </YStack>
+        ) : (
+          <>
+            {improvement && improvement.status === StatusEnum.UNASSIGNED ? (
+              <YStack
+                alignItems="center"
+                justifyContent="center"
+                padding="$4"
+                borderRadius="$4"
+                backgroundColor="$gray200"
+                borderWidth={1}
+                borderColor="$gray500"
+                margin="$3">
+                <Text
+                  fontSize="$4"
+                  fontWeight="600"
+                  color="$gray700"
+                  textAlign="center">
+                  Select this improvement to start the conversation
+                </Text>
+
+                <Text
+                  marginTop="$2"
+                  fontSize="$3.5"
+                  color="$gray500"
+                  textAlign="center"
+                  lineHeight="$4">
+                  Review grammar aur plagiarism across our platform, aur verify
+                  image copyright compliance.
+                </Text>
+              </YStack>
+            ) : null}
+          </>
+        )}
 
         {comments && (
           <View style={{padding: wp(4), marginTop: hp(4.5)}}>
@@ -820,6 +831,14 @@ const ImprovementReviewScreen = ({
           visible={discardModalVisible}
           callback={(reason: string) => {
             //onclick(item, 1, reason);
+
+            if (!isConnected) {
+              Snackbar.show({
+                text: 'You are currently offline',
+                duration: Snackbar.LENGTH_SHORT,
+              });
+              return;
+            }
             setDiscardReason(reason);
             discardImprovementPBMutation.mutate();
             setDiscardModalVisible(false);
@@ -847,7 +866,7 @@ const ImprovementReviewScreen = ({
           data={copyRightResults}
         />
       </ScrollView>
-    </View>
+    </SafeAreaView>
   );
 };
 export default ImprovementReviewScreen;
@@ -871,7 +890,7 @@ const styles = StyleSheet.create({
     position: 'relative',
   },
   image: {
-    height: 300,
+    height: 190,
     width: '100%',
     objectFit: 'cover',
   },
@@ -1124,5 +1143,19 @@ const styles = StyleSheet.create({
     resizeMode: 'contain',
     zIndex: 5,
     backgroundColor: ON_PRIMARY_COLOR,
+  },
+  tooltip: {
+    position: 'absolute',
+    top: 45,
+    backgroundColor: '#000',
+    paddingHorizontal: 4,
+    paddingVertical: 4,
+    borderRadius: 6,
+    minWidth: 58,
+  },
+  tooltipText: {
+    color: '#fff',
+    fontSize: 9,
+    textAlign: 'center',
   },
 });

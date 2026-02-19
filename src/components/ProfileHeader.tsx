@@ -4,14 +4,12 @@ import {
     View,
     Image,
     TouchableOpacity,
-    Linking,
-    Alert,
   } from 'react-native';
   import React from 'react';
   import EllipseSvg from '../../assets/svg/EllipseSvg';
   import {ON_PRIMARY_COLOR, PRIMARY_COLOR} from '../helper/Theme';
-  import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
-  import MaterialCommunityIcon from 'react-native-vector-icons/MaterialCommunityIcons';
+  import MaterialIcons from '@expo/vector-icons/MaterialIcons';
+  import MaterialCommunityIcon from '@expo/vector-icons/MaterialCommunityIcons';
   import {fp, hp, wp} from '../helper/Metric';
   import {ProfileHeaderProps} from '../type';
   
@@ -114,12 +112,12 @@ import {
       resizeMode: 'contain',
     },
     nameText: {
-      fontSize: fp(6),
+      fontSize: fp(7),
       fontWeight: 'bold',
       color: 'black',
     },
     usernameText: {
-      fontSize: fp(4),
+      fontSize: fp(4.5),
       fontWeight: 'regular',
       marginTop: 1,
     },

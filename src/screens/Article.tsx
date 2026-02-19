@@ -1,4 +1,3 @@
-import React from 'react';
 import {
   View,
   Text,
@@ -8,12 +7,12 @@ import {
   TouchableOpacity,
 } from 'react-native';
 import {BUTTON_COLOR, ON_PRIMARY_COLOR} from '../helper/Theme';
-import {useEffect, useRef} from 'react';
+import React, {useEffect, useRef, useCallback, useState} from 'react';
 import {Tabs, MaterialTabBar} from 'react-native-collapsible-tab-view';
 import {useDispatch, useSelector} from 'react-redux';
 import axios from 'axios';
 import {useMutation, useQuery} from '@tanstack/react-query';
-import AntDesign from 'react-native-vector-icons/AntDesign';
+import AntDesign from '@expo/vector-icons/AntDesign';
 import {ArticleData, ArticleProps, Category, CategoryType} from '../type';
 import {FAB} from 'react-native-paper';
 import {
@@ -23,17 +22,16 @@ import {
   GET_INPROGRESS_ARTICLES_API,
   HTTP_CATEGORY,
   PICK_ARTICLE,
+  PROD_URL,
   UNASSIGN_ARTICLE,
 } from '../helper/APIUtils';
-import {useCallback, useState} from 'react';
 import {useFocusEffect} from '@react-navigation/native';
-import {useSafeAreaInsets} from 'react-native-safe-area-context';
+import {SafeAreaView, useSafeAreaInsets} from 'react-native-safe-area-context';
 import ReviewCard from '../components/ReviewCard';
 import {hp, wp} from '../helper/Metric';
 import FilterModal from '../components/FilterModal';
 import Loader from '../components/Loader';
 import Snackbar from 'react-native-snackbar';
-import Config from 'react-native-config';
 import {BottomSheetModal} from '@gorhom/bottom-sheet';
 import {
   setFilteredAvailableArticles,
@@ -47,9 +45,11 @@ import HomeArticle from './tabs/HomeArticle';
 import Improvement from './tabs/Improvement';
 import TagItemCard from '../components/TagItemCard';
 import AddTagModal from '../components/AddTagModal';
+import DiscardReasonModal from '../components/DiscardReasonModal';
 
 export default function HomeScreen({navigation}: ArticleProps) {
   const {user_id, user_token} = useSelector((state: any) => state.user);
+  const {isConnected} = useSelector((state: any) => state.network);
   const {
     filteredAvailableArticles,
     filteredProgressArticles,
@@ -58,6 +58,7 @@ export default function HomeScreen({navigation}: ArticleProps) {
   } = useSelector((state: any) => state.article);
   //const [refreshing, setRefreshing] = useState<boolean>(false);
   const [selectedCardId, setSelectedCardId] = useState<string>('');
+  const [discardArticleId, setDiscardArticleId] = useState<string>('');
   const dispatch = useDispatch();
   const [articleRefreshing, setArticleRefreshing] = useState<boolean>(false);
   const [articleCategories, setArticleCategories] = useState<Category[]>([]);
@@ -65,6 +66,8 @@ export default function HomeScreen({navigation}: ArticleProps) {
     null,
   );
   const [sortingType, setSortingType] = useState<string>('');
+  const [articleDiscardModal, setArticleDiscardModal] =
+    useState<boolean>(false);
   const [addTagModalVisible, setAddTagModalVisible] = useState<boolean>(false);
   const [selectCategoryList, setSelectCategoryList] = useState<
     CategoryType['name'][]
@@ -86,7 +89,7 @@ export default function HomeScreen({navigation}: ArticleProps) {
 
   const getAllCategories = useCallback(async () => {
     const {data: categoryData} = await axios.get(
-      `${Config.PROD_URL + ARTICLE_TAGS_API}`,
+      `${PROD_URL + ARTICLE_TAGS_API}`,
     );
     if (
       selectedTags === undefined ||
@@ -105,7 +108,7 @@ export default function HomeScreen({navigation}: ArticleProps) {
     // console.log("Article data", categoryData.length);
     setArticleCategories(categoryData);
     dispatch(setTags({tags: categoryData}));
-  },[dispatch, selectedTags]);
+  }, [dispatch, selectedTags]);
 
   useEffect(() => {
     getAllCategories();
@@ -113,14 +116,14 @@ export default function HomeScreen({navigation}: ArticleProps) {
     return () => {};
   }, [getAllCategories]);
 
-  const onAvailablePageEnd = ()=>{
-    if(availablePage < totalAvailablePage){
+  const onAvailablePageEnd = () => {
+    if (availablePage < totalAvailablePage) {
       setAvailablePage(prev => prev + 1);
     }
   };
 
-  const onProgressPageEnd = ()=>{
-    if(progressPage < totalProgressPage){
+  const onProgressPageEnd = () => {
+    if (progressPage < totalProgressPage) {
       setProgressPage(prev => prev + 1);
     }
   };
@@ -132,23 +135,25 @@ export default function HomeScreen({navigation}: ArticleProps) {
   } = useQuery({
     queryKey: ['get-available-articles', availablePage],
     queryFn: async () => {
-      const response = await axios.get(`${GET_AVILABLE_ARTICLES_API}?page=${availablePage}`);
+      const response = await axios.get(
+        `${GET_AVILABLE_ARTICLES_API}?page=${availablePage}`,
+      );
 
-      if(Number(availablePage) === 1){
-       if(response.data.totalPages){
-         const pages = response.data.totalPages;
-         setTotalAvailablePage(pages);
-       }
-       if(response.data.articles){
-        updateAvailableArticles(response.data.articles);
-       }
-      }else{
+      if (Number(availablePage) === 1) {
+        if (response.data.totalPages) {
+          const pages = response.data.totalPages;
+          setTotalAvailablePage(pages);
+        }
+        if (response.data.articles) {
+          updateAvailableArticles(response.data.articles);
+        }
+      } else {
         let d = response.data.articles as ArticleData[];
         updateAvailableArticles([...filteredAvailableArticles, ...d]);
       }
       return response.data.articles as ArticleData[];
     },
-    enabled : !!user_token,
+    enabled: !!user_token && !!isConnected,
   });
 
   const {
@@ -162,21 +167,21 @@ export default function HomeScreen({navigation}: ArticleProps) {
         `${GET_INPROGRESS_ARTICLES_API}/${user_id}?page=${progressPage}`,
       );
 
-      if(Number(progressPage) === 1){
-       if(response.data.totalPages){
-         const pages = response.data.totalPages;
-         setTotalProgressPage(pages);
-       }
-       if(response.data.articles){
-        updateProgressArticles(response.data.articles);
-       }
-      }else{
+      if (Number(progressPage) === 1) {
+        if (response.data.totalPages) {
+          const pages = response.data.totalPages;
+          setTotalProgressPage(pages);
+        }
+        if (response.data.articles) {
+          updateProgressArticles(response.data.articles);
+        }
+      } else {
         let d = response.data.articles as ArticleData[];
         updateProgressArticles([...filteredProgressArticles, ...d]);
       }
       return response.data.articles as ArticleData[];
     },
-    enabled : !!user_token,
+    enabled: !!user_token && !!isConnected,
   });
 
   const pickArticleMutation = useMutation({
@@ -222,6 +227,7 @@ export default function HomeScreen({navigation}: ArticleProps) {
         text: 'Article discarded',
         duration: Snackbar.LENGTH_SHORT,
       });
+      setArticleDiscardModal(false);
       onArticleRefresh(2);
     },
     onError: err => {
@@ -445,18 +451,30 @@ export default function HomeScreen({navigation}: ArticleProps) {
           onclick={(item, index, reason) => {
             if (index === 0) {
               // Pick article
-              pickArticleMutation.mutate(item._id);
+              if (isConnected) {
+                pickArticleMutation.mutate(item._id);
+              } else {
+                Snackbar.show({
+                  text: 'You are currently offline',
+                  duration: Snackbar.LENGTH_SHORT,
+                });
+              }
             } else if (index === 2) {
               // unassign yourself
-              unassignFromArticleMutation.mutate({
-                articleId: item._id,
-              });
+              if (isConnected) {
+                unassignFromArticleMutation.mutate({
+                  articleId: item._id,
+                });
+              } else {
+                Snackbar.show({
+                  text: 'You are currently offline',
+                  duration: Snackbar.LENGTH_SHORT,
+                });
+              }
             } else {
               // Display discard reason or screen
-              discardArticleMutation.mutate({
-                articleId: item._id,
-                reason: reason,
-              });
+              setDiscardArticleId(item._id);
+              setArticleDiscardModal(true);
             }
           }}
           onNavigate={item => {
@@ -471,7 +489,7 @@ export default function HomeScreen({navigation}: ArticleProps) {
       );
     },
     [
-      discardArticleMutation,
+      isConnected,
       navigation,
       pickArticleMutation,
       selectedCardId,
@@ -481,11 +499,10 @@ export default function HomeScreen({navigation}: ArticleProps) {
 
   const onArticleRefresh = (num: number) => {
     setArticleRefreshing(true);
-    if(num === 1){
+    if (num === 1) {
       setAvailablePage(1);
       availableAticleRefetch();
-    }else{
-
+    } else {
       refetchProgressArticles();
     }
     setArticleRefreshing(false);
@@ -525,7 +542,7 @@ export default function HomeScreen({navigation}: ArticleProps) {
         {...props}
         indicatorStyle={styles.indicatorStyle}
         style={styles.tabBarStyle}
-        activeColor={BUTTON_COLOR}
+        activeColor={'#384959'}
         inactiveColor="#9098A3"
         labelStyle={styles.labelStyle}
         contentContainerStyle={styles.contentContainerStyle}
@@ -573,7 +590,7 @@ export default function HomeScreen({navigation}: ArticleProps) {
         prev.map(item => (item.id === data.id ? data : item)),
       );
       Snackbar.show({
-        text: 'Tag added',
+        text: 'Tag updated',
         duration: Snackbar.LENGTH_SHORT,
       });
     },
@@ -600,19 +617,24 @@ export default function HomeScreen({navigation}: ArticleProps) {
         duration: Snackbar.LENGTH_SHORT,
       });
     },
-    onError: error => {
-      console.log(error);
-      Snackbar.show({
-        text: error.message,
-        duration: Snackbar.LENGTH_SHORT,
-      });
+    onError: (error: any) => {
+      console.log('error code', error.error);
+
+      if (error.status === 500) {
+        Snackbar.show({
+          text: 'Deletion failed: this tag is currently linked to one or more articles',
+          duration: Snackbar.LENGTH_SHORT,
+        });
+      } else {
+        Snackbar.show({
+          text: error.message,
+          duration: Snackbar.LENGTH_SHORT,
+        });
+      }
     },
   });
 
   if (
-    deleteTagMutation.isPending ||
-    updateTagMutation.isPending ||
-    addTagMutation.isPending ||
     isAvailableArticleLoading ||
     isProgressArticleLoading
   ) {
@@ -620,17 +642,17 @@ export default function HomeScreen({navigation}: ArticleProps) {
   }
 
   return (
-    <View style={styles.container}>
-      <View style={[styles.innerContainer, {paddingTop: insets.top}]}>
+    <SafeAreaView style={styles.container}>
+      <View style={[styles.innerContainer]}>
         <Tabs.Container
-          // renderHeader={renderHeader}
+          //  renderHeader={renderHeader}
           initialIndex={0}
           renderTabBar={renderTabBar}
           containerStyle={styles.tabsContainer}>
           {/* Tab 1 */}
 
           <Tabs.Tab name="Tags">
-            <View style={{flex: 1}}>
+            <View style={{flex: 1, marginBottom: hp(5)}}>
               <View style={styles.reasonTabContainer}>
                 <TouchableOpacity
                   style={styles.addButton}
@@ -663,7 +685,16 @@ export default function HomeScreen({navigation}: ArticleProps) {
                             },
                             {
                               text: 'Confirm',
-                              onPress: () => deleteTagMutation.mutate(item._id),
+                              onPress: () => {
+                                if (isConnected) {
+                                  deleteTagMutation.mutate(item._id);
+                                } else {
+                                  Snackbar.show({
+                                    text: 'You are currently offline',
+                                    duration: Snackbar.LENGTH_SHORT,
+                                  });
+                                }
+                              },
                               style: 'destructive',
                             },
                           ],
@@ -676,7 +707,7 @@ export default function HomeScreen({navigation}: ArticleProps) {
                   ListEmptyComponent={
                     <View style={styles.emptyContainer}>
                       <Image
-                        source={require('../../assets/identify-audience.png')}
+                        source={require('../../assets/images/identify-audience.png')}
                         style={styles.image}
                       />
 
@@ -694,18 +725,20 @@ export default function HomeScreen({navigation}: ArticleProps) {
               refreshing={articleRefreshing}
               onRefresh={onArticleRefresh}
               renderItem={renderItem}
-              onAvailablePageEnd ={onAvailablePageEnd}
-              onProgressPageEnd = {onProgressPageEnd}
+              onAvailablePageEnd={onAvailablePageEnd}
+              onProgressPageEnd={onProgressPageEnd}
             />
           </Tabs.Tab>
 
           {/* Available Improvements articles */}
-          <Tabs.Tab name="Improvements">
-            <Improvement handleNav={handleImprovementReviewNav} />
+          <Tabs.Tab name="Revisions">
+            {Improvement ? (
+              <Improvement handleNav={handleImprovementReviewNav} />
+            ) : null}
           </Tabs.Tab>
         </Tabs.Container>
 
-        <FilterModal
+        {/* <FilterModal
           bottomSheetModalRef={bottomSheetModalRef}
           categories={articleCategories}
           handleCategorySelection={handleCategorySelection}
@@ -714,7 +747,7 @@ export default function HomeScreen({navigation}: ArticleProps) {
           handleFilterApply={handleFilterApply}
           setSortingType={setSortingType}
           sortingType={sortingType}
-        />
+        /> */}
 
         <AddTagModal
           type={1}
@@ -723,19 +756,33 @@ export default function HomeScreen({navigation}: ArticleProps) {
           visible={addTagModalVisible}
           onTagChange={(tag, name) => {
             if (tag) {
-              updateTagMutation.mutate({
-                name: name,
-                id: tag.id.toString(),
-              });
+              if (isConnected) {
+                updateTagMutation.mutate({
+                  name: name,
+                  id: tag.id.toString(),
+                });
+              } else {
+                Snackbar.show({
+                  text: 'You are currently offline',
+                  duration: Snackbar.LENGTH_SHORT,
+                });
+              }
             } else {
-              addTagMutation.mutate(name);
+              if (isConnected) {
+                addTagMutation.mutate(name);
+              } else {
+                Snackbar.show({
+                  text: 'You are currently offline',
+                  duration: Snackbar.LENGTH_SHORT,
+                });
+              }
             }
           }}
           onReasonChange={() => {}}
           onDismiss={onAddTagModalClose}
         />
 
-        <FAB
+        {/* <FAB
           style={styles.fab}
           small
           icon={({size, color}) => (
@@ -745,19 +792,50 @@ export default function HomeScreen({navigation}: ArticleProps) {
             //navigation.goBack();
             handlePresentModalPress();
           }}
+        /> */}
+
+        <DiscardReasonModal
+          visible={articleDiscardModal}
+          callback={(reason: string) => {
+            console.log('discard modal click-', articleDiscardModal);
+            // onclick(item, 1, reason);
+            if (discardArticleId !== '') {
+              if (isConnected) {
+                discardArticleMutation.mutate({
+                  articleId: discardArticleId,
+                  reason: reason,
+                });
+              } else {
+                Snackbar.show({
+                  text: 'You are currently offline',
+                  duration: Snackbar.LENGTH_SHORT,
+                });
+              }
+            } else {
+              Snackbar.show({
+                text: 'Article id not found, please try again',
+                duration: Snackbar.LENGTH_SHORT,
+              });
+            }
+          }}
+          dismiss={() => {
+            setDiscardArticleId('');
+            setArticleDiscardModal(false);
+          }}
         />
       </View>
-    </View>
+    </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#0CAFFF',
+    backgroundColor: ON_PRIMARY_COLOR,
   },
   innerContainer: {
     flex: 1,
+    padding: hp(0.2),
   },
   tabsContainer: {
     backgroundColor: 'white',
@@ -772,7 +850,7 @@ const styles = StyleSheet.create({
   },
   scrollViewContentContainer: {
     paddingHorizontal: 16,
-    marginTop: 16,
+    marginTop: 6,
     backgroundColor: ON_PRIMARY_COLOR,
   },
   flatListContentContainer: {
@@ -795,8 +873,8 @@ const styles = StyleSheet.create({
   },
   labelStyle: {
     fontWeight: '600',
-    fontSize: 14,
-    color: 'black',
+    fontSize: wp(3.5),
+    //color: 'black',
     textTransform: 'capitalize',
   },
   contentContainerStyle: {
@@ -827,8 +905,8 @@ const styles = StyleSheet.create({
   },
   fab: {
     position: 'absolute',
-    right: 20,
-    bottom: 60,
+    right: hp(4),
+    bottom: hp(10),
     borderRadius: hp(20),
     backgroundColor: BUTTON_COLOR,
   },

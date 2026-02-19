@@ -1,7 +1,7 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import axios from 'axios';
 import {CHECK_IMAGE_COPYRIGHT, GET_IMAGE} from './APIUtils';
-import {CopyrightCheckerResponse, reportActionEnum} from '../type';
+import {CopyrightCheckerResponse} from '../type';
 
 // Async Storage for get Item
 export const retrieveItem = async (key: string) => {
@@ -166,6 +166,7 @@ export const checkImageCopyright = async (imageUrls: string[]) => {
   for (const url of imageUrls) {
   
     if (url) {
+      console.log("Checking copyright for image URL:", url);
       const response = await axios.post(CHECK_IMAGE_COPYRIGHT, {
         image_url: url.includes(`${GET_IMAGE}`)? url: `${GET_IMAGE}/${url}`,
       });
@@ -186,7 +187,7 @@ export const checkImageCopyright = async (imageUrls: string[]) => {
 };
 
 export function msToTime(ms: number): string {
-  let totalSeconds = Math.floor(ms / 1000);
+  let totalSeconds = Math.floor(ms);
   const hours = Math.floor(totalSeconds / 3600);
   totalSeconds %= 3600;
   const minutes = Math.floor(totalSeconds / 60);
@@ -198,6 +199,6 @@ export function msToTime(ms: number): string {
     hours >= 1
       ? `${pad(hours)}h:${pad(minutes)}m`
       : `${pad(minutes)}m:${pad(seconds)}s`;
-
+  
   return result;
 }

@@ -2,7 +2,7 @@ import React, {useCallback, useState} from 'react';
 import {View, Text, StyleSheet, Image} from 'react-native';
 import {MaterialTabBar, Tabs} from 'react-native-collapsible-tab-view';
 import {PRIMARY_COLOR, ON_PRIMARY_COLOR, BUTTON_COLOR} from '../helper/Theme';
-import {useSafeAreaInsets} from 'react-native-safe-area-context';
+import {SafeAreaView, useSafeAreaInsets} from 'react-native-safe-area-context';
 import {
   ArticleData,
   EditRequest,
@@ -10,10 +10,10 @@ import {
   Report,
   WorkHistoryProps,
 } from '../type';
-import Ionicons from 'react-native-vector-icons/Ionicons';
+import Ionicons from '@expo/vector-icons/Ionicons';
 import {FAB} from 'react-native-paper';
 import ReviewCard from '../components/ReviewCard';
-import {hp} from '../helper/Metric';
+import {hp, wp} from '../helper/Metric';
 import {useSelector} from 'react-redux';
 import {useQuery} from '@tanstack/react-query';
 import axios from 'axios';
@@ -28,10 +28,12 @@ import {StatusEnum} from '../helper/Utils';
 import ReportCard from '../components/ReportCard';
 import ImprovementCard from '../components/ImprovementCard';
 import PodcastCard from '../components/PodcastCard';
+import { Fontisto, MaterialIcons } from '@expo/vector-icons';
 
 export default function WorkHistoryScreen({navigation}: WorkHistoryProps) {
   //const bottomBarHeight = useBottomTabBarHeight();
   const {user_token, user_id} = useSelector((state: any) => state.user);
+  const {isConnected} = useSelector((state: any) => state.network);
   const insets = useSafeAreaInsets();
   const [selectedCardId, setSelectedCardId] = useState<string>('');
 
@@ -82,8 +84,10 @@ export default function WorkHistoryScreen({navigation}: WorkHistoryProps) {
 
       return response.data.articles as EditRequest[];
     },
-    enabled: !!user_token,
+    enabled: !!user_token && !!isConnected,
   });
+
+  //console.log('Completed Articles:', completedArticles);
 
   const {
     refetch: refetchCompletedArticles,
@@ -110,7 +114,7 @@ export default function WorkHistoryScreen({navigation}: WorkHistoryProps) {
 
       return response.data.articles as ArticleData[];
     },
-    enabled: !!user_token,
+    enabled: !!user_token && !!isConnected,
   });
 
   const {
@@ -135,7 +139,7 @@ export default function WorkHistoryScreen({navigation}: WorkHistoryProps) {
 
       return response.data.podcasts as PodcastData[];
     },
-    enabled: !!user_token,
+    enabled: !!user_token && !!isConnected,
   });
 
   const {
@@ -166,7 +170,7 @@ export default function WorkHistoryScreen({navigation}: WorkHistoryProps) {
 
       return response.data as Report[];
     },
-    enabled: !!user_token,
+    enabled: !!user_token && !!isConnected,
   });
 
   const onViewContent = (report: Report) => {
@@ -260,6 +264,8 @@ export default function WorkHistoryScreen({navigation}: WorkHistoryProps) {
           handleClick={() => {
             navigation.navigate('PodcastDetail', {
               trackId: item._id,
+              audioUrl: item.audio_url,
+              podcast: item
             });
           }}
         />
@@ -286,8 +292,8 @@ export default function WorkHistoryScreen({navigation}: WorkHistoryProps) {
     );
   };
   return (
-    <View style={styles.container}>
-      <View style={[styles.innerContainer, {paddingTop: insets.top}]}>
+    <SafeAreaView style={styles.container}>
+      <View style={[styles.innerContainer]}>
         <Tabs.Container
           //renderHeader={renderHeader}
           renderTabBar={renderTabBar}
@@ -310,10 +316,12 @@ export default function WorkHistoryScreen({navigation}: WorkHistoryProps) {
               }}
               ListEmptyComponent={
                 <View style={styles.emptyContainer}>
-                  <Image
-                    source={require('../../assets/identify-audience.png')}
+                  {/* <Image
+                    source={require('../../assets/images/identify-audience.png')}
                     style={styles.image}
-                  />
+                  /> */}
+
+                  <Fontisto name="onenote" size={wp(25)} color={'#6A89A7'} />
                   <Text style={styles.message}>No articles available</Text>
                 </View>
               }
@@ -343,10 +351,11 @@ export default function WorkHistoryScreen({navigation}: WorkHistoryProps) {
               }}
               ListEmptyComponent={
                 <View style={styles.emptyContainer}>
-                  <Image
-                    source={require('../../assets/identify-audience.png')}
+                  {/* <Image
+                    source={require('../../assets/images/identify-audience.png')}
                     style={styles.image}
-                  />
+                  /> */}
+                  <Fontisto name="onenote" size={wp(25)} color={'#6A89A7'} />
                   <Text style={styles.message}>No revisions available</Text>
                 </View>
               }
@@ -367,16 +376,18 @@ export default function WorkHistoryScreen({navigation}: WorkHistoryProps) {
               contentContainerStyle={[
                 styles.flatListContentContainer,
                 {paddingBottom: 15},
+                
               ]}
               keyExtractor={item => item?._id}
               refreshing={isCompletedPodcastLoading}
               onRefresh={refetchCompletedPodcasts}
               ListEmptyComponent={
                 <View style={styles.emptyContainer}>
-                  <Image
-                    source={require('../../assets/identify-audience.png')}
+                  {/* <Image
+                    source={require('../../assets/images/identify-audience.png')}
                     style={styles.image}
-                  />
+                  /> */}
+                  <MaterialIcons name="podcasts" size={hp(17)} color={'#6A89A7'} style={{marginBottom: hp(2)}} />
                   <Text style={styles.message}>No podcasts available</Text>
                 </View>
               }
@@ -404,10 +415,11 @@ export default function WorkHistoryScreen({navigation}: WorkHistoryProps) {
                 )}
                 ListEmptyComponent={
                   <View style={styles.emptyContainer}>
-                    <Image
-                      source={require('../../assets/identify-audience.png')}
+                    {/* <Image
+                      source={require('../../assets/images/identify-audience.png')}
                       style={styles.image}
-                    />
+                  /> */}
+                    <MaterialIcons name="report-off" size={wp(25)} color={'#6A89A7'} style={{marginBottom: hp(2)}} />
                     <Text style={styles.message}>No report available</Text>
                   </View>
                 }
@@ -439,7 +451,7 @@ export default function WorkHistoryScreen({navigation}: WorkHistoryProps) {
           navigation.goBack();
         }}
       />
-    </View>
+    </SafeAreaView>
   );
 }
 
@@ -463,8 +475,9 @@ const styles = StyleSheet.create({
     backgroundColor: ON_PRIMARY_COLOR,
   },
   flatListContentContainer: {
-    paddingHorizontal: 16,
-     marginBottom: 80,
+    paddingHorizontal: wp(1),
+    marginBottom: 80,
+    alignItems:"center"
   },
 
   profileImage: {
@@ -484,8 +497,8 @@ const styles = StyleSheet.create({
   },
   labelStyle: {
     fontWeight: '600',
-    fontSize: 14.6,
-    color: 'black',
+    fontSize: 13,
+   // color: 'black',
     textTransform: 'capitalize',
   },
   contentContainerStyle: {
@@ -499,7 +512,7 @@ const styles = StyleSheet.create({
   },
   message: {
     fontSize: 16,
-    color: '#555',
+    color: '#6A89A7',
     textAlign: 'center',
   },
   emptyContainer: {
@@ -516,9 +529,9 @@ const styles = StyleSheet.create({
   fab: {
     position: 'absolute',
     right: 20,
-    bottom: 20,
+    bottom: wp(23),
     borderRadius: hp(20),
-    backgroundColor: BUTTON_COLOR, // Customize color
+    backgroundColor: BUTTON_COLOR,
   },
   image: {
     height: 160,

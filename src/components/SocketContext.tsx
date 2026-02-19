@@ -1,6 +1,6 @@
 import React, {createContext, useContext, useState, useEffect} from 'react';
-import Config from 'react-native-config';
 import io, {Socket} from 'socket.io-client';
+import { SOCKET_PROD } from '../helper/APIUtils';
 
 const SocketContext = createContext<Socket | null>(null);
 
@@ -15,7 +15,7 @@ export const SocketProvider: React.FC<SocketProviderProps> = ({
 
   useEffect(() => {
     // Initialize the socket connection
-    const socketConnection = io(`${Config.SOCKET_PROD}`);
+    const socketConnection = io(`${SOCKET_PROD}`);
     setSocket(socketConnection);
 
     // Cleanup on unmount

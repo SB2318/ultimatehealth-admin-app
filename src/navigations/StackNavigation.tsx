@@ -10,7 +10,7 @@ import { RootStackParamList } from '../type';
 import TabNavigation from './TabNavigation';
 import ArticleReviewScreen from '../screens/ArticleReviewScreen';
 import { StyleSheet, TouchableOpacity } from 'react-native';
-import FontAwesome from 'react-native-vector-icons/FontAwesome';
+import FontAwesome from '@expo/vector-icons/FontAwesome';
 import EditProfile from '../screens/EditProfile';
 import LogoutScreen from '../screens/auth/LogoutScreen';
 import WorkHistoryScreen from '../screens/WorkHistoryScreen';
@@ -20,6 +20,8 @@ import { PRIMARY_COLOR } from '../helper/Theme';
 import CommentScreen from '../screens/CommentScreen';
 import ReportAction from '../screens/ReportAction';
 import PodcastDetail from '../screens/PodcastDetails';
+import { FontAwesome6 } from '@expo/vector-icons';
+import PodcastDiscussion from '../screens/PodcastDiscussion';
 
 const Stack = createStackNavigator<RootStackParamList>();
 
@@ -74,12 +76,36 @@ const StackNavigation = () => {
               onPress={() => {
                 navigation.goBack();
               }}>
-              <FontAwesome size={25} name="arrow-left" color="white" />
+              <FontAwesome size={26} name="arrow-left" color="white" />
             </TouchableOpacity>
           ),
         })}
       />
 
+ <Stack.Screen
+        name="PodcastDiscussion"
+        component={PodcastDiscussion}
+        options={({navigation}) => ({
+            headerShown: true,
+          headerTitle: 'Check Discussion',
+          headerTintColor: 'white',
+          headerTransparent: false,
+          headerStyle: {
+            backgroundColor: '#000A60',
+          },
+          headerBackTitleVisible: false,
+          headerLeft: () => (
+            <TouchableOpacity
+              style={{...styles.headerLeftButtonCommentScreen, backgroundColor:'none' }}
+              onPress={() => {
+                //queryClient.invalidateQueries({queryKey: ['get-user-socials']});
+                navigation.goBack();
+              }}>
+              <FontAwesome6 size={25} name="arrow-left" color={'white'} />
+            </TouchableOpacity>
+          ),
+        })}
+      />
 
       <Stack.Screen
         name="ImprovementReviewScreen"
@@ -171,7 +197,11 @@ const StackNavigation = () => {
           headerShown: true,
           title: 'Take action',
           headerTitleAlign:"center",
+          headerTintColor:'white',
           headerBackTitleVisible: false,
+          headerStyle: {
+            backgroundColor: '#000A60',
+          },
           headerShadowVisible: false,
           headerLeft: () => (
             <TouchableOpacity
@@ -179,7 +209,7 @@ const StackNavigation = () => {
               onPress={() => {
                 navigation.goBack();
               }}>
-              <FontAwesome size={25} name="arrow-left" color={PRIMARY_COLOR} />
+              <FontAwesome size={25} name="arrow-left" color={'white'} />
             </TouchableOpacity>
           ),
         })}
@@ -230,6 +260,7 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(0,0,0,0.4)',
     paddingHorizontal: 8,
     paddingVertical: 6,
+    //width: 80,
     borderRadius: 50,
   },
   headerLeftButtonEditorScreen: {

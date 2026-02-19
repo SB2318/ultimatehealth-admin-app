@@ -1,26 +1,32 @@
-import React, { useState } from "react";
-import useUploadImage from "../../hooks/useUploadImage";
+import React, {useState} from 'react';
+import useUploadImage from '../../hooks/useUploadImage';
 import {
   ImageLibraryOptions,
   launchImageLibrary,
   ImagePickerResponse,
 } from 'react-native-image-picker';
-import { Alert, Image, SafeAreaView, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from "react-native";
+import {Alert, Image} from 'react-native';
 import ImageResizer from '@bam.tech/react-native-image-resizer';
-import axios, { AxiosError } from "axios";
-import { CHECK_USER_HANDLE, REGISTRATION_API, VERIFICATION_MAIL_API } from "../../helper/APIUtils";
-import { useMutation } from "@tanstack/react-query";
+import axios, {AxiosError} from 'axios';
+import {
+  CHECK_USER_HANDLE,
+  REGISTRATION_API,
+  VERIFICATION_MAIL_API,
+} from '../../helper/APIUtils';
+import {useMutation} from '@tanstack/react-query';
 import Snackbar from 'react-native-snackbar';
-import AntIcon from 'react-native-vector-icons/AntDesign';
-import AntDesign from 'react-native-vector-icons/AntDesign';
-import Icon from 'react-native-vector-icons/MaterialIcons';
-import Loader from "../../components/Loader";
-import { PRIMARY_COLOR } from "../../helper/Theme";
-import { hp, wp } from "../../helper/Metric";
-import EmailVerifiedModal from "../../components/EmailVerifiedModal";
-var validator = require('email-validator');
 
-export default function SignUpScreen({navigation}){
+import AntDesign from '@expo/vector-icons/AntDesign';
+import Icon from '@expo/vector-icons/MaterialIcons';
+import Loader from '../../components/Loader';
+import EmailVerifiedModal from '../../components/EmailVerifiedModal';
+import {SafeAreaView} from 'react-native-safe-area-context';
+import {ScrollView, YStack, Text, Button, XStack, Input} from 'tamagui';
+import validator from 'email-validator';
+import {useSelector} from 'react-redux';
+import {SignUpScreenProp} from '@/src/type';
+
+export default function SignUpScreen({navigation}: SignUpScreenProp) {
   const {uploadImage, loading} = useUploadImage();
   const [user_profile_image, setUserProfileImage] = useState('');
   const [name, setName] = useState('');
@@ -32,7 +38,8 @@ export default function SignUpScreen({navigation}){
   const [isHandleAvailable, setIsHandleAvailable] = useState(false);
   const [token, setToken] = useState('');
   const [isSecureEntry, setIsSecureEntry] = useState(true);
-  const [error, setError] = useState('');  
+  const [error, setError] = useState('');
+  const {isConnected} = useSelector((state: any) => state.network);
 
   const selectImage = async () => {
     const options: ImageLibraryOptions = {
@@ -104,7 +111,7 @@ export default function SignUpScreen({navigation}){
       const res = await axios.post(VERIFICATION_MAIL_API, {
         email: email,
         token: token,
-        isAdmin: true
+        isAdmin: true,
       });
 
       return res.data.message as string;
@@ -162,6 +169,13 @@ export default function SignUpScreen({navigation}){
   });
 
   const handleVerifyModalCallback = () => {
+    if (!isConnected) {
+      Snackbar.show({
+        text: 'You are currently offline',
+        duration: Snackbar.LENGTH_SHORT,
+      });
+      return;
+    }
     if (token.length > 0) {
       verifyMail.mutate();
     } else {
@@ -196,7 +210,7 @@ export default function SignUpScreen({navigation}){
         user_handle: username,
         email: email,
         password: password,
-       // isDoctor: false,
+        // isDoctor: false,
         Profile_avtar: profile_url,
       });
       return res.data.token as string;
@@ -249,6 +263,13 @@ export default function SignUpScreen({navigation}){
         {
           text: 'Cancel',
           onPress: () => {
+            if (!isConnected) {
+              Snackbar.show({
+                text: 'You are currently offline',
+                duration: Snackbar.LENGTH_SHORT,
+              });
+              return;
+            }
             // setUserProfileImage(user?.Profile_image || '');
             setUserProfileImage('');
             Snackbar.show({
@@ -266,10 +287,18 @@ export default function SignUpScreen({navigation}){
           onPress: async () => {
             try {
               // Upload the resized image
-          let result;
-              if(user_profile_image && user_profile_image.length > 0) 
-                 {result = await uploadImage(user_profile_image);}
-             
+              if (!isConnected) {
+                Snackbar.show({
+                  text: 'You are currently offline',
+                  duration: Snackbar.LENGTH_SHORT,
+                });
+                return;
+              }
+              let result;
+              if (user_profile_image && user_profile_image.length > 0) {
+                result = await uploadImage(user_profile_image);
+              }
+
               adminRegisterMutation.mutate({
                 profile_url: result ? result : '',
               });
@@ -285,229 +314,292 @@ export default function SignUpScreen({navigation}){
     );
   };
 
- 
   if (adminRegisterMutation.isPending || verifyMail.isPending || loading) {
     return <Loader />;
   }
 
   return (
-    <ScrollView style={styles.container}>
-    <SafeAreaView>
-      <TouchableOpacity
-        style={{flex: 1, marginStart:10, marginTop:6}}
-        onPress={() => {
-          navigation.navigate('LoginScreen');
-        }}>
-        <AntIcon name="arrowleft" size={30} color="black" />
-      </TouchableOpacity>
-      {
-        
-      <View style={styles.header}>
-        <Text style={styles.title}>He who has health has hope and he</Text>
-        <Text style={styles.title}>who has hope has everything.</Text>
-        <Text style={styles.subtitle}> ~ Arabian Proverb.</Text>
-      </View>
-      
-}
+    <ScrollView
+      backgroundColor="$background"
+      showsVerticalScrollIndicator={false}>
+      <SafeAreaView>
+        {/* Header */}
+        <YStack
+          width="94%"
+          height={140}
+          alignItems="center"
+          justifyContent="center"
+          backgroundColor="$blue10"
+          alignSelf="center"
+          borderRadius="$4"
+          marginTop="$2"
+          padding="$3"
+          space="$2">
+          <Text fontSize={16} color="white" textAlign="center" fontWeight="600">
+            He who has health has hope and he who has hope has everything.
+          </Text>
+          <Text fontSize={16} color="white" textAlign="center" fontWeight="600">
+            ~ Arabian Proverb.
+          </Text>
+        </YStack>
 
-        <ScrollView>
-          <TouchableOpacity onPress={selectImage} style={styles.iconContainer}>
+        {/* Profile Image */}
+        <YStack alignItems="center" marginTop="$4" marginBottom="$3">
+          <Button
+            circular
+            size="$9"
+            backgroundColor="$blue10"
+            onPress={selectImage}
+            padding="$3">
             {user_profile_image === '' ? (
-              <Icon name="person-add" size={54} color="#ffffff" style={{ transform: [{ scaleX: -1 }] }}/>
+              <AntDesign
+                name="camera"
+                size={26}
+                color="#ffffff"
+                style={{transform: [{scaleX: -1}]}}
+              />
             ) : (
               <Image
+                source={{uri: user_profile_image}}
                 style={{
                   height: 80,
                   width: 80,
                   borderRadius: 40,
-                  resizeMode: 'cover',
                 }}
-                source={{uri: user_profile_image}}
               />
             )}
-          </TouchableOpacity>
-          <View style={styles.form}>
-            <View style={styles.field}>
-              <TextInput
-                style={styles.input}
-                placeholder="Name"
-                onChangeText={setName}
-                value={name}
+          </Button>
+        </YStack>
+
+        {/* Title */}
+        <Text
+          fontSize={20}
+          fontWeight="700"
+          color="$blue10"
+          textAlign="center"
+          textTransform="uppercase">
+          Sign up
+        </Text>
+
+        {/* Form */}
+        <YStack padding="$4" space="$4">
+          {/* Name */}
+          <XStack position="relative">
+            <Input
+              flex={1}
+              height="$5"
+              borderColor="$blue10"
+              borderWidth={1}
+              borderRadius="$3"
+              placeholder="Name"
+              value={name}
+              onChangeText={setName}
+            />
+            <YStack position="absolute" right={14} top={10}>
+              <Icon name="person" size={20} color="#000" />
+            </YStack>
+          </XStack>
+
+          {/* Handle Error */}
+          {isHandleAvailable && (
+            <Text color="red" fontSize={14}>
+              User handle is already in use.
+            </Text>
+          )}
+
+          {/* User Handle */}
+          <XStack position="relative">
+            <Input
+              flex={1}
+              height="$5"
+              borderColor="$blue10"
+              borderWidth={1}
+              borderRadius="$3"
+              placeholder="User Handle"
+              value={username}
+              onChangeText={handleUserHandleChange}
+            />
+            <YStack position="absolute" right={14} top={10}>
+              <Icon name="person" size={20} color="#000" />
+            </YStack>
+          </XStack>
+
+          {/* Email */}
+          <XStack position="relative">
+            <Input
+              flex={1}
+              height="$5"
+              borderColor="$blue10"
+              borderWidth={1}
+              borderRadius="$3"
+              placeholder="Email"
+              value={email}
+              onChangeText={setEmail}
+              keyboardType="email-address"
+            />
+            <YStack position="absolute" right={14} top={10}>
+              <Icon name="email" size={20} color="#000" />
+            </YStack>
+          </XStack>
+
+          {/* Password */}
+          <XStack position="relative">
+            <Input
+              flex={1}
+              height="$5"
+              borderColor="$blue10"
+              borderWidth={1}
+              borderRadius="$3"
+              placeholder="Password"
+              value={password}
+              onChangeText={setPassword}
+              secureTextEntry={isSecureEntry}
+            />
+            <Button
+              chromeless
+              position="absolute"
+              right={1}
+              top={8}
+              onPress={() => setIsSecureEntry(!isSecureEntry)}>
+              <AntDesign
+                name={isSecureEntry ? 'eye-invisible' : 'eye'}
+                size={17}
+                color="#000"
               />
-              <View style={styles.inputIcon}>
-                <Icon name="person" size={20} color="#000" />
-              </View>
-            </View>
+            </Button>
+          </XStack>
 
-            {isHandleAvailable && (
-              <Text style={styles.error}>User handle is already in use.</Text>
-            )}
-            <View style={styles.field}>
-              <TextInput
-                style={styles.input}
-                placeholder="User Handle"
-                value={username}
-                onChangeText={handleUserHandleChange}
-              />
+          {/* Role Dropdown */}
 
-              <View style={styles.inputIcon2}>
-                <Icon name="person" size={20} color="#000" />
-              </View>
-            </View>
+          {/* Submit Button */}
+          <Button
+            backgroundColor="$blue10"
+            size={'$7'}
+            padding="$3"
+            borderRadius="$4"
+            alignItems="center"
+            alignSelf="center"
+            width="100%"
+            onPress={handleSubmit}>
+            <Text color="white" fontWeight="bold" fontSize={18}>
+              Register
+            </Text>
+          </Button>
+        </YStack>
 
-            <View style={styles.field}>
-              <TextInput
-                style={styles.input}
-                placeholder="Email"
-                onChangeText={setEmail}
-                value={email}
-                keyboardType="email-address"
-              />
-              <View style={styles.inputIcon}>
-                <Icon name="email" size={20} color="#000" />
-              </View>
-            </View>
-
-            <View style={styles.field}>
-              <TextInput
-                style={styles.input}
-                placeholder="Password"
-                onChangeText={setPassword}
-                value={password}
-                secureTextEntry={isSecureEntry}
-              />
-              <TouchableOpacity
-                style={styles.inputIcon}
-                onPress={() => setIsSecureEntry(!isSecureEntry)}>
-                <AntDesign
-                  name={isSecureEntry ? 'eyeo' : 'eye'}
-                  size={20}
-                  color="#000"
-                />
-              </TouchableOpacity>
-            </View>
-
-            <TouchableOpacity style={styles.button} onPress={handleSubmit}>
-              <Text style={styles.buttonText}>
-                Register
-              </Text>
-            </TouchableOpacity>
-          </View>
-
-          <EmailVerifiedModal
-            visible={verifiedModalVisible}
-            onClick={handleVerifyModalCallback}
-            onClose={() => {
-              if (verifyBtntext !== 'Request Verification') {
-                setVerifiedModalVisible(false);
-              }
-            }}
-            message={verifyBtntext}
-          />
-        </ScrollView>
-     
-    </SafeAreaView>
+        {/* Modal */}
+        <EmailVerifiedModal
+          visible={verifiedModalVisible}
+          onClick={handleVerifyModalCallback}
+          onClose={() => {
+            if (verifyBtntext !== 'Request Verification') {
+              setVerifiedModalVisible(false);
+            }
+          }}
+          message={verifyBtntext}
+        />
+      </SafeAreaView>
     </ScrollView>
   );
 }
 
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: 'white',
-  },
-  header: {
-    width: '100%',
-    height: hp(10),
-    paddingTop: 5,
-    alignItems: 'center',
-   // backgroundColor: PRIMARY_COLOR,
-  },
-  footer: {
-    flex: 1,
-    width: '90%',
-    paddingTop: 20,
-    alignSelf: 'center',
-    backgroundColor: 'white',
-    marginTop: -60,
-    borderRadius: 10,
-  },
-  title: {
-    fontSize: 20,
-    fontWeight: 'bold',
-    color: '#000',
-  },
-  subtitle: {
-    fontSize: 16,
-    color: '#000',
-    textAlign: 'center',
-    marginTop: 4,
-  },
-  iconContainer: {
-    alignSelf: 'center',
-    alignItems:"center",
-    justifyContent:"center",
-    marginTop: hp(3),
-    marginBottom:10,
-    height: hp(11),
-    width: hp(11),
-    borderRadius:hp(5.5),
-    marginLeft:10,
-    backgroundColor:PRIMARY_COLOR
-  },
-  form: {
-    padding: 16,
-  },
-  field: {},
-  input: {
-    height: hp(7),
-    //width:'98%',
-    borderColor: '#0CAFFF',
-    borderWidth: 1,
-    borderRadius: 5,
-    paddingHorizontal: 6,
-    marginBottom: 20,
-    fontSize: 15,
-  },
-  error: {
-    color: 'red',
-    fontSize: 14,
-    marginBottom: 10,
-  },
-  inputIcon: {
-    position: 'absolute',
-    right: 14,
-    top: 12,
-  },
-  inputIcon2: {
-    position: 'absolute',
-    right: 14,
-    top: 8,
-  },
-  button: {
-    backgroundColor: '#0CAFFF',
-    padding: 10,
-    borderRadius: 10,
-    alignItems: 'center',
-    alignSelf: 'center',
-    marginTop: 20,
-    width: '100%',
-  },
-  buttonText: {
-    color: '#fff',
-    fontWeight: 'bold',
-    fontSize: 18,
-  },
-  dropdown: {
-    height: 40,
-    borderColor: '#0CAFFF',
-    borderWidth: 1,
-    borderRadius: 5,
-    paddingHorizontal: 10,
-    marginBottom: 20,
-    paddingRight: 12,
-  },
-  placeholderStyle: {
-    fontSize: 15,
-  },
-});
+// const styles = StyleSheet.create({
+//   container: {
+//     flex: 1,
+//     backgroundColor: 'white',
+//   },
+//   header: {
+//     width: '100%',
+//     height: hp(10),
+//     paddingTop: 5,
+//     alignItems: 'center',
+//     // backgroundColor: PRIMARY_COLOR,
+//   },
+//   footer: {
+//     flex: 1,
+//     width: '90%',
+//     paddingTop: 20,
+//     alignSelf: 'center',
+//     backgroundColor: 'white',
+//     marginTop: -60,
+//     borderRadius: 10,
+//   },
+//   title: {
+//     fontSize: 20,
+//     fontWeight: 'bold',
+//     color: '#000',
+//   },
+//   subtitle: {
+//     fontSize: 16,
+//     color: '#000',
+//     textAlign: 'center',
+//     marginTop: 4,
+//   },
+//   iconContainer: {
+//     alignSelf: 'center',
+//     alignItems: 'center',
+//     justifyContent: 'center',
+//     marginTop: hp(3),
+//     marginBottom: 10,
+//     height: hp(11),
+//     width: hp(11),
+//     borderRadius: hp(5.5),
+//     marginLeft: 10,
+//     backgroundColor: PRIMARY_COLOR,
+//   },
+//   form: {
+//     padding: 16,
+//   },
+//   field: {},
+//   input: {
+//     height: hp(7),
+//     //width:'98%',
+//     borderColor: '#0CAFFF',
+//     borderWidth: 1,
+//     borderRadius: 5,
+//     paddingHorizontal: 6,
+//     marginBottom: 20,
+//     fontSize: 15,
+//   },
+//   error: {
+//     color: 'red',
+//     fontSize: 14,
+//     marginBottom: 10,
+//   },
+//   inputIcon: {
+//     position: 'absolute',
+//     right: 14,
+//     top: 12,
+//   },
+//   inputIcon2: {
+//     position: 'absolute',
+//     right: 14,
+//     top: 8,
+//   },
+//   button: {
+//     backgroundColor: '#0CAFFF',
+//     padding: 10,
+//     borderRadius: 10,
+//     alignItems: 'center',
+//     alignSelf: 'center',
+//     marginTop: 20,
+//     width: '100%',
+//   },
+//   buttonText: {
+//     color: '#fff',
+//     fontWeight: 'bold',
+//     fontSize: 18,
+//   },
+//   dropdown: {
+//     height: 40,
+//     borderColor: '#0CAFFF',
+//     borderWidth: 1,
+//     borderRadius: 5,
+//     paddingHorizontal: 10,
+//     marginBottom: 20,
+//     paddingRight: 12,
+//   },
+//   placeholderStyle: {
+//     fontSize: 15,
+//   },
+// });

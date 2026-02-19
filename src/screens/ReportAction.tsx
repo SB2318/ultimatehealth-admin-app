@@ -22,6 +22,7 @@ import {
   ReportActionScreenProp,
 } from '../type';
 import {TAKE_ACTION_ON_REPORT} from '../helper/APIUtils';
+import {SafeAreaView} from 'react-native-safe-area-context';
 
 export default function ReportAction({
   navigation,
@@ -29,6 +30,7 @@ export default function ReportAction({
 }: ReportActionScreenProp) {
   const {reportId, report_admin_id} = route.params;
   const {user_id} = useSelector((state: any) => state.user);
+  const {isConnected} = useSelector((state: any) => state.network);
   const [dismissReason, setDismissReason] = useState<string>('');
 
   const reportActions = Object.entries(reportActionMessages).map(
@@ -48,9 +50,8 @@ export default function ReportAction({
   const submitReportMutation = useMutation({
     mutationKey: ['submit-report-action'],
     mutationFn: async (dismissReason: string) => {
-     
       //console.log("Url", TAKE_ACTION_ON_REPORT);
-      
+
       const res = await axios.post(TAKE_ACTION_ON_REPORT, {
         reportId: reportId,
         admin_id: report_admin_id,
@@ -80,7 +81,7 @@ export default function ReportAction({
   }
   return (
     <ScrollView style={{backgroundColor: 'white'}}>
-      <View style={styles.container}>
+      <SafeAreaView style={styles.container}>
         {reportActions?.map((reason, index) => (
           <View key={index} style={styles.optionContainer}>
             <RadioButton
@@ -135,6 +136,13 @@ export default function ReportAction({
                     {
                       text: 'OK',
                       onPress: () => {
+                        if (!isConnected) {
+                          Snackbar.show({
+                            text: 'You are currently offline',
+                            duration: Snackbar.LENGTH_SHORT,
+                          });
+                          return;
+                        }
                         if (report_admin_id !== user_id) {
                           Alert.alert('Report is not assigned to you');
                           return;
@@ -150,7 +158,7 @@ export default function ReportAction({
             </TouchableOpacity>
           </>
         )}
-      </View>
+      </SafeAreaView>
     </ScrollView>
   );
 }
@@ -161,7 +169,7 @@ const styles = StyleSheet.create({
     backgroundColor: 'white',
     justifyContent: 'flex-start',
     alignItems: 'flex-start',
-    padding: 18,
+    padding: hp(2),
   },
   header: {
     fontSize: 18,
@@ -180,6 +188,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: wp(10),
     justifyContent: 'center',
     alignItems: 'center',
+    alignSelf: 'center',
     borderRadius: 10,
     width: '96%',
   },
@@ -192,8 +201,9 @@ const styles = StyleSheet.create({
   optionContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingVertical: 4,
-    marginBottom: 10,
+
+    paddingVertical: hp(1),
+    marginBottom: hp(1),
     backgroundColor: '#fff',
     borderRadius: 8,
   },

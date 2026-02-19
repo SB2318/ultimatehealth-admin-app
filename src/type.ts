@@ -9,7 +9,9 @@ export type RootStackParamList = {
   LoginScreen: undefined;
   SignUpScreen: undefined;
   NewPasswordScreen: undefined;
-  OtpScreen: undefined;
+  OtpScreen: {
+    email: string;
+  };
   TabScreen: undefined;
   ArticleReviewScreen: {
     articleId: number;
@@ -41,6 +43,12 @@ export type RootStackParamList = {
   };
   PodcastDetail: {
     trackId: string;
+    podcast: PodcastData | undefined;
+    audioUrl: string | undefined;
+  };
+  PodcastDiscussion: {
+    podcastId: string;
+    mentionedUsers: User[];
   };
 };
 
@@ -134,11 +142,10 @@ export type NotificationD = {
 };
 
 export enum NotificationType {
-
   ArticleComment = 'articleComment',
   PodcastComment = 'podcastComment',
   EditRequestComment = 'editRequestComment',
-  ArticleSubmitToAdmin = 'articleSubmitToAdmin', 
+  ArticleSubmitToAdmin = 'articleSubmitToAdmin',
   RevisionSubmitToAdmin = 'revisionSubmitToAdmin',
 }
 
@@ -224,6 +231,10 @@ export type PodcastProps = CompositeScreenProps<
 >;
 
 export type ReportScreenProps = BottomTabScreenProps<TabParamList, 'Report'>;
+export type PodcastDiscussionProp = StackScreenProps<
+  RootStackParamList,
+  'PodcastDiscussion'
+>;
 
 export type ProfileScreenProps = CompositeScreenProps<
   BottomTabScreenProps<TabParamList, 'Profile'>,
@@ -304,7 +315,8 @@ export type Comment = {
   _id: string;
   id: string;
   articleId: number;
-  userId: Admin;
+  adminId: Admin | null;
+  userId: User | null;
   Profile_image: string | undefined;
   content: string;
   createdAt: string;
@@ -313,9 +325,9 @@ export type Comment = {
   replies: Comment[];
   likedUsers: string[];
   status: string;
-  isEdited: Boolean;
-  isReview: Boolean;
-  isNote: Boolean;
+  isEdited: boolean;
+  isReview: boolean;
+  isNote: boolean;
 };
 
 export type PocketBaseResponse = {
@@ -393,19 +405,24 @@ export type CopyrightCheckerProps = {
   data: CopyrightCheckerResponse[];
 };
 
+export type ReportReason = {
+  _id: string;
+  reason: string;
+};
+
 export enum reportActionEnum {
   PENDING = 'Pending',
-  RESOLVED = 'Resolved',
-  DISMISSED = 'Dismissed',
-  WARN_CONVICT = 'User Warned',
-  REMOVE_CONTENT = 'Content Removed',
-  EDIT_CONTENT = 'Content Edited',
-  RESTORE_CONTENT = 'Content Restored',
-  BLOCK_CONVICT = 'User Blocked',
-  BAN_CONVICT = 'User Banned',
-  ESCALATED = 'Escalated',
+  RESOLVED = 'Resolve',
+  DISMISSED = 'Dismiss',
+  WARN_CONVICT = 'Warn Convict',
+  REMOVE_CONTENT = 'Remove Content',
+  EDIT_CONTENT = 'Request to Edit Content',
+  RESTORE_CONTENT = 'Restore the remove content (only applicable if content was removed)',
+  BLOCK_CONVICT = 'Block User',
+  BAN_CONVICT = 'Ban User',
+  ESCALATED = 'Escalate the Report',
   INVESTIGATION = 'Investigation Start',
-  IGNORE = 'Ignored',
+  IGNORE = 'Ignore Report',
   CONVICT_REQUEST_TO_RESTORE_CONTENT = 'CONVICT_REQUEST_TO_RESTORE_CONTENT',
   CONVICT_REQUEST_DISAPPROVED = 'CONVICT_REQUEST_DISAPPROVED',
 }
@@ -448,6 +465,7 @@ export type Report = {
 export type User = {
   _id: string;
   user_name: string;
+  user_handle: string;
   Profile_image: string;
   followers: string[];
 };
@@ -461,4 +479,9 @@ export type Reason = {
 export type LineDataItem = {
   label: string;
   value: number;
+};
+
+export type TokenStatus = {
+  isValid: boolean;
+  message: string;
 };

@@ -3,12 +3,12 @@ import { StyleSheet, View, Text, TouchableOpacity } from "react-native";
 import { wp, hp } from "../helper/Metric";
 import { PRIMARY_COLOR, BUTTON_COLOR } from "../helper/Theme";
 import { Reason } from "../type";
-import Icon from "react-native-vector-icons/Feather";
+import Icon from "@expo/vector-icons/Feather";
 
 interface Props {
    reason: Reason,
-   onEditAction: (reason: Reason) =>{},
-   onDeleteAction: (reason: Reason) =>{},
+   onEditAction: (reason: Reason) =>void,
+   onDeleteAction: (reason: Reason) =>void,
 }
 
 export default function ReasonItemCard({reason, onEditAction, onDeleteAction}: Props) {
@@ -59,8 +59,9 @@ const styles = StyleSheet.create({
     paddingHorizontal: wp(4),
     borderRadius: 12,
     marginBottom: hp(1.5),
-    marginHorizontal:hp(1),
+    marginHorizontal: wp(2),
     elevation: 1,
+    width: "92%",
     //borderWidth: 1,
     //borderColor: '#ddd',
   },

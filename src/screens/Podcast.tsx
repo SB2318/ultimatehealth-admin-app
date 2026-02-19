@@ -1,11 +1,11 @@
-import {Image, StyleSheet, Text, View} from 'react-native';
+import {StyleSheet, Text, View} from 'react-native';
 import {PodcastData, PodcastProps} from '../type';
-import {BUTTON_COLOR} from '../helper/Theme';
+import {BUTTON_COLOR, ON_PRIMARY_COLOR} from '../helper/Theme';
 import {FAB} from 'react-native-paper';
-import AntDesign from 'react-native-vector-icons/AntDesign';
+import AntDesign from '@expo/vector-icons/AntDesign';
 import {MaterialTabBar, Tabs} from 'react-native-collapsible-tab-view';
 import {hp, wp} from '../helper/Metric';
-import {useSafeAreaInsets} from 'react-native-safe-area-context';
+import {SafeAreaView, useSafeAreaInsets} from 'react-native-safe-area-context';
 import PodcastCard from '../components/PodcastCard';
 import {useMutation, useQuery} from '@tanstack/react-query';
 import {
@@ -16,24 +16,30 @@ import {
   PICK_PODCAST,
 } from '../helper/APIUtils';
 import axios from 'axios';
-import {useState} from 'react';
+import React, {useState} from 'react';
 import Snackbar from 'react-native-snackbar';
 import Loader from '../components/Loader';
-import React from 'react';
-import { useSelector } from 'react-redux';
+//import React from 'react';
+import {useSelector} from 'react-redux';
+import DiscardReasonModal from '../components/DiscardReasonModal';
+import { StatusEnum } from '../helper/Utils';
+import { MaterialIcons } from '@expo/vector-icons';
 
 export default function Podcast({navigation}: PodcastProps) {
   const insets = useSafeAreaInsets();
-  const {user_token} = useSelector((state: any)=> state.user);
+  const {user_token} = useSelector((state: any) => state.user);
+  const {isConnected} = useSelector((state: any) => state.network);
   const [selectedPodcastId, setSelectedPodcastId] = useState<string>('');
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(0);
   const [availablePodcasts, setAvailablePodcasts] = useState<PodcastData[]>([]);
   const [progressPage, setProgressPage] = useState(1);
   const [progressTotalPages, setProgressTotalPages] = useState(0);
-  const [progressPodcasts, setProgressPodcasts] = useState<PodcastData[]>(
-    [],
-  );
+  const [progressPodcasts, setProgressPodcasts] = useState<PodcastData[]>([]);
+
+  const [discardPodcastId, setDiscardPodcastId] = useState<string>('');
+  const [discardPodcastModal, setDiscardPodcastModal] =
+    useState<boolean>(false);
 
   const {
     refetch: availablePodcastRefetch,
@@ -41,71 +47,85 @@ export default function Podcast({navigation}: PodcastProps) {
   } = useQuery({
     queryKey: ['get-available-podcasts', page],
     queryFn: async () => {
-      const response = await axios.get(`${FETCH_AVAILABLE_PODCAST}?page=${page}`);
+      const response = await axios.get(
+        `${FETCH_AVAILABLE_PODCAST}?page=${page}`,
+      );
 
-      if(response.data.totalPages){
+      if (response.data.totalPages) {
         const pages = response.data.totalPages;
         setTotalPages(pages);
         const data = response.data.podcasts;
         setAvailablePodcasts(data);
-      }else{
-
-        if(response.data.podcasts){
-           const oldData = availablePodcasts;
-           const newData = response.data.podcasts;
-           setAvailablePodcasts([...oldData, ...newData]);
-        }
-      }
-
-      return response.data.podcasts as PodcastData[];
-    },
-    enabled: !!user_token,
-  });
-
-  const {
-    refetch: progressPodcastRefetch,
-    isLoading: isProgressPodcastLoading,
-  } = useQuery({
-    queryKey: ['get-progress-podcasts', progressPage],
-    queryFn: async () => {
-      const response = await axios.get(`${FETCH_PROGRESS_PODCAST}?page=${progressPage}`);
-      if(response.data.totalPages){
-        const pages = response.data.totalPages;
-        setProgressTotalPages(pages);
-        const data = response.data.podcasts;
-        setProgressPodcasts(data);
-      }else{
-        if(response.data.podcasts){
-          const oldData = progressPodcasts;
+      } else {
+        if (response.data.podcasts) {
+          const oldData = availablePodcasts;
           const newData = response.data.podcasts;
-          setProgressPodcasts([...oldData, ...newData]);
+          setAvailablePodcasts([...oldData, ...newData]);
         }
       }
 
       return response.data.podcasts as PodcastData[];
     },
-    enabled: !!user_token,
+    enabled: !!user_token && !!isConnected,
   });
+
+  const {refetch: progressPodcastRefetch, isLoading: isProgressPodcastLoading} =
+    useQuery({
+      queryKey: ['get-progress-podcasts', progressPage],
+      queryFn: async () => {
+        const response = await axios.get(
+          `${FETCH_PROGRESS_PODCAST}?page=${progressPage}`,
+        );
+        if (response.data.totalPages) {
+          const pages = response.data.totalPages;
+          setProgressTotalPages(pages);
+          const data = response.data.podcasts;
+          setProgressPodcasts(data);
+        } else {
+          if (response.data.podcasts) {
+            const oldData = progressPodcasts;
+            const newData = response.data.podcasts;
+            setProgressPodcasts([...oldData, ...newData]);
+          }
+        }
+
+        return response.data.podcasts as PodcastData[];
+      },
+      enabled: !!user_token && !!isConnected,
+    });
 
   const handlePodcastClick = (
     item: PodcastData,
     index: number,
     reason: string,
   ) => {
+    if (!isConnected && index !== 3) {
+      Snackbar.show({
+        text: 'You are currently offline',
+        duration: Snackbar.LENGTH_SHORT,
+      });
+      return;
+    }
     // 0 -> pick podcast
     if (index === 0) {
       pickPodcastMutation.mutate(item._id);
     }
     // 3 -> View podcast details
-    if(index === 3){
-      navigateToDetails(item._id);
+    if (index === 3) {
+      navigateToDetails(item);
     }
     // 1 -> Discard podcast
     if (index === 1) {
-      discardPodcastMutation.mutate({
-        id: item._id,
-        reason: reason,
-      });
+      if(item.status === StatusEnum.UNASSIGNED){
+        Snackbar.show({
+          text:"Please pick the podcast in order to take any action",
+          duration: Snackbar.LENGTH_LONG
+
+        });
+        return;
+      }
+      setDiscardPodcastId(item._id);
+      setDiscardPodcastModal(true);
     }
     // 2 -> Approve podcast
     if (index === 2) {
@@ -113,9 +133,11 @@ export default function Podcast({navigation}: PodcastProps) {
     }
   };
 
-  const navigateToDetails = (id: string) =>{
+  const navigateToDetails = ( item: PodcastData) => {
     navigation.navigate('PodcastDetail', {
-      trackId: id,
+      trackId: item._id,
+      audioUrl: item.audio_url,
+      podcast: item
     });
   };
 
@@ -209,7 +231,7 @@ export default function Podcast({navigation}: PodcastProps) {
         {...props}
         indicatorStyle={styles.indicatorStyle}
         style={styles.tabBarStyle}
-        activeColor={BUTTON_COLOR}
+        activeColor={'black'}
         inactiveColor="#9098A3"
         labelStyle={styles.labelStyle}
         contentContainerStyle={styles.contentContainerStyle}
@@ -225,15 +247,15 @@ export default function Podcast({navigation}: PodcastProps) {
     return <Loader />;
   }
   return (
-    <View style={styles.container}>
-      <View style={[styles.innerContainer, {paddingTop: insets.top}]}>
+    <SafeAreaView style={styles.container}>
+      <View style={[styles.innerContainer]}>
         <Tabs.Container
           initialIndex={0}
           renderTabBar={renderTabBar}
           containerStyle={styles.tabsContainer}>
           {/* Availables Tab */}
-          <Tabs.Tab name="Availables">
-            <View style={{flex: 1, marginTop: hp(7)}}>
+          <Tabs.Tab name="Availables" label="Availables">
+            <View style={{flex: 1, marginTop: hp(3)}}>
               <View style={styles.reasonTabContainer}>
                 <Tabs.FlatList
                   data={availablePodcasts ? availablePodcasts : []}
@@ -241,7 +263,7 @@ export default function Podcast({navigation}: PodcastProps) {
                     item?._id?.toString() ?? index.toString()
                   }
                   refreshing={isAvailablePodcastLoading}
-                  onRefresh={()=>{
+                  onRefresh={() => {
                     setPage(1);
                     availablePodcastRefetch();
                   }}
@@ -262,17 +284,18 @@ export default function Podcast({navigation}: PodcastProps) {
                   showsVerticalScrollIndicator={false}
                   ListEmptyComponent={
                     <View style={styles.emptyContainer}>
-                      <Image
-                        source={require('../../assets/identify-audience.png')}
+                      {/* <Image
+                        source={require('../../assets/images/identify-audience.png')}
                         style={styles.image}
-                      />
+                      /> */}
+                      <MaterialIcons name="podcasts" size={hp(17)} color={'#6A89A7'} style={{marginBottom: hp(2)}} />
                       <Text style={styles.message}>
                         No podcasts available for review
                       </Text>
                     </View>
                   }
-                  onEndReached={()=>{
-                    if(page < totalPages){
+                  onEndReached={() => {
+                    if (page < totalPages) {
                       setPage(page + 1);
                     }
                   }}
@@ -283,8 +306,8 @@ export default function Podcast({navigation}: PodcastProps) {
           </Tabs.Tab>
 
           {/* Inprogress Tab */}
-          <Tabs.Tab name="Inprogress">
-            <View style={{flex: 1, marginTop: hp(7)}}>
+          <Tabs.Tab name="Inprogress" label="Inprogress">
+            <View style={{flex: 1, marginTop: hp(3)}}>
               <View style={styles.reasonTabContainer}>
                 <Tabs.FlatList
                   data={Array.isArray(progressPodcasts) ? progressPodcasts : []}
@@ -292,7 +315,7 @@ export default function Podcast({navigation}: PodcastProps) {
                     item?._id?.toString() ?? `progress-${index}`
                   }
                   refreshing={isProgressPodcastLoading}
-                  onRefresh={()=>{
+                  onRefresh={() => {
                     setProgressPage(1);
                     progressPodcastRefetch();
                   }}
@@ -313,17 +336,14 @@ export default function Podcast({navigation}: PodcastProps) {
                   showsVerticalScrollIndicator={false}
                   ListEmptyComponent={
                     <View style={styles.emptyContainer}>
-                      <Image
-                        source={require('../../assets/identify-audience.png')}
-                        style={styles.image}
-                      />
+                      <MaterialIcons name="podcasts" size={hp(17)} color={'#6A89A7'} style={{marginBottom: hp(2)}} />
                       <Text style={styles.message}>
                         No podcasts available for review
                       </Text>
                     </View>
                   }
-                  onEndReached={()=>{
-                    if(progressPage < progressTotalPages){
+                  onEndReached={() => {
+                    if (progressPage < progressTotalPages) {
                       setProgressPage(progressPage + 1);
                     }
                   }}
@@ -348,7 +368,25 @@ export default function Podcast({navigation}: PodcastProps) {
       />
     */}
 
-        <FAB
+        <DiscardReasonModal
+          visible={discardPodcastModal}
+          callback={(reason: string) => {
+            if (discardPodcastId !== '') {
+              discardPodcastMutation.mutate({
+                id: discardPodcastId,
+                reason: reason,
+              });
+            }
+            //handleClick(item, 1, reason);
+            setDiscardPodcastModal(false);
+          }}
+          dismiss={() => {
+            setDiscardPodcastId('');
+            setDiscardPodcastModal(false);
+          }}
+        />
+
+        {/* <FAB
           style={styles.fab}
           small
           icon={({size, color}) => (
@@ -357,9 +395,9 @@ export default function Podcast({navigation}: PodcastProps) {
           onPress={() => {
             // handlePresentModalPress();
           }}
-        />
+        /> */}
       </View>
-    </View>
+    </SafeAreaView>
   );
 }
 
@@ -368,8 +406,8 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    // backgroundColor: ON_PRIMARY_COLOR,
-    backgroundColor: '#ffffff',
+    backgroundColor: ON_PRIMARY_COLOR,
+    //backgroundColor: '#ffffff',
   },
   text: {
     fontSize: 20,
@@ -380,7 +418,7 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   tabsContainer: {
-    backgroundColor: '#ffffff',
+    backgroundColor: 'white',
     overflow: 'hidden',
   },
   image: {
@@ -392,14 +430,14 @@ const styles = StyleSheet.create({
   },
   scrollViewContentContainer: {
     paddingHorizontal: 16,
-    marginTop: 16,
-    //backgroundColor: ON_PRIMARY_COLOR,
-    backgroundColor: '#ffffff',
+    marginTop: 10,
+    backgroundColor: ON_PRIMARY_COLOR,
+    //backgroundColor: '#ffffff',
   },
   flatListContentContainer: {
     paddingHorizontal: 16,
-    // backgroundColor: ON_PRIMARY_COLOR,
-    backgroundColor: '#ffffff',
+    backgroundColor: ON_PRIMARY_COLOR,
+    //  backgroundColor: 'red',
   },
 
   profileImage: {
@@ -413,12 +451,12 @@ const styles = StyleSheet.create({
     backgroundColor: 'white',
   },
   tabBarStyle: {
-    backgroundColor: '#ffffff',
+    //backgroundColor: '#ffffff',
   },
   labelStyle: {
     fontWeight: '600',
     fontSize: 16,
-    color: 'black',
+    //color: 'black',
     textTransform: 'capitalize',
   },
   contentContainerStyle: {
@@ -429,11 +467,11 @@ const styles = StyleSheet.create({
     shadowOpacity: 0,
     shadowOffset: {width: 0, height: 0},
     shadowColor: 'white',
-    backgroundColor: '#ffffff',
+    backgroundColor: ON_PRIMARY_COLOR,
   },
   message: {
     fontSize: 17,
-    color: '#555',
+    color: '#6A89A7',
     fontWeight: '500',
     textAlign: 'center',
   },
@@ -459,7 +497,7 @@ const styles = StyleSheet.create({
   reasonTabContainer: {
     paddingHorizontal: wp(2),
     paddingTop: hp(2),
-    backgroundColor: '#ffffff',
+    backgroundColor: ON_PRIMARY_COLOR,
     flex: 0,
     width: '100%',
     justifyContent: 'center',

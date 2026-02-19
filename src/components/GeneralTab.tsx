@@ -7,7 +7,7 @@ import {
   Image,
 } from 'react-native';
 import React, {memo, useState} from 'react';
-import Feather from 'react-native-vector-icons/Feather';
+import {Feather} from '@expo/vector-icons';
 import {PRIMARY_COLOR} from '../helper/Theme';
 import {ProfileEditProps} from '../type';
 
@@ -84,14 +84,15 @@ const GeneralTab = ({
           <TextInput
             placeholder="Enter your userhandle"
             placeholderTextColor="#6b7280"
-            style={styles.inputControl}
+            style={[styles.inputControl, styles.inputDisabled]}
             value={userhandle}
+            editable={false}
             onChangeText={text => setUserHandle(text)}
           />
         </View>
 
-        {/* Old Password Input */}
-        <View style={styles.input}>
+       
+        {/* <View style={styles.input}>
           <Text style={styles.inputLabel}>Old Password</Text>
           <View style={styles.passwordContainer}>
             <TextInput
@@ -114,7 +115,7 @@ const GeneralTab = ({
           </View>
         </View>
 
-        {/* New Password Input */}
+      
         <View style={styles.input}>
           <Text style={styles.inputLabel}>New Password</Text>
           <View style={styles.passwordContainer}>
@@ -138,7 +139,7 @@ const GeneralTab = ({
           </View>
         </View>
 
-        {/* Confirm Password Input */}
+       
         <View style={styles.input}>
           <Text style={styles.inputLabel}>Confirm Password</Text>
           <View style={styles.passwordContainer}>
@@ -160,7 +161,7 @@ const GeneralTab = ({
               )}
             </TouchableOpacity>
           </View>
-        </View>
+        </View> */}
       </View>
 
       {/* Save Button */}
@@ -210,6 +211,11 @@ const styles = StyleSheet.create({
   },
   input: {
     width: '100%',
+  },
+    inputDisabled: {
+    backgroundColor: '#f3f4f6', // light gray
+    borderColor: '#e5e7eb',
+    color: '#6b7280', // muted text
   },
   inputLabel: {
     fontSize: 17,

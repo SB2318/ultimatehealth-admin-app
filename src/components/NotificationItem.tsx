@@ -1,6 +1,5 @@
-
-import React from 'react';
 import moment from 'moment';
+import React from 'react';
 import {
   Pressable,
   View,
@@ -10,24 +9,22 @@ import {
   Alert,
 } from 'react-native';
 import {NotificationD} from '../type';
-import {fp, hp} from '../helper/Metric';
-import MaterialCommunityIcon from 'react-native-vector-icons/MaterialCommunityIcons';
-import {BUTTON_COLOR} from '../helper/Theme';
+import {fp, hp, wp} from '../helper/Metric';
+import { MaterialIcons } from '@expo/vector-icons';
 
 export default function NotificationItem({
   item,
   handleDeleteAction,
-  handleClickAction,
+  handleClick,
 }: {
   item: NotificationD;
   handleDeleteAction: (item: NotificationD) => void;
-  handleClickAction: (item: NotificationD) => void;
+  handleClick: (item: NotificationD) => void;
 }) {
   return (
     <Pressable
       onPress={() => {
-        // handle onPress
-        handleClickAction(item);
+        handleClick(item);
       }}>
       <View style={styles.cardContainer}>
         {/* Share Icon */}
@@ -36,7 +33,7 @@ export default function NotificationItem({
           {/* title */}
           <Text style={styles.title}>{item?.title}</Text>
 
-          <Text style={styles.footerText}>
+          <Text style={styles.description}>
             {item?.message} {''}
           </Text>
           <Text style={styles.footerText}>
@@ -67,10 +64,10 @@ export default function NotificationItem({
               {cancelable: false},
             );
           }}>
-          <MaterialCommunityIcon
-            name="delete-empty-outline"
+          <MaterialIcons
+            name="delete-forever"
             size={30}
-            color={BUTTON_COLOR}
+            color={'#778599'}
             style={{alignSelf: 'center'}}
           />
         </TouchableOpacity>
@@ -86,9 +83,10 @@ const styles = StyleSheet.create({
     maxHeight: 360,
     backgroundColor: 'white',
     flexDirection: 'row',
-    marginVertical: 14,
+    marginVertical: 4,
     overflow: 'hidden',
     elevation: 4,
+    padding: wp(2.5),
 
     borderRadius: 12,
   },
@@ -124,17 +122,18 @@ const styles = StyleSheet.create({
     fontFamily: 'Lobster-Regular',
   },
   description: {
-    fontSize: fp(3),
+    fontSize: fp(4),
     fontWeight: '500',
     lineHeight: 18,
-    color: '#778599',
+   color: '#121a26',
     marginBottom: 10,
     fontFamily: 'monospace',
   },
   footerText: {
     fontSize: fp(3.3),
     fontWeight: '600',
-    color: '#121a26',
+     color: '#778599',
+    
     marginBottom: 3,
   },
 

@@ -5,161 +5,18 @@
  * @format
  */
 
-import React, {useEffect} from 'react';
-import {StatusBar, useColorScheme, View} from 'react-native';
-import {Colors} from 'react-native/Libraries/NewAppScreen';
-//import {PRIMARY_COLOR} from './src/helper/Theme';
-import {NavigationContainer} from '@react-navigation/native';
-import StackNavigation from './src/navigations/StackNavigation';
-import {SafeAreaProvider} from 'react-native-safe-area-context';
+import React from 'react';
+
 import {QueryClient, QueryClientProvider} from '@tanstack/react-query';
-import {FirebaseProvider} from './src/hooks/FirebaseContext';
-import {SocketProvider} from './src/components/SocketContext';
-import TrackPlayer, {Capability} from 'react-native-track-player';
-import PushNotification from 'react-native-push-notification';
-import messaging from '@react-native-firebase/messaging';
-import {addEventListener} from '@react-native-community/netinfo';
-import {setConnected} from './src/stores/NetworkSlice';
-import { useDispatch } from 'react-redux';
+import AppContent from './src/components/AppContent';
 
 const queryClient = new QueryClient();
+
 function App(): React.JSX.Element {
-  const isDarkMode = useColorScheme() === 'dark';
-  const backgroundStyle = {
-    backgroundColor: isDarkMode ? Colors.darker : Colors.lighter,
-  };
-
-  //const BarStyle = Platform.OS === 'ios' ? 'dark-content' : 'light-content';
-  //const navigationContainerRef = useRef();
-  const dispatch = useDispatch();
-
-  useEffect(() => {
-    return () => {
-      //unsubscribe();
-      //onOpenApp();
-    };
-  }, []);
-
-  useEffect(() => {
-    const init = async () => {
-      try {
-        await TrackPlayer.setupPlayer();
-
-        await TrackPlayer.updateOptions({
-          capabilities: [
-            Capability.Play,
-            Capability.Pause,
-            Capability.SkipToNext,
-            Capability.SkipToPrevious,
-            Capability.Stop,
-          ],
-          compactCapabilities: [Capability.Play, Capability.Pause],
-        });
-
-        console.log(' TrackPlayer initialized once');
-      } catch (e) {
-        console.log(' TrackPlayer already initialized or failed', e);
-      }
-    };
-
-    init();
-    return () => {
-      TrackPlayer.reset();
-    };
-  }, []);
-
-   useEffect(() => {
-    PushNotification.configure({
-      onRegister: (token: any) => {
-        console.log('FCM Token:', token);
-      },
-
-      onNotification: () => {
-        // Handle notification action here
-      },
-      requestPermissions: true, // Automatically request permissions on iOS
-    });
-
-    // Create notification channels (Android specific)
-    PushNotification.createChannel(
-      {
-        channelId: 'default-channel',
-        channelName: 'Default Channel',
-        channelDescription: 'UltimateHealth Notifications',
-        playSound: true,
-        soundName: 'default',
-        importance: 4,
-        vibrate: true,
-      },
-      (created: any) => console.log(`createChannel returned '${created}'`),
-    );
-    const unsubscribe = messaging().onMessage(async remoteMessage => {
-      console.log(
-        'Foreground notification received from message:',
-        remoteMessage,
-      );
-      //const data = remoteMessage.data;
-      // handleNotification(data);
-
-      PushNotification.localNotification({
-        channelId: 'default-channel',
-        title: remoteMessage?.notification?.title,
-        message: remoteMessage?.notification?.body,
-        playSound: true,
-        soundName: 'default',
-        priority: 'high',
-        visibility: 'public',
-      });
-    });
-
-    messaging().setBackgroundMessageHandler(async remoteMessage => {
-      console.log('Background notification received:', remoteMessage); 
-     // const data = remoteMessage.data;
-      //handleNotification(data);
-    });
-
-    // On app open
-
-    const unsubscribe1 = addEventListener(state => {
-      console.log('Connection type', state.type);
-      console.log('Is connected?', state.isConnected);
-      /** Dispatch use a reducer to update the value in store */
-      dispatch(setConnected(state.isConnected));
-    });
-    const onOpenApp = messaging().onNotificationOpenedApp(remoteMessage => {
-      console.log('Notification caused app to open:', remoteMessage);
-      // const data = remoteMessage.data;
-      // handleNotification(data);
-    });
-
-    return () => {
-      unsubscribe();
-      unsubscribe1();
-      onOpenApp();
-    };
-  }, [dispatch]);
 
   return (
-    <QueryClientProvider client={queryClient}>
-      <SocketProvider>
-        <FirebaseProvider>
-          <SafeAreaProvider>
-            <View
-              style={{
-                flex: 1,
-                backgroundColor: backgroundStyle.backgroundColor,
-              }}>
-              <StatusBar
-                barStyle="dark-content"
-                backgroundColor={backgroundStyle.backgroundColor}
-              />
-              <NavigationContainer>
-                <StackNavigation />
-              </NavigationContainer>
-            </View>
-          </SafeAreaProvider>
-        </FirebaseProvider>
-      </SocketProvider>
+     <QueryClientProvider client={queryClient}>
+      <AppContent/>
     </QueryClientProvider>
   );
 }

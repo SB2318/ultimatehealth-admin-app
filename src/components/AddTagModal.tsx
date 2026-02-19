@@ -6,6 +6,7 @@ import {
   Text,
   TouchableOpacity,
   Modal,
+  Pressable,
 } from 'react-native';
 import {Category, Reason} from '../type';
 
@@ -55,7 +56,7 @@ export default function AddTagModal({
       visible={visible}
       onDismiss={onDismiss}>
 
-    <View style={styles.modalContainer}>
+    <Pressable style={styles.modalContainer} onPress={onDismiss}>
       <View style={styles.container}>
         <Text style={styles.label}>
           {type === 1 ? 'Enter Tag Name' : 'Enter Reason Name'}
@@ -71,7 +72,7 @@ export default function AddTagModal({
           <Text style={styles.buttonText}>Submit</Text>
         </TouchableOpacity>
       </View>
-      </View>
+      </Pressable>
     </Modal>
   );
 }

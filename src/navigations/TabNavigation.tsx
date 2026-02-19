@@ -1,7 +1,7 @@
 import React from 'react';
 import {createBottomTabNavigator} from '@react-navigation/bottom-tabs';
 import HomeScreen from '../screens/Article';
-import {Colors} from 'react-native/Libraries/NewAppScreen';
+//import {Colors} from 'react-native/Libraries/NewAppScreen';
 import TabBar from './TabBar';
 import {TabParamList} from '../type';
 import {ON_PRIMARY_COLOR} from '../helper/Theme';
@@ -24,7 +24,7 @@ const TabNavigation = () => {
         options={{
           headerShown: false,
           headerStyle: {
-            backgroundColor: Colors.darker,
+            backgroundColor: 'black',
           },
           headerTitleStyle: {
             color: 'white',

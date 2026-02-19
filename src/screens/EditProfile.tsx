@@ -2,7 +2,6 @@ import {
   ScrollView,
   Dimensions,
   StyleSheet,
-  SafeAreaView,
   Alert,
 } from 'react-native';
 import React, {useEffect, useState} from 'react';
@@ -10,7 +9,7 @@ import React, {useEffect, useState} from 'react';
 import {ON_PRIMARY_COLOR, PRIMARY_COLOR} from '../helper/Theme';
 import {hp} from '../helper/Metric';
 import GeneralTab from '../components/GeneralTab';
-import {useSafeAreaInsets} from 'react-native-safe-area-context';
+import {SafeAreaView, useSafeAreaInsets} from 'react-native-safe-area-context';
 import {useSelector} from 'react-redux';
 import {useMutation, useQuery} from '@tanstack/react-query';
 import axios, {AxiosError} from 'axios';
@@ -29,9 +28,12 @@ import {
 import ImageResizer from '@bam.tech/react-native-image-resizer';
 import useUploadImage from '../hooks/useUploadImage';
 import APILoader from '../components/APILoader';
+import Snackbar from 'react-native-snackbar';
 
 const EditProfile = ({navigation}:EditProfileProp) => {
   const {uploadImage, loading} = useUploadImage();
+
+  const {isConnected} = useSelector((state: any) => state.network);
 
   // Get safe area insets for handling notches and status bars on device
   const insets = useSafeAreaInsets();
@@ -57,6 +59,7 @@ const EditProfile = ({navigation}:EditProfileProp) => {
 
       return response.data as Admin;
     },
+    enabled: !!isConnected && !!user_token
   });
 
   const userGeneralDetailsMutation = useMutation({
@@ -138,9 +141,9 @@ const EditProfile = ({navigation}:EditProfileProp) => {
 
   useEffect(() => {
     if (user) {
-      //console.log(user);
+     // console.log(user);
       setUserProfileImage(
-        user.Profile_avtar ? `${GET_STORAGE_DATA}/${user.Profile_avtar}` : '',
+        user.Profile_avtar ? user.Profile_avtar.startsWith('http') ? user.Profile_avtar : `${GET_STORAGE_DATA}/${user.Profile_avtar}` : '',
       );
       setUsername(user.user_name || '');
       setUserHandle(user.user_handle || '');
@@ -167,6 +170,14 @@ const EditProfile = ({navigation}:EditProfileProp) => {
   };
 
   const handleSubmitGeneralDetails = () => {
+
+    if(!isConnected){
+      Snackbar.show({
+        text: "You are currently offline",
+        duration: Snackbar.LENGTH_SHORT
+      });
+      return;
+    }
     const errorMessage = validateGeneralFields();
     const validatePassword = validateSubmitPassword();
 

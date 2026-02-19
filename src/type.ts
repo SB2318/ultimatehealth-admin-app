@@ -480,3 +480,8 @@ export type LineDataItem = {
   label: string;
   value: number;
 };
+
+export type TokenStatus = {
+  isValid: boolean;
+  message: string;
+};

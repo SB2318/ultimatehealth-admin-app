@@ -141,9 +141,9 @@ const EditProfile = ({navigation}:EditProfileProp) => {
 
   useEffect(() => {
     if (user) {
-      //console.log(user);
+     // console.log(user);
       setUserProfileImage(
-        user.Profile_avtar ? `${GET_STORAGE_DATA}/${user.Profile_avtar}` : '',
+        user.Profile_avtar ? user.Profile_avtar.startsWith('http') ? user.Profile_avtar : `${GET_STORAGE_DATA}/${user.Profile_avtar}` : '',
       );
       setUsername(user.user_name || '');
       setUserHandle(user.user_handle || '');

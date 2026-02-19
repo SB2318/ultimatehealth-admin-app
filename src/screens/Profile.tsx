@@ -109,7 +109,7 @@ const ProfileScreen = ({navigation}: ProfileScreenProps) => {
 
   return (
     <SafeAreaView style={styles.container}>
-      <View style={{ marginVertical: 10, marginHorizontal: 10}}>
+      <View style={{ marginVertical: 3, marginHorizontal: 10}}>
         <Text style={styles.btnSMText}>Your Insights</Text>
       </View>
       <View style={[styles.innerContainer]}>
@@ -231,7 +231,7 @@ const styles = StyleSheet.create({
   },
   btnSMText: {
     fontSize: wp(7),
-    lineHeight: 20,
+    //lineHeight: 20,
     fontWeight: '600',
     //color: '#374151',
     color: 'white',

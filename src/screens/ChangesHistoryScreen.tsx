@@ -8,7 +8,7 @@ import React, {useMemo, useRef} from 'react';
 import WebView from 'react-native-webview';
 import Loader from '../components/Loader';
 import {ON_PRIMARY_COLOR} from '../helper/Theme';
-import {baseHeight, height, scalePerChar} from '../helper/Metric';
+import {baseHeight, height, scalePerChar, hp} from '../helper/Metric';
 import {useSelector} from 'react-redux';
 import AutoHeightWebView from '@brown-bear/react-native-autoheight-webview';
 
@@ -59,6 +59,7 @@ export default function ChangesHistoryScreen({
         style={{
           width: Dimensions.get('window').width - 15,
           marginTop: 35,
+          marginBottom: hp(15)
         }}
         customStyle={`* { font-family: 'Times New Roman'; margin-left: 14px; } p { font-size: 16px; }`}
         onSizeUpdated={size => console.log(size.height)}

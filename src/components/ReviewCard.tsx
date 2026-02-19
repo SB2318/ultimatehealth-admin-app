@@ -226,15 +226,14 @@ export default ReviewCard;
 
 const styles = StyleSheet.create({
   cardContainer: {
-    flex: 0,
-    width: '100%',
-    maxHeight: 390,
+    //flex: 1,
+    width: '97%',
+    //maxHeight: 300,
     backgroundColor: '#ffffff',
-    flexDirection: 'row',
+    //flexDirection: 'row',
     marginVertical: 14,
     overflow: 'hidden',
     elevation: 4,
-
     borderRadius: 12,
   },
   image: {
@@ -263,7 +262,7 @@ const styles = StyleSheet.create({
     //alignItems:"center"
   },
   title: {
-    fontSize: fp(5.5),
+    fontSize: fp(7.5),
     fontWeight: 'bold',
     color: '#121a26',
     marginBottom: 4,
@@ -271,7 +270,7 @@ const styles = StyleSheet.create({
     //alignSelf: 'center',
   },
   description: {
-    fontSize: fp(3),
+    fontSize: fp(4),
     fontWeight: '600',
     lineHeight: 18,
     color: '#778599',
@@ -286,10 +285,10 @@ const styles = StyleSheet.create({
   },
 
   footerText1: {
-    fontSize: fp(3.5),
+    fontSize: fp(3.9),
     fontWeight: '600',
     color: '#121a26',
-    marginBottom: 3,
+    marginVertical: 3,
   },
 
   footerContainer: {
@@ -311,6 +310,7 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     flexDirection: 'row',
     paddingHorizontal: 2,
+    marginBottom: 10,
   },
   viewInnnerContainer: {
     justifyContent: 'flex-start',

@@ -610,6 +610,7 @@ const ReviewScreen = ({route}: ReviewScreenProp) => {
               style={{
                 width: Dimensions.get('window').width - 15,
                 marginTop: 35,
+                marginBottom: hp(15)
               }}
               customStyle={`* { font-family: 'Times New Roman'; } p { font-size: 16px; }`}
               onSizeUpdated={size => console.log(size.height)}

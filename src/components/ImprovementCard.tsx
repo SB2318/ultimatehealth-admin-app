@@ -237,17 +237,16 @@ import WebView from 'react-native-webview';
   
   const styles = StyleSheet.create({
     cardContainer: {
-      flex: 0,
-      width: '100%',
-      maxHeight: 390,
-      backgroundColor: '#ffffff',
-      flexDirection: 'row',
-      marginVertical: 14,
-      overflow: 'hidden',
-      elevation: 4,
-  
-      borderRadius: 12,
-    },
+    //flex: 1,
+    width: '97%',
+    //maxHeight: 300,
+    backgroundColor: '#ffffff',
+    //flexDirection: 'row',
+    marginVertical: 14,
+    overflow: 'hidden',
+    elevation: 4,
+    borderRadius: 12,
+  },
     image: {
       flex: 0.8,
       resizeMode: 'cover',
@@ -274,7 +273,7 @@ import WebView from 'react-native-webview';
       //alignItems:"center"
     },
     title: {
-      fontSize: fp(5.5),
+      fontSize: fp(7.5),
       fontWeight: 'bold',
       color: '#121a26',
       marginBottom: 4,
@@ -282,7 +281,7 @@ import WebView from 'react-native-webview';
       //alignSelf: 'center',
     },
     description: {
-      fontSize: fp(3),
+      fontSize: fp(4),
       fontWeight: '600',
       lineHeight: 18,
       color: '#778599',
@@ -297,7 +296,7 @@ import WebView from 'react-native-webview';
     },
   
     footerText1: {
-      fontSize: fp(3.5),
+      fontSize: fp(3.9),
       fontWeight: '600',
       color: '#121a26',
       marginBottom: 3,
@@ -322,6 +321,7 @@ import WebView from 'react-native-webview';
       justifyContent: 'space-between',
       flexDirection: 'row',
       paddingHorizontal: 2,
+      marginBottom: 10,
     },
     viewInnnerContainer: {
       justifyContent: 'flex-start',

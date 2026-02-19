@@ -68,6 +68,7 @@ const APPROVE_PODCAST = `${PROD_URL}/podcast-admin/approve`;
 const DISCARD_PODCAST = `${PROD_URL}/podcast-admin/discard`;
 const GET_PODCAST_DETAILS = `${PROD_URL}/podcast/details`;
 const GET_COMPLETED_PODCAST = `${PROD_URL}/podcast-admin/completed`;
+const GET_TOKEN_STATUS = `${PROD_URL}/tokenstatus`;
 
 
 export {
@@ -130,5 +131,6 @@ export {
     GET_COMPLETED_PODCAST,
     PROD_URL,
     CONTENT_PROD_URL,
-    SOCKET_PROD
+    SOCKET_PROD,
+    GET_TOKEN_STATUS
 };

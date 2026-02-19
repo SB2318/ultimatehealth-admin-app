@@ -1,50 +1,35 @@
-# Welcome to your Expo app 👋
+## UltimateHealth Admin
 
-This is an [Expo](https://expo.dev) project created with [`create-expo-app`](https://www.npmjs.com/package/create-expo-app).
+The admin app is the guardian of quality and compliance for the UltimateHealth platform. With smart moderation tools and seamless collaboration features, it ensures every published resource is accurate, respectful, and valuable to users around the world. 🌍💡
 
-## Get started
+## Coming in 2026 FIRST WEEK of FEB (EXAM MODE ON)
 
-1. Install dependencies
+[![Download Latest APK](https://img.shields.io/badge/Download-APK-blue.svg)](https://drive.google.com/file/d/1fP7yrtD6NpeatRw5KvDUpiC8sWJpjr9_/view?usp=sharing)
 
-   ```bash
-   npm install
-   ```
 
-2. Start the app
+<h3>📄 API DOCUMENTATION</h3>
+<a href="https://uhsocial.in/docs" target="_blank" rel="noopener noreferrer">
+  Click here to view the full API Documentation
+</a>
 
-   ```bash
-   npx expo start
-   ```
+<h3>📄 PYTHON SERVER (CONTENT CHECKER)</h3>
+<a href="https://uhsocial.in/content-intel/docs" target="_blank" rel="noopener noreferrer">
+  Click here to view the content checker API Documentation
+</a>
 
-In the output, you'll find options to open the app in a
+### 🔧 Key Features:
 
-- [development build](https://docs.expo.dev/develop/development-builds/introduction/)
-- [Android emulator](https://docs.expo.dev/workflow/android-studio-emulator/)
-- [iOS simulator](https://docs.expo.dev/workflow/ios-simulator/)
-- [Expo Go](https://expo.dev/go), a limited sandbox for trying out app development with Expo
+**Interactive Article Review Workflow:**
+Collaborate with authors and reviewers to approve, reject, or request edits on submitted health articles with clear status tracking and inline feedback.
 
-You can start developing by editing the files inside the **app** directory. This project uses [file-based routing](https://docs.expo.dev/router/introduction).
+**AI-Powered Grammar & Plagiarism Checker:**
+Automatically review article submissions for language clarity, grammar issues, and content originality to maintain the platform’s credibility.
 
-## Get a fresh project
+**Image & Logo Checker**
+Detect unauthorized or low-quality images and logos using AI validation tools — ensuring that all visuals meet ethical and quality standards.
 
-When you're ready, run:
+**Report Management System**
+Handle flagged content and investigate reports of inappropriate behavior, misinformation, or policy violations. Keep the platform safe and trustworthy.
 
-```bash
-npm run reset-project
-```
-
-This command will move the starter code to the **app-example** directory and create a blank **app** directory where you can start developing.
-
-## Learn more
-
-To learn more about developing your project with Expo, look at the following resources:
-
-- [Expo documentation](https://docs.expo.dev/): Learn fundamentals, or go into advanced topics with our [guides](https://docs.expo.dev/guides).
-- [Learn Expo tutorial](https://docs.expo.dev/tutorial/introduction/): Follow a step-by-step tutorial where you'll create a project that runs on Android, iOS, and the web.
-
-## Join the community
-
-Join our community of developers creating universal apps.
-
-- [Expo on GitHub](https://github.com/expo/expo): View our open source platform and contribute.
-- [Discord community](https://chat.expo.dev): Chat with Expo users and ask questions.
+**Secure Admin Authentication**
+Role-based access control and secure auth systems ensure sensitive operations are protected.

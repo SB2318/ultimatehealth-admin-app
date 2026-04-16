@@ -1,13 +1,6 @@
 
 <h1 align="center"> UltimateHealth Admin </h1>
 
-**Maintaining Quality and Trust in Health Information**
-
-Accurate and reliable health information is essential for informed decision-making.  
-
-**UltimateHealth Admin** is the administrative application for the UltimateHealth platform. It provides content moderators and managers with structured tools to review articles, ensure compliance with quality standards, and support a trustworthy health content ecosystem.
-
-
 <h3 align="center">
   <a href="https://git.io/typing-svg">
     <img src="https://readme-typing-svg.herokuapp.com?font=Roboto&size=22&duration=4995&pause=1000&color=006400&width=850&height=58&lines=Open-source+Health+Platform+%7C+React+Native+(Expo)+App+%2B+Node.js+Backend+%2B+MongoDB" alt="Typing SVG" />
@@ -54,6 +47,13 @@ Accurate and reliable health information is essential for informed decision-maki
   </tr>
 </table>
 </div>
+
+
+## Maintaining Quality and Trust in Health Information
+Accurate and reliable health information is essential for informed decision-making.  
+
+**UltimateHealth Admin** is the administrative application for the UltimateHealth platform. It provides content moderators and managers with structured tools to review articles, ensure compliance with quality standards, and support a trustworthy health content ecosystem.
+
 
 ### ✨ Key Features
 

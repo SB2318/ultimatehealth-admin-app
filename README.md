@@ -1,5 +1,5 @@
 
-# UltimateHealth Admin
+<h1 align="center"> UltimateHealth Admin </h1>
 
 **Maintaining Quality and Trust in Health Information**
 

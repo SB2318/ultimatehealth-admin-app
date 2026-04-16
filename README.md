@@ -1,35 +1,78 @@
-## UltimateHealth Admin
+# UltimateHealth Admin
 
-The admin app is the guardian of quality and compliance for the UltimateHealth platform. With smart moderation tools and seamless collaboration features, it ensures every published resource is accurate, respectful, and valuable to users around the world. 🌍💡
+**The Guardian of Quality & Trust in Health Information**
 
-## Coming in 2026 FIRST WEEK of FEB (EXAM MODE ON)
+In a world where health information can impact lives, accuracy, originality, and respect are non-negotiable.  
 
-[![Download Latest APK](https://img.shields.io/badge/Download-APK-blue.svg)](https://drive.google.com/file/d/1fP7yrtD6NpeatRw5KvDUpiC8sWJpjr9_/view?usp=sharing)
+**UltimateHealth Admin** is the powerful admin application for the UltimateHealth platform. It equips moderators and content managers with intelligent tools to review, validate, and maintain high standards for all published health articles and resources.
 
+<h3 align="center">
+  <a href="https://git.io/typing-svg">
+    <img src="https://readme-typing-svg.herokuapp.com?font=Roboto&size=22&duration=4995&pause=1000&color=006400&width=850&height=58&lines=Open-source+Health+Platform+%7C+React+Native+(Expo)+App+%2B+Node.js+Backend+%2B+MongoDB" alt="Typing SVG" />
+  </a>
+</h3>
 
-<h3>📄 API DOCUMENTATION</h3>
-<a href="https://uhsocial.in/docs" target="_blank" rel="noopener noreferrer">
-  Click here to view the full API Documentation
-</a>
+<div align="center">
 
-<h3>📄 PYTHON SERVER (CONTENT CHECKER)</h3>
-<a href="https://uhsocial.in/content-intel/docs" target="_blank" rel="noopener noreferrer">
-  Click here to view the content checker API Documentation
-</a>
+[![Live Web Demo](https://img.shields.io/badge/Live%20Web%20Demo-4CAF50?style=for-the-badge&logo=globe&logoColor=white)](https://uhsocial.in)
+[![Android App](https://img.shields.io/badge/Android%20App-Play%20Store-34A853?style=for-the-badge&logo=googleplay&logoColor=white)](https://play.google.com/store/apps/details?id=com.anonymous.UltimateHealth)
+[![API Docs](https://img.shields.io/badge/API%20Docs-007ACC?style=for-the-badge&logo=swagger&logoColor=white)](https://uhsocial.in/docs)
+[![Content API](https://img.shields.io/badge/Content%20API-FF6B00?style=for-the-badge&logo=python&logoColor=white)](https://uhsocial.in/content-intel/docs)
 
-### 🔧 Key Features:
+</div>
 
-**Interactive Article Review Workflow:**
-Collaborate with authors and reviewers to approve, reject, or request edits on submitted health articles with clear status tracking and inline feedback.
+<br/>
 
-**AI-Powered Grammar & Plagiarism Checker:**
-Automatically review article submissions for language clarity, grammar issues, and content originality to maintain the platform’s credibility.
+<div align="center">
+<table>
+  <tr>
+    <td align="center"><b>🧾 License</b></td>
+    <td align="center"><b>🛠️ CI</b></td>
+    <td align="center"><b>🌟 Stars</b></td>
+    <td align="center"><b>🍴 Forks</b></td>
+  </tr>
+  <tr>
+    <td align="center"><img alt="License" src="https://img.shields.io/github/license/SB2318/ultimatehealth-admin-app?style=flat&logo=github&color=success"/></td>
+    <td align="center"><img alt="CI" src="https://github.com/SB2318/ultimatehealth-admin-app/actions/workflows/frontend-ci.yml/badge.svg?style=flat&logo=github&color=success"/></td>
+    <td align="center"><img alt="Stars" src="https://img.shields.io/github/stars/SB2318/ultimatehealth-admin-app?style=flat&logo=github&color=success"/></td>
+    <td align="center"><img alt="Forks" src="https://img.shields.io/github/forks/SB2318/ultimatehealth-admin-app?style=flat&logo=github"/></td>
+  </tr>
 
-**Image & Logo Checker**
-Detect unauthorized or low-quality images and logos using AI validation tools — ensuring that all visuals meet ethical and quality standards.
+  <tr>
+    <td align="center"><b>🐛 Issues</b></td>
+    <td align="center"><b>🔄 Open PRs</b></td>
+    <td align="center"><b>✅ Closed PRs</b></td>
+    <td align="center"><b>⏱️ Last Commit</b></td>
+  </tr>
+  <tr>
+    <td align="center"><img alt="Issues" src="https://img.shields.io/github/issues/SB2318/ultimatehealth-admin-app?style=flat&logo=github"/></td>
+    <td align="center"><img alt="Open PRs" src="https://img.shields.io/github/issues-pr/SB2318/ultimatehealth-admin-app?style=flat&logo=github"/></td>
+    <td align="center"><img alt="Closed PRs" src="https://img.shields.io/github/issues-pr-closed/SB2318/ultimatehealth-admin-app?style=flat&color=critical&logo=github"/></td>
+    <td align="center"><img alt="Last Commit" src="https://img.shields.io/github/last-commit/SB2318/ultimatehealth-admin-app?style=flat&color=informational&logo=github"/></td>
+  </tr>
+</table>
+</div>
 
-**Report Management System**
-Handle flagged content and investigate reports of inappropriate behavior, misinformation, or policy violations. Keep the platform safe and trustworthy.
+### ✨ Key Features
 
-**Secure Admin Authentication**
-Role-based access control and secure auth systems ensure sensitive operations are protected.
+- **Interactive Article Review Workflow** — Approve, reject, or request revisions with inline feedback and real-time status tracking
+<!-- - **AI-Powered Content Checker** — Automated grammar correction, plagiarism detection, and quality scoring -->
+<!-- - **AI Image & Logo Validation** — Detects unauthorized, low-quality, or inappropriate visuals -->
+- **Report & Violation Management** — Efficient handling of user-flagged content and policy breaches
+- **Secure Role-Based Access Control (RBAC)** — Multi-level admin permissions and authentication
+- **Real-time Collaboration** — Built for team-based content moderation
+
+### Tech Stack
+- **Frontend**: React Native (Android + iOS), TypeScript, Tamagui
+- **Backend Services**: AWS Lightsail + S3
+- **AI/ML**: Integrated with advanced content checking engine
+- **Real-time**: Socket.IO
+
+Built to foster a trustworthy, valuable, and respectful health content ecosystem 🌍
+
+---
+
+**Part of the UltimateHealth Ecosystem**
+- Main App: [UltimateHealth](https://github.com/SB2318/UltimateHealth)
+- Backend: [ultimatehealth-backend](https://github.com/SB2318/ultimatehealth-backend)
+- Content Checker: [VeriWise-Content-Check](https://github.com/SB2318/VeriWise-Content-Check)

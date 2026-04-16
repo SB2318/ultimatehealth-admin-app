@@ -22,13 +22,11 @@
 <table>
   <tr>
     <td align="center"><b>🧾 License</b></td>
-    <td align="center"><b>🛠️ CI</b></td>
     <td align="center"><b>🌟 Stars</b></td>
     <td align="center"><b>🍴 Forks</b></td>
   </tr>
   <tr>
     <td align="center"><img alt="License" src="https://img.shields.io/github/license/SB2318/ultimatehealth-admin-app?style=flat&logo=github&color=success"/></td>
-    <td align="center"><img alt="CI" src="https://github.com/SB2318/ultimatehealth-admin-app/actions/workflows/frontend-ci.yml/badge.svg?style=flat&logo=github&color=success"/></td>
     <td align="center"><img alt="Stars" src="https://img.shields.io/github/stars/SB2318/ultimatehealth-admin-app?style=flat&logo=github&color=success"/></td>
     <td align="center"><img alt="Forks" src="https://img.shields.io/github/forks/SB2318/ultimatehealth-admin-app?style=flat&logo=github"/></td>
   </tr>

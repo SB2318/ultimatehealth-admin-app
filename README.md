@@ -46,6 +46,31 @@
 </table>
 </div>
 
+## Getting Started ⚡
+
+1. Clone the repo:
+   ```bash
+   git clone https://github.com/SB2318/ultimatehealth-admin-app.git
+   cd ultimatehealth-admin-app
+   git checkout main
+   
+2. Frontend (React Native + Expo)
+
+  ```bash
+   yarn install
+   npx expo prebuild --clean
+   npx expo run android (for android)
+   npx expo run ios (for Ios)
+ ```
+
+## :zap:Our Vision:
+
+We are committed to delivering reliable health information and comprehensive resources that empower individuals to take charge of their well-being. Our mission is to foster a healthier society by providing trustworthy, accessible, and engaging content, enabling users to make informed decisions and lead healthier lives.
+
+##  Feedback and Support:
+
+If you encounter any issues or have any feedback or suggestions, please open an issue in the Issues section of this repository. We appreciate your feedback and will respond as soon as possible.
+
 
 ## Maintaining Quality and Trust in Health Information
 Accurate and reliable health information is essential for informed decision-making.  

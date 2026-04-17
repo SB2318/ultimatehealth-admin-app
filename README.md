@@ -81,8 +81,8 @@ Accurate and reliable health information is essential for informed decision-maki
 ### ✨ Key Features
 
 - **Interactive Article Review Workflow** — Approve, reject, or request revisions with inline feedback and real-time status tracking
-<!-- - **AI-Powered Content Checker** — Automated grammar correction, plagiarism detection, and quality scoring -->
-<!-- - **AI Image & Logo Validation** — Detects unauthorized, low-quality, or inappropriate visuals -->
+- **AI-Powered Content Checker** — Automated grammar correction, plagiarism detection, and quality scoring 
+- **AI Image & Logo Validation** — Detects unauthorized, low-quality, or inappropriate visuals 
 - **Report & Violation Management** — Efficient handling of user-flagged content and policy breaches
 - **Secure Role-Based Access Control (RBAC)** — Multi-level admin permissions and authentication
 - **Real-time Collaboration** — Built for team-based content moderation

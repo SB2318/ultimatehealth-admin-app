@@ -1,12 +1,5 @@
 
-# UltimateHealth Admin
-
-**Maintaining Quality and Trust in Health Information**
-
-Accurate and reliable health information is essential for informed decision-making.  
-
-**UltimateHealth Admin** is the administrative application for the UltimateHealth platform. It provides content moderators and managers with structured tools to review articles, ensure compliance with quality standards, and support a trustworthy health content ecosystem.
-
+<h1 align="center"> UltimateHealth Admin </h1>
 
 <h3 align="center">
   <a href="https://git.io/typing-svg">
@@ -29,13 +22,11 @@ Accurate and reliable health information is essential for informed decision-maki
 <table>
   <tr>
     <td align="center"><b>🧾 License</b></td>
-    <td align="center"><b>🛠️ CI</b></td>
     <td align="center"><b>🌟 Stars</b></td>
     <td align="center"><b>🍴 Forks</b></td>
   </tr>
   <tr>
     <td align="center"><img alt="License" src="https://img.shields.io/github/license/SB2318/ultimatehealth-admin-app?style=flat&logo=github&color=success"/></td>
-    <td align="center"><img alt="CI" src="https://github.com/SB2318/ultimatehealth-admin-app/actions/workflows/frontend-ci.yml/badge.svg?style=flat&logo=github&color=success"/></td>
     <td align="center"><img alt="Stars" src="https://img.shields.io/github/stars/SB2318/ultimatehealth-admin-app?style=flat&logo=github&color=success"/></td>
     <td align="center"><img alt="Forks" src="https://img.shields.io/github/forks/SB2318/ultimatehealth-admin-app?style=flat&logo=github"/></td>
   </tr>
@@ -55,11 +46,43 @@ Accurate and reliable health information is essential for informed decision-maki
 </table>
 </div>
 
+## Getting Started ⚡
+
+1. Clone the repo:
+   ```bash
+   git clone https://github.com/SB2318/ultimatehealth-admin-app.git
+   cd ultimatehealth-admin-app
+   git checkout main
+   
+2. Frontend (React Native + Expo)
+
+  ```bash
+   yarn install
+   npx expo prebuild --clean
+   npx expo run android (for android)
+   npx expo run ios (for Ios)
+ ```
+
+## :zap:Our Vision:
+
+We are committed to delivering reliable health information and comprehensive resources that empower individuals to take charge of their well-being. Our mission is to foster a healthier society by providing trustworthy, accessible, and engaging content, enabling users to make informed decisions and lead healthier lives.
+
+##  Feedback and Support:
+
+If you encounter any issues or have any feedback or suggestions, please open an issue in the Issues section of this repository. We appreciate your feedback and will respond as soon as possible.
+
+
+## Maintaining Quality and Trust in Health Information
+Accurate and reliable health information is essential for informed decision-making.  
+
+**UltimateHealth Admin** is the administrative application for the UltimateHealth platform. It provides content moderators and managers with structured tools to review articles, ensure compliance with quality standards, and support a trustworthy health content ecosystem.
+
+
 ### ✨ Key Features
 
 - **Interactive Article Review Workflow** — Approve, reject, or request revisions with inline feedback and real-time status tracking
-<!-- - **AI-Powered Content Checker** — Automated grammar correction, plagiarism detection, and quality scoring -->
-<!-- - **AI Image & Logo Validation** — Detects unauthorized, low-quality, or inappropriate visuals -->
+- **AI-Powered Content Checker** — Automated grammar correction, plagiarism detection, and quality scoring 
+- **AI Image & Logo Validation** — Detects unauthorized, low-quality, or inappropriate visuals 
 - **Report & Violation Management** — Efficient handling of user-flagged content and policy breaches
 - **Secure Role-Based Access Control (RBAC)** — Multi-level admin permissions and authentication
 - **Real-time Collaboration** — Built for team-based content moderation

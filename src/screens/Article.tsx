@@ -12,9 +12,7 @@ import {Tabs, MaterialTabBar} from 'react-native-collapsible-tab-view';
 import {useDispatch, useSelector} from 'react-redux';
 import axios from 'axios';
 import {useMutation, useQuery} from '@tanstack/react-query';
-import AntDesign from '@expo/vector-icons/AntDesign';
 import {ArticleData, ArticleProps, Category, CategoryType} from '../type';
-import {FAB} from 'react-native-paper';
 import {
   ARTICLE_TAGS_API,
   DISCARD_ARTICLE,
@@ -29,7 +27,6 @@ import {useFocusEffect} from '@react-navigation/native';
 import {SafeAreaView, useSafeAreaInsets} from 'react-native-safe-area-context';
 import ReviewCard from '../components/ReviewCard';
 import {hp, wp} from '../helper/Metric';
-import FilterModal from '../components/FilterModal';
 import Loader from '../components/Loader';
 import Snackbar from 'react-native-snackbar';
 import {BottomSheetModal} from '@gorhom/bottom-sheet';
@@ -81,11 +78,7 @@ export default function HomeScreen({navigation}: ArticleProps) {
   const [totalProgressPage, setTotalProgressPage] = useState(0);
   //const bottomBarHeight = useBottomTabBarHeight();
   const bottomSheetModalRef = useRef<BottomSheetModal>(null);
-  const insets = useSafeAreaInsets();
 
-  const handlePresentModalPress = useCallback(() => {
-    bottomSheetModalRef.current?.present();
-  }, []);
 
   const getAllCategories = useCallback(async () => {
     const {data: categoryData} = await axios.get(
@@ -221,7 +214,7 @@ export default function HomeScreen({navigation}: ArticleProps) {
       return res.data as any;
     },
 
-    onSuccess: d => {
+    onSuccess: () => {
       // show snackbar
       Snackbar.show({
         text: 'Article discarded',
@@ -246,7 +239,7 @@ export default function HomeScreen({navigation}: ArticleProps) {
       return res.data as any;
     },
 
-    onSuccess: d => {
+    onSuccess: () => {
       Snackbar.show({
         text: 'You have unassign yourself successfully',
         duration: Snackbar.LENGTH_SHORT,
@@ -264,51 +257,8 @@ export default function HomeScreen({navigation}: ArticleProps) {
     setSelectedCategory(null);
   };
 
-  const handleCategorySelection = (category: CategoryType['name']) => {
-    // Update Redux State
-    setSelectCategoryList(prevList => {
-      const updatedList = prevList.includes(category)
-        ? prevList.filter(item => item !== category)
-        : [...prevList, category];
-      return updatedList;
-    });
-  };
 
-  const handleFilterReset = () => {
-    // Update Redux State Variables
-    setSelectCategoryList([]);
-    setSortingType('');
-    dispatch(
-      setSelectedTags({
-        selectedTags: articleCategories.map(category => category.name),
-      }),
-    );
-    dispatch(setSortType({sortType: ''}));
-    dispatch(setFilterMode({filterMode: false}));
 
-    dispatch(
-      setFilteredAvailableArticles({filteredArticles: availableArticles}),
-    );
-    dispatch(setFilteredProgressArticles({filteredArticles: progressArticles}));
-  };
-
-  const handleFilterApply = () => {
-    // Update Redux State Variables
-    console.log('Handle filter apply called');
-    if (selectCategoryList.length > 0) {
-      dispatch(setSelectedTags({selectedTags: selectCategoryList}));
-    } else {
-      dispatch(
-        setSelectedTags({
-          selectedTags: articleCategories.map(category => category.name),
-        }),
-      );
-    }
-
-    dispatch(setSortType({sortType: sortingType}));
-    dispatch(setFilterMode({filterMode: true}));
-    updateArticles();
-  };
 
   const updateAvailableArticles = (articleData: ArticleData[]) => {
     if (!articleData) {
@@ -448,7 +398,7 @@ export default function HomeScreen({navigation}: ArticleProps) {
           isSelected={selectedCardId === item._id}
           setSelectedCardId={setSelectedCardId}
           //navigation={navigation}
-          onclick={(item, index, reason) => {
+          onclick={(item, index) => {
             if (index === 0) {
               // Pick article
               if (isConnected) {

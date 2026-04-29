@@ -1,19 +1,26 @@
 {
   "expo": {
-    "name": "UHealth-Admin",
-    "slug": "UHealth-Admin",
+    "name": "UltimateHealth-Admin",
+    "slug": "UltimateHealth-Admin",
     "version": "1.1.0",
     "orientation": "portrait",
-    "icon": "./assets/images/icon.png",
-    "scheme": "uhealth-admin",
+    "icon": "./assets/images/ic_uth_admin-playstore.png",
+    "scheme": "ultimatehealth-admin",
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
     "androidStatusBar": {
       "backgroundColor": "#00BFFF",
       "barStyle": "light-content"
     },
+    "splash": {
+      "image": "./assets/images/ic_uth_admin-playstore.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#E6F4FE"
+    },
     "ios": {
       "supportsTablet": true,
+      "bundleIdentifier": "com.ultimatehealth.admin",
+      "googleServicesFile": "./GoogleService-Info.plist",
       "infoPlist": {
         "NSMicrophoneUsageDescription": "App requires microphone access to record audio.",
         "NSPhotoLibraryAddUsageDescription": "App needs access to save recordings.",
@@ -41,9 +48,8 @@
       "googleServicesFile": "./google-services.json",
       "adaptiveIcon": {
         "backgroundColor": "#E6F4FE",
-        "foregroundImage": "./assets/images/adaptive-icon.png",
-        "backgroundImage": "./assets/images/adaptive-icon.png",
-        "monochromeImage": "./assets/images/adaptive-icon.png"
+        "foregroundImage": "./assets/images/ic_launcher_foreground.png",
+        "backgroundImage": "./assets/images/ic_launcher_background.png"
       },
       "edgeToEdgeEnabled": true,
       "predictiveBackGestureEnabled": false,
@@ -61,8 +67,9 @@
       [
         "expo-splash-screen",
         {
-          "image": "./assets/images/icon.png",
+          "image": "./assets/images/ic_uth_admin-playstore.png",
           "imageWidth": 150,
+          "borderRadius": 75,
           "resizeMode": "contain",
           "backgroundColor": "#00BFFF",
           "dark": {
@@ -70,6 +77,7 @@
           }
         }
       ],
+
       [
         "expo-audio",
         {

@@ -468,6 +468,7 @@ export default function ReportScreen({navigation}) {
         <AddTagModal
           type={2}
           reason={selectedReason}
+          mode={selectedReason ? 'edit' : 'add'}
           tag={null}
           visible={addTagModalVisible}
           onTagChange={() => {}}

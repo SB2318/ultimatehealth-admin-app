@@ -701,6 +701,7 @@ export default function HomeScreen({navigation}: ArticleProps) {
 
         <AddTagModal
           type={1}
+          mode={selectedCategory ? 'edit' : 'add'}
           reason={null}
           tag={selectedCategory}
           visible={addTagModalVisible}

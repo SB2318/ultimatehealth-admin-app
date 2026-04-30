@@ -33,6 +33,7 @@ import {
   GET_ARTICLE_BY_ID,
   GET_ARTICLE_CONTENT,
   GET_PROFILE_API,
+  GET_STORAGE_DATA,
   PUBLISH_ARTICLE,
 } from '../helper/APIUtils';
 import {hp, wp} from '../helper/Metric';
@@ -141,11 +142,10 @@ const ReviewScreen = ({route}: ReviewScreenProp) => {
   };
 
   const handleCheckCopyright = () => {
-
-     Alert.alert(
-      "Check Image Copyright",
-      "Image copyright feature is coming soon!",
-     );
+    Alert.alert(
+      'Check Image Copyright',
+      'Image copyright feature is coming soon!',
+    );
     // if (article && article.imageUtils) {
     //   Alert.alert(
     //     'Image Copyright Check',
@@ -159,7 +159,6 @@ const ReviewScreen = ({route}: ReviewScreenProp) => {
     //         text: 'OK',
     //         onPress: async () => {
 
-              
     //           try {
     //             setCopyrightProgressVisible(true);
 
@@ -372,6 +371,9 @@ const ReviewScreen = ({route}: ReviewScreenProp) => {
     },
   });
 
+  const bannerImage = article?.imageUtils?.[0]?.startsWith('http')
+    ? article.imageUtils[0]
+    : `${GET_STORAGE_DATA}/${article?.imageUtils?.[0] ?? ''}`;
   if (
     copyrightProgressVisible ||
     plagiarismCheckMutation.isPending ||
@@ -410,7 +412,7 @@ const ReviewScreen = ({route}: ReviewScreenProp) => {
         <View style={styles.imageContainer}>
           {article && article?.imageUtils && article?.imageUtils.length > 0 ? (
             <Image
-              source={{uri: article?.imageUtils[0]}}
+              source={{uri: bannerImage}}
               style={styles.image}
             />
           ) : (
@@ -467,15 +469,14 @@ const ReviewScreen = ({route}: ReviewScreenProp) => {
                 onPress={() => {
                   // Grammar checker
 
-                  if(isConnected){
-                   grammarCheckMutation.mutate();
-                  }else{
+                  if (isConnected) {
+                    grammarCheckMutation.mutate();
+                  } else {
                     Snackbar.show({
-                      text: "You are currently offline",
-                      duration: Snackbar.LENGTH_SHORT
+                      text: 'You are currently offline',
+                      duration: Snackbar.LENGTH_SHORT,
                     });
                   }
-                  
                 }}
                 style={[
                   styles.playButton,
@@ -500,15 +501,14 @@ const ReviewScreen = ({route}: ReviewScreenProp) => {
               <TouchableOpacity
                 onPress={() => {
                   // Palagrism Checker
-                  if(isConnected){
-                     plagiarismCheckMutation.mutate();
-                  }else{
+                  if (isConnected) {
+                    plagiarismCheckMutation.mutate();
+                  } else {
                     Snackbar.show({
-                      text: "You are currently offline",
-                      duration: Snackbar.LENGTH_SHORT
+                      text: 'You are currently offline',
+                      duration: Snackbar.LENGTH_SHORT,
                     });
                   }
-                  
                 }}
                 style={[
                   styles.plaButton,
@@ -610,7 +610,7 @@ const ReviewScreen = ({route}: ReviewScreenProp) => {
               style={{
                 width: Dimensions.get('window').width - 15,
                 marginTop: 35,
-                marginBottom: hp(15)
+                marginBottom: hp(15),
               }}
               customStyle={`* { font-family: 'Times New Roman'; } p { font-size: 16px; }`}
               onSizeUpdated={size => console.log(size.height)}
@@ -641,7 +641,7 @@ const ReviewScreen = ({route}: ReviewScreenProp) => {
             <TextArea
               placeholder="Submit your feedback"
               value={feedback}
-              onChangeText={setFeedback}
+              onChangeText={(text) => setFeedback(text.nativeEvent.text)}
               multiline
               height={hp(19)}
               fontSize={wp(4.8)}
@@ -649,7 +649,7 @@ const ReviewScreen = ({route}: ReviewScreenProp) => {
               paddingHorizontal={12}
               borderRadius={8}
               borderWidth={1.5}
-              color='#000'
+              color="#000"
               borderColor={PRIMARY_COLOR}
               backgroundColor="#fff"
               textAlignVertical="top"

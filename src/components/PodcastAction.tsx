@@ -1,5 +1,6 @@
+import React from 'react';
 import {Check, CheckCircle, XCircle} from '@tamagui/lucide-icons';
-import {Button, SizableText, XStack, YStack} from 'tamagui';
+import {Button, SizableText, XStack, YStack, Separator} from 'tamagui';
 import {hp, wp} from '../helper/Metric';
 import {StatusEnum} from '../helper/Utils';
 
@@ -21,65 +22,74 @@ export const ActionButtonBar = ({
   discard,
 }: ActionProps) => {
   return (
-    <XStack
+    <YStack
       position="absolute"
-      bottom={hp(10)}
-      left={wp(6)}
-      right={wp(6)}
-      backgroundColor="$backgroundStrong"
-      padding="$4"
-      borderRadius="$10"
-      justifyContent="space-around"
-      alignItems="center"
-      elevation="$5"
+      bottom={hp(3)}
+      left={wp(5)}
+      right={wp(5)}
+      backgroundColor="$background"
+      borderRadius={20}
+      padding={hp(2)}
+      elevation={12}
       borderWidth={1}
-      borderColor="$borderColor">
-      {status === StatusEnum.REVIEW_PENDING && (
-        <ActionButton
-          icon={<Check size="$4" color="$green10" />}
-          label="PICK"
-          color="$green10"
-          click={pick}
-        />
-      )}
+      borderColor="$borderColor"
+      shadowColor="#000"
+      shadowOffset={{width: 0, height: 8}}
+      shadowOpacity={0.12}
+      shadowRadius={20}>
+      
+      {/* Subtle Separator at Top */}
+      <Separator marginBottom={hp(1.5)} />
 
-      {status !== StatusEnum.REVIEW_PENDING &&
-        status !== StatusEnum.PUBLISHED &&
-        admin_id === user_id && (
-          <ActionButton
-            icon={<CheckCircle size="$2" color="$blue10" />}
-            label="APPROVED"
-            color="$blue10"
-            click={approve}
-          />
-        )}
-
-      {status !== StatusEnum.REVIEW_PENDING &&
-        status !== StatusEnum.PUBLISHED &&
-        admin_id === user_id && (
-          <ActionButton
-            icon={<XCircle size="$2" color="$red10" />}
-            label="DISCARD"
-            color="$red10"
-            click={discard}
-          />
-        )}
-
-      {status === StatusEnum.PUBLISHED && (
+      {status === StatusEnum.PUBLISHED ? (
         <SizableText
-          size="$3"
+          size="$4"
           color="$gray10"
           textAlign="center"
-          fontWeight="600">
-          This content is live and no further action is required.
+          fontWeight="600"
+          paddingVertical={hp(1)}>
+          This content is already published. No further action needed.
         </SizableText>
+      ) : (
+        <XStack justifyContent="space-around" alignItems="center" gap={wp(2)}>
+          {/* Pick Button - Only for Review Pending */}
+          {status === StatusEnum.REVIEW_PENDING && (
+            <ActionButton
+              icon={<Check size={28} color="#10B981" />}
+              label="PICK"
+              color="#10B981"
+              click={pick}
+            />
+          )}
+
+          {/* Approve & Discard - For Assigned Content */}
+          {status !== StatusEnum.REVIEW_PENDING &&
+            status !== StatusEnum.PUBLISHED &&
+            admin_id === user_id && (
+              <>
+                <ActionButton
+                  icon={<CheckCircle size={28} color="#3B82F6" />}
+                  label="APPROVE"
+                  color="#3B82F6"
+                  click={approve}
+                />
+
+                <ActionButton
+                  icon={<XCircle size={28} color="#EF4444" />}
+                  label="DISCARD"
+                  color="#EF4444"
+                  click={discard}
+                />
+              </>
+            )}
+        </XStack>
       )}
-    </XStack>
+    </YStack>
   );
 };
 
 type ActionButtonProps = {
-  icon: any;
+  icon: React.ReactNode;
   label: string;
   color: string;
   click: () => void;
@@ -87,19 +97,29 @@ type ActionButtonProps = {
 
 const ActionButton = ({icon, label, color, click}: ActionButtonProps) => {
   return (
-    <YStack alignItems="center" gap="$1">
+    <YStack alignItems="center" gap="$2">
       <Button
         circular
-        size="$5"
-        backgroundColor="$backgroundTransparent"
-        icon={icon}
-        onPress={click}
-        borderWidth={2}
+        size="$6"
+        backgroundColor="white"
+        borderWidth={2.5}
         borderColor={color}
-        pressStyle={{opacity: 0.7, scale: 0.95}}
-        scaleIcon={1.2}
-      />
-      <SizableText size="$1" fontWeight="700" color={color}>
+        pressStyle={{scale: 0.92, opacity: 0.85}}
+        onPress={click}
+        elevation={4}
+        shadowColor={color}
+        shadowOffset={{width: 0, height: 3}}
+        shadowOpacity={0.2}
+        shadowRadius={8}>
+        {icon}
+      </Button>
+
+      <SizableText
+        size="$3"
+        fontWeight="700"
+        color={color}
+        textTransform="uppercase"
+        letterSpacing={0.5}>
         {label}
       </SizableText>
     </YStack>

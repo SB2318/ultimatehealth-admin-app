@@ -390,6 +390,7 @@ export default function HomeScreen({navigation}: ArticleProps) {
     dispatch(setFilteredProgressArticles({filteredArticles: filterProgress}));
   };
 
+  
   const renderItem = useCallback(
     ({item}: {item: ArticleData}) => {
       return (

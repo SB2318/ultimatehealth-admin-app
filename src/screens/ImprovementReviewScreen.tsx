@@ -25,6 +25,7 @@ import {
   GET_IMPROVEMENT_BY_ID,
   GET_IMPROVEMENT_CONTENT,
   GET_PROFILE_API,
+  GET_STORAGE_DATA,
   PUBLISH_IMPROVEMENT,
   PUBLISH_IMPROVEMENT_POCKETBASE,
 } from '../helper/APIUtils';
@@ -191,11 +192,10 @@ const ImprovementReviewScreen = ({
   };
 
   const handleCheckCopyright = () => {
-
-      Alert.alert(
-          "Check Image Copyright",
-          "Image copyright feature is coming soon!",
-         );
+    Alert.alert(
+      'Check Image Copyright',
+      'Image copyright feature is coming soon!',
+    );
     // if (improvement && improvement.imageUtils) {
     //   Alert.alert(
     //     'Image Copyright Check',
@@ -472,6 +472,10 @@ const ImprovementReviewScreen = ({
     setPublishToolTip(false);
   };
 
+  const bannerImage = improvement?.article?.imageUtils?.[0]?.startsWith('http')
+    ? improvement.article.imageUtils[0]
+    : `${GET_STORAGE_DATA}/${improvement?.article?.imageUtils?.[0] ?? ''}`;
+
   if (
     copyrightProgressVisible ||
     grammarCheckMutation.isPending ||
@@ -498,7 +502,7 @@ const ImprovementReviewScreen = ({
           improvement.article?.imageUtils &&
           improvement.article?.imageUtils.length > 0 ? (
             <Image
-              source={{uri: improvement.article?.imageUtils[0]}}
+              source={{uri: bannerImage}}
               style={styles.image}
             />
           ) : (
@@ -660,7 +664,7 @@ const ImprovementReviewScreen = ({
               style={{
                 width: Dimensions.get('window').width - 15,
                 marginTop: 35,
-                 marginBottom: hp(15)
+                marginBottom: hp(15),
               }}
               customStyle={`* { font-family: 'Times New Roman'; } p { font-size: 16px; }`}
               onSizeUpdated={size => console.log(size.height)}
@@ -738,7 +742,7 @@ const ImprovementReviewScreen = ({
             <TextArea
               placeholder="Submit your feedback"
               value={feedback}
-              color='#000'
+              color="#000"
               onChangeText={setFeedback}
               multiline
               height={hp(19)}

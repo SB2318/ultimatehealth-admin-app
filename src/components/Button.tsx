@@ -1,3 +1,4 @@
+import React from "react";
 import { View, TouchableOpacity, Text, StyleSheet } from "react-native";
 import { fp, hp, wp } from "../helper/Metric";
 import { PRIMARY_COLOR } from "../helper/Theme";

@@ -1,14 +1,20 @@
-import {StyleSheet, Text, TouchableOpacity, View} from 'react-native';
 import React, {useCallback, useMemo} from 'react';
+import {
+  View,
+  Text,
+  TouchableOpacity,
+  StyleSheet,
+  Platform,
+} from 'react-native';
 import {
   BottomSheetModal,
   BottomSheetFlatList,
   BottomSheetBackdrop,
 } from '@gorhom/bottom-sheet';
 import MaterialIcons from '@expo/vector-icons/MaterialIcons';
-import {HomeScreenCategoriesFlatlistProps} from '../type';
+import {Category, HomeScreenCategoriesFlatlistProps} from '../type';
 import {BUTTON_COLOR, ON_PRIMARY_COLOR} from '../helper/Theme';
-import {hp} from '../helper/Metric';
+import {hp, wp} from '../helper/Metric';
 
 const CategoriesFlatlistModal = ({
   bottomSheetModalRef2,
@@ -18,55 +24,48 @@ const CategoriesFlatlistModal = ({
 }: HomeScreenCategoriesFlatlistProps) => {
   
   const renderBackdrop = useCallback(
-    props => (
+    (props: any) => (
       <BottomSheetBackdrop
         {...props}
         disappearsOnIndex={0}
         appearsOnIndex={1}
+        opacity={0.7}
       />
     ),
     [],
   );
 
-  // Define snap points for the bottom sheet
-  const snapPoints = useMemo(() => ['25%', '70%', '90%'], []);
+  const snapPoints = useMemo(() => ['25%', '68%', '92%'], []);
 
-  // Function to render each category item
   const renderItem = useCallback(
-    ({item}) => (
-      <TouchableOpacity
-        style={[
-          styles.item,
-          {
-            backgroundColor: selectCategoryList.includes(item?.name)
-              ? BUTTON_COLOR
-              : 'white',
-          },
-        ]}
-        onPress={() => {
-          handleCategorySelection(item?.name);
-        }}>
-        <Text
+    ({item}: {item: any}) => {
+      const isSelected = selectCategoryList.includes(item?.name);
+
+      return (
+        <TouchableOpacity
           style={[
-            styles.itemText,
-            {
-              color: selectCategoryList.includes(item?.name)
-                ? 'white'
-                : '#1F2024',
-            },
-          ]}>
-          {item?.name}
-        </Text>
-        {selectCategoryList.includes(item?.name) && (
-          <MaterialIcons name="check" size={26} color={'white'} />
-        )}
-      </TouchableOpacity>
-    ),
+            styles.item,
+            isSelected && styles.itemSelected,
+          ]}
+          activeOpacity={0.85}
+          onPress={() => handleCategorySelection(item?.name)}
+        >
+          <Text style={[styles.itemText, isSelected && styles.itemTextSelected]}>
+            {item?.name}
+          </Text>
+          
+          {isSelected && (
+            <View style={styles.checkContainer}>
+              <MaterialIcons name="check-circle" size={26} color="white" />
+            </View>
+          )}
+        </TouchableOpacity>
+      );
+    },
     [handleCategorySelection, selectCategoryList],
   );
 
-  // Function to close the bottom sheet modal
-  const handleDismissModalPress = useCallback(() => {
+  const handleDismiss = useCallback(() => {
     bottomSheetModalRef2.current?.close();
   }, [bottomSheetModalRef2]);
 
@@ -77,23 +76,29 @@ const CategoriesFlatlistModal = ({
       index={1}
       backdropComponent={renderBackdrop}
       enablePanDownToClose={true}
-      style={{backgroundColor: ON_PRIMARY_COLOR}}>
+      backgroundStyle={styles.bottomSheetBackground}
+      handleIndicatorStyle={styles.handleIndicator}
+    >
+      {/* Modern Header */}
       <View style={styles.header}>
-        <View style={styles.headerLeft}>
-          <TouchableOpacity
-            style={styles.headerButton}
-            onPress={handleDismissModalPress}>
-            <MaterialIcons name="arrow-back" size={26} color={'black'} />
-          </TouchableOpacity>
-        </View>
-        <Text style={styles.title}>Category</Text>
+        <TouchableOpacity
+          style={styles.backButton}
+          onPress={handleDismiss}
+          hitSlop={{top: 12, bottom: 12, left: 12, right: 12}}
+        >
+          <MaterialIcons name="arrow-back-ios" size={24} color={BUTTON_COLOR} />
+        </TouchableOpacity>
+
+        <Text style={styles.title}>Select Categories</Text>
       </View>
+
+      {/* List */}
       <BottomSheetFlatList
         data={categories}
-        keyExtractor={item => item.id.toString()}
+        keyExtractor={(item: Category) => item.id.toString()}
         renderItem={renderItem}
         contentContainerStyle={styles.contentContainer}
-        contentInsetAdjustmentBehavior={'always'}
+        showsVerticalScrollIndicator={false}
         extraData={selectCategoryList}
       />
     </BottomSheetModal>
@@ -102,56 +107,92 @@ const CategoriesFlatlistModal = ({
 
 export default CategoriesFlatlistModal;
 
-// Styles for the component
 const styles = StyleSheet.create({
+  bottomSheetBackground: {
+    backgroundColor: ON_PRIMARY_COLOR,
+    borderTopLeftRadius: 24,
+    borderTopRightRadius: 24,
+  },
+
+  handleIndicator: {
+    width: 42,
+    height: 5,
+    backgroundColor: '#D1D5DB',
+    borderRadius: 10,
+    marginTop: 8,
+  },
+
   header: {
-    position: 'relative',
     flexDirection: 'row',
-    justifyContent: 'center',
     alignItems: 'center',
-    paddingHorizontal: 16,
-    paddingVertical: 10,
+    paddingHorizontal: wp(5),
+    paddingVertical: hp(2),
     borderBottomWidth: 1,
-    borderBottomColor: '#ccc',
-    width: '100%',
+    borderBottomColor: '#F1F1F1',
   },
-  headerLeft: {
-    position: 'absolute',
-    width: '100%',
-    flexDirection: 'row',
-    justifyContent: 'flex-start',
-    alignItems: 'center',
-    left: 10,
+
+  backButton: {
+    padding: 8,
+    marginLeft: -8,
   },
-  headerButton: {
-    zIndex: 12,
-  },
+
   title: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    color: '#1d1d1d',
-    textAlign: 'center',
+    fontSize: 20,
+    fontWeight: '700',
+    color: "#1F2024",
+    marginLeft: 12,
   },
+
   contentContainer: {
-    paddingTop: 8,
-    backgroundColor: 'white',
-    paddingBottom: 10,
-    paddingHorizontal: 16,
+    paddingHorizontal: wp(5),
+    paddingTop: hp(1),
+    paddingBottom: hp(4),
   },
+
   item: {
-    borderWidth: 0.5,
-    borderRadius: 15,
-    //paddingVertical: 16,
-    paddingVertical: hp(1.2),
-    paddingHorizontal: 15,
-    marginBottom: 10,
-    borderColor: '#C5C6CC',
+    backgroundColor: '#FFFFFF',
+    paddingVertical: hp(2.2),
+    paddingHorizontal: wp(5),
+    marginBottom: hp(1.2),
+    borderRadius: 16,
+    borderWidth: 1.2,
+    borderColor: '#E5E7EB',
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
+    ...Platform.select({
+      ios: {
+        shadowColor: '#000',
+        shadowOffset: {width: 0, height: 2},
+        shadowOpacity: 0.06,
+        shadowRadius: 8,
+      },
+      android: {
+        elevation: 3,
+      },
+    }),
   },
+
+  itemSelected: {
+    backgroundColor: BUTTON_COLOR,
+    borderColor: BUTTON_COLOR,
+  },
+
   itemText: {
-    fontSize: 18,
-    fontWeight: 'regular',
+    fontSize: 17,
+    fontWeight: '500',
+    color: '#1F2024',
+    flex: 1,
+  },
+
+  itemTextSelected: {
+    color: 'white',
+    fontWeight: '600',
+  },
+
+  checkContainer: {
+    backgroundColor: 'rgba(255,255,255,0.25)',
+    borderRadius: 50,
+    padding: 2,
   },
 });

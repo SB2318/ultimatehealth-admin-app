@@ -1,4 +1,4 @@
-import { useRef, useState } from 'react'
+import React, { useRef, useState } from 'react'
 import { RichEditor, RichToolbar, actions } from 'react-native-pell-rich-editor'
 import { Entypo, Ionicons } from '@expo/vector-icons'
 import { YStack, XStack, Text, Button, Separator } from 'tamagui'

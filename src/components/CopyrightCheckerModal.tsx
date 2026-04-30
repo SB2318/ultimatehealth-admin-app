@@ -1,3 +1,4 @@
+import React from 'react';
 import {
   Modal,
   View,
@@ -9,7 +10,6 @@ import {
   Image,
 } from 'react-native';
 import {CopyrightCheckerProps, CopyrightCheckerResponse} from '../type';
-import React from 'react';
 
 const screenWidth = Dimensions.get('window').width;
 
@@ -19,91 +19,99 @@ export default function CopyrightCheckerModal({
   data,
 }: CopyrightCheckerProps) {
   const renderItem = ({item}: {item: CopyrightCheckerResponse}) => {
-    const {copyrighted_content, copyright_found, image_url, extracted_text} =
-      item;
+    const {copyrighted_content, copyright_found, image_url, extracted_text} = item;
 
     return (
       <View style={styles.card}>
+        {/* Image Header */}
         <Text style={styles.imageTitle}>
-          Image: {image_url.split('/').pop()}
+          {image_url.split('/').pop() || 'Uploaded Image'}
         </Text>
+
         <Image
           source={{uri: image_url}}
           style={styles.image}
           resizeMode="cover"
         />
+
+        {/* Result Section */}
         {copyright_found ? (
           <View style={styles.resultContainer}>
-            <Text style={styles.foundText}>⚠️ Copyrighted Content Found</Text>
+            <View style={styles.statusRow}>
+              <Text style={styles.foundIcon}>⚠️</Text>
+              <Text style={styles.foundText}>Copyright Violation Detected</Text>
+            </View>
 
-            <Text style={styles.contentText}>
-              Extracted Text: {extracted_text}
-            </Text>
             {copyrighted_content.length > 0 ? (
               copyrighted_content.map((it, idx) => (
-                <React.Fragment key={idx}>
-                  <Text style={styles.contentText}>Text: {it.text}</Text>
+                <View key={idx} style={styles.matchItem}>
+                  <Text style={styles.contentLabel}>Matched Text:</Text>
+                  <Text style={styles.contentText}>{it.text}</Text>
                   <Text style={styles.confidenceText}>
-                    Confidence: {parseFloat(it.confidence).toFixed(2)}
+                    Confidence: {parseFloat(it.confidence).toFixed(1)}%
                   </Text>
-                </React.Fragment>
+                </View>
               ))
             ) : (
-              <>
-                <Text style={styles.noContent}>
-                  No copyrighted content found.
-                </Text>
-                <Text style={styles.contentText}>
-                  Extracted Text: {extracted_text}
-                </Text>
-              </>
+              <Text style={styles.contentText}>
+                Extracted Text: {extracted_text || 'N/A'}
+              </Text>
             )}
           </View>
         ) : (
-          <React.Fragment>
-            <Text style={styles.noContent}>✅ No Copyright Detected</Text>
+          <View style={styles.safeContainer}>
+            <View style={styles.statusRow}>
+              <Text style={styles.safeIcon}>✅</Text>
+              <Text style={styles.safeText}>No Copyright Issues Found</Text>
+            </View>
 
-            <View style={styles.extractionSection}>
-              <Text style={styles.extractionLabel}>
-                📝 Extracted Information:
-              </Text>
+            <View style={styles.extractionBox}>
+              <Text style={styles.extractionLabel}>Extracted Text</Text>
               <Text style={styles.extractedText}>
-                {extracted_text || 'N/A'}
+                {extracted_text || 'No text extracted'}
               </Text>
             </View>
-          </React.Fragment>
+          </View>
         )}
       </View>
     );
   };
+
   return (
-    <Modal visible={isVisible} transparent animationType="slide">
+    <Modal visible={isVisible} transparent animationType="fade">
       <View style={styles.overlay}>
         <View style={styles.modalContainer}>
-          <Text style={styles.modalTitle}>Copyright Checker Results</Text>
+          {/* Header */}
+          <View style={styles.header}>
+            <Text style={styles.modalTitle}>Copyright Checker Results</Text>
+            <TouchableOpacity onPress={onClose} style={styles.closeIcon}>
+              <Text style={styles.closeIconText}>✕</Text>
+            </TouchableOpacity>
+          </View>
 
+          {/* Disclaimer */}
           <Text style={styles.disclaimerText}>
-            ⚠️ Disclaimer: The copyright check is based on information we found from
-  the image. If you notice any mismatch or have a more accurate result,
-  please rely on your judgment. Final selection is always your own
-  responsibility.
+            This check is AI-assisted. Always verify results manually before final
+            decisions.
           </Text>
 
           {data.length === 0 ? (
             <View style={styles.emptyContainer}>
-              <Text style={styles.emptyText}>No images to display.</Text>
+              <Text style={styles.emptyText}>No images processed yet.</Text>
             </View>
           ) : (
             <FlatList
               data={data}
               keyExtractor={(item, index) => index.toString()}
               renderItem={renderItem}
-              contentContainerStyle={{paddingBottom: 20}}
+              showsVerticalScrollIndicator={false}
+              contentContainerStyle={styles.listContent}
             />
           )}
 
+          {/* Close Button */}
           <TouchableOpacity style={styles.closeButton} onPress={onClose}>
-            <Text style={styles.closeButtonText}>Close</Text>
+            <Text style={styles.closeButtonText}>Close Report</Text>
           </TouchableOpacity>
         </View>
       </View>
@@ -114,116 +122,183 @@ export default function CopyrightCheckerModal({
 const styles = StyleSheet.create({
   overlay: {
     flex: 1,
-    backgroundColor: 'rgba(0,0,0,0.6)',
+    backgroundColor: 'rgba(0, 0, 0, 0.75)',
     justifyContent: 'center',
     alignItems: 'center',
   },
   modalContainer: {
     backgroundColor: '#fff',
-    width: screenWidth * 0.95,
-    borderRadius: 10,
-    padding: 20,
-    maxHeight: '80%',
+    width: screenWidth * 0.94,
+    maxHeight: '88%',
+    borderRadius: 20,
+    overflow: 'hidden',
+    shadowColor: '#000',
+    shadowOffset: {width: 0, height: 10},
+    shadowOpacity: 0.25,
+    shadowRadius: 20,
+    elevation: 15,
+  },
+  header: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingHorizontal: 20,
+    paddingVertical: 18,
+    borderBottomWidth: 1,
+    borderBottomColor: '#F1F1F1',
   },
   modalTitle: {
     fontSize: 20,
-    fontWeight: 'bold',
-    marginBottom: 15,
-    textAlign: 'center',
-    color: '#333',
+    fontWeight: '700',
+    color: '#1F2937',
+  },
+  closeIcon: {
+    padding: 8,
+  },
+  closeIconText: {
+    fontSize: 24,
+    color: '#6B7280',
+    fontWeight: '500',
+  },
+  disclaimerText: {
+    fontSize: 13.5,
+    color: '#6B7280',
+    fontStyle: 'italic',
+    paddingHorizontal: 20,
+    paddingVertical: 12,
+    backgroundColor: '#F9FAFB',
+    borderBottomWidth: 1,
+    borderBottomColor: '#F1F1F1',
+  },
+  listContent: {
+    padding: 16,
+    paddingBottom: 90,
   },
   card: {
-    backgroundColor: '#f7f7f7',
-    borderRadius: 8,
-    padding: 12,
-    marginBottom: 15,
+    backgroundColor: '#FFFFFF',
+    borderRadius: 16,
+    padding: 16,
+    marginBottom: 18,
+    borderWidth: 1,
+    borderColor: '#E5E7EB',
     shadowColor: '#000',
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 3,
+    shadowOffset: {width: 0, height: 4},
+    shadowOpacity: 0.06,
+    shadowRadius: 10,
+    elevation: 4,
   },
   imageTitle: {
+    fontSize: 15,
     fontWeight: '600',
-    marginBottom: 5,
-    fontSize: 14,
+    color: '#374151',
+    marginBottom: 10,
   },
   image: {
     width: '100%',
-    height: 180,
-    borderRadius: 6,
-    marginBottom: 10,
-    backgroundColor: '#ddd',
+    height: 200,
+    borderRadius: 12,
+    backgroundColor: '#F3F4F6',
+    marginBottom: 16,
   },
-  resultContainer: {
-    backgroundColor: '#fff3cd',
-    padding: 10,
-    borderRadius: 6,
+  statusRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 12,
+  },
+  foundIcon: {
+    fontSize: 20,
+    marginRight: 8,
   },
   foundText: {
-    color: '#856404',
-    fontWeight: 'bold',
-    marginBottom: 5,
+    fontSize: 16.5,
+    fontWeight: '700',
+    color: '#B45309',
+  },
+  safeIcon: {
+    fontSize: 20,
+    marginRight: 8,
+  },
+  safeText: {
+    fontSize: 16.5,
+    fontWeight: '700',
+    color: '#166534',
+  },
+  resultContainer: {
+    backgroundColor: '#FEF3C7',
+    padding: 14,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: '#FDE68C',
+  },
+  safeContainer: {
+    backgroundColor: '#F0FDF4',
+    padding: 14,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: '#BBF7D0',
+  },
+  matchItem: {
+    marginTop: 12,
+    paddingTop: 12,
+    borderTopWidth: 1,
+    borderTopColor: '#FDE68C',
+  },
+  contentLabel: {
+    fontSize: 13.5,
+    color: '#6B7280',
+    marginBottom: 4,
   },
   contentText: {
-    color: '#333',
-    fontWeight: '500',
+    fontSize: 15.5,
+    color: '#1F2937',
+    lineHeight: 22,
   },
   confidenceText: {
-    color: '#666',
-    fontSize: 12,
-    marginTop: 2,
+    fontSize: 13.5,
+    color: '#6B7280',
+    marginTop: 4,
   },
-  noContent: {
-    color: '#28a745',
-    fontWeight: 'bold',
-    marginTop: 5,
+  extractionBox: {
+    marginTop: 12,
+    backgroundColor: '#F0F9FF',
+    padding: 12,
+    borderRadius: 10,
   },
-  closeButton: {
-    marginTop: 10,
-    width: screenWidth * 0.5,
-    backgroundColor: '#007bff',
-    padding: 14,
-    borderRadius: 8,
-    justifyContent: 'center',
-    alignItems: 'center',
-    alignSelf: 'center',
-  },
-  closeButtonText: {
-    color: '#fff',
+  extractionLabel: {
+    fontSize: 14,
     fontWeight: '600',
-    fontSize: 16,
+    color: '#0369A1',
+    marginBottom: 6,
   },
-
+  extractedText: {
+    fontSize: 15,
+    color: '#1E40AF',
+    lineHeight: 21,
+  },
   emptyContainer: {
     alignItems: 'center',
     justifyContent: 'center',
-    paddingVertical: 40,
+    paddingVertical: 60,
   },
   emptyText: {
-    color: '#888',
+    color: '#9CA3AF',
     fontSize: 16,
     fontStyle: 'italic',
   },
-  extractionSection: {
-    marginTop: 8,
-    backgroundColor: '#eef6ff',
-    padding: 8,
-    borderRadius: 6,
+  closeButton: {
+    position: 'absolute',
+    bottom: 20,
+    alignSelf: 'center',
+    backgroundColor: '#1F2937',
+    paddingVertical: 14,
+    paddingHorizontal: 40,
+    borderRadius: 12,
+    width: screenWidth * 0.55,
   },
-  extractionLabel: {
+  closeButtonText: {
+    color: '#fff',
+    fontSize: 16.5,
     fontWeight: '600',
-    color: '#0056b3',
-    marginBottom: 4,
-  },
-  extractedText: {
-    color: '#333',
-    fontSize: 14,
-  },
-  disclaimerText: {
-    fontSize: 16,
-    color: '#333',
-    //textAlign: 'center',
-    marginVertical: 10,
-    fontStyle: 'italic',
+    textAlign: 'center',
   },
 });

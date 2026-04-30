@@ -1,5 +1,5 @@
 import React from 'react';
-import {View, Image, Text, TouchableOpacity, StyleSheet} from 'react-native';
+import {View, Image, Text, StyleSheet} from 'react-native';
 import {Comment} from '../type';
 import {GET_STORAGE_DATA} from '../helper/APIUtils';
 import moment from 'moment';
@@ -13,26 +13,30 @@ export default function CommentItem({
   isSelected: boolean;
   handleMentionClick: (user_handle: string) => void;
 }) {
-  const formatWithOrdinal = date => {
-    return moment(date).format('D MMM, ddd, h:mm a');
+  const formatDate = (date: string) => {
+    return moment(date).format('D MMM, ddd • h:mm a');
   };
 
+  const avatarUri = item.userId?.Profile_image
+    ? item.userId.Profile_image.startsWith('https')
+      ? item.userId.Profile_image
+      : `${GET_STORAGE_DATA}/${item.userId.Profile_image}`
+    : 'https://images.pexels.com/photos/771742/pexels-photo-771742.jpeg?auto=compress&cs=tinysrgb&dpr=1&w=500';
+
+  // Fixed: Returns only Text components for proper inline rendering
   const renderTextWithMentions = (text: string) => {
-    const regex = /(@\w+)/g; // Match mentions starting with '@'
+    const regex = /(@\w+)/g;
     const parts = text.split(regex);
 
     return parts.map((part, index) => {
       if (part.match(regex)) {
         return (
-          <TouchableOpacity
+          <Text
             key={index}
-            onPress={() => {
-              handleMentionClick(part);
-            }}>
-            <Text key={index} style={styles.mention}>
-              {part}
-            </Text>
-          </TouchableOpacity>
+            style={styles.mention}
+            onPress={() => handleMentionClick(part)}>
+            {part}
+          </Text>
         );
       }
       return <Text key={index}>{part}</Text>;
@@ -41,52 +45,35 @@ export default function CommentItem({
 
   return (
     <View
-      style={{
-        ...styles.commentContainer,
-        backgroundColor: isSelected ? '#EF9F9FFF' : '#f0f0f0',
-      }}>
-      {item.userId && item.userId.Profile_image ? (
-        <Image
-          source={{
-            uri: item.userId.Profile_image.startsWith('https')
-              ? item.userId.Profile_image
-              : `${GET_STORAGE_DATA}/${item.userId.Profile_image}`,
-          }}
-          style={[
-            styles.profileImage,
-            !item.userId.Profile_image && {
-              borderWidth: 0.5,
-              borderColor: 'black',
-            },
-          ]}
-        />
-      ) : (
-        <Image
-          source={{
-            uri: 'https://images.pexels.com/photos/771742/pexels-photo-771742.jpeg?auto=compress&cs=tinysrgb&dpr=1&w=500',
-          }}
-          style={[
-            styles.profileImage,
-            {borderWidth: 0.5, borderColor: 'black'},
-          ]}
-        />
-      )}
+      style={[
+        styles.commentContainer,
+        isSelected && styles.selectedContainer,
+      ]}>
+      {/* Avatar */}
+      <Image
+        source={{uri: avatarUri}}
+        style={styles.profileImage}
+        resizeMode="cover"
+      />
 
+      {/* Content */}
       <View style={styles.commentContent}>
-        <View style={{flexDirection: 'row', alignItems: 'flex-start'}}>
-          <Text style={styles.username}>{item.userId.user_handle}</Text>
-          {item.isEdited && (
-            <Text style={{...styles.comment, marginStart: 4, marginTop: 2}}>
-              (edited)
-            </Text>
-          )}
+        {/* Name + Edited */}
+        <View style={styles.headerRow}>
+          <Text style={styles.username}>
+            {item.userId?.user_handle || 'Anonymous'}
+          </Text>
+          {item.isEdited && <Text style={styles.editedText}>(edited)</Text>}
         </View>
 
-        <Text style={styles.comment}>
+        {/* Comment with Mentions */}
+        <Text style={styles.commentText}>
           {renderTextWithMentions(item.content)}
         </Text>
+
+        {/* Timestamp */}
         <Text style={styles.timestamp}>
-          Last updated {formatWithOrdinal(item.updatedAt)}
+          {formatDate(item.updatedAt)}
         </Text>
       </View>
     </View>
@@ -96,53 +83,68 @@ export default function CommentItem({
 const styles = StyleSheet.create({
   commentContainer: {
     flexDirection: 'row',
-    marginBottom: 40,
-    borderBottomWidth: 1,
-    borderBottomColor: '#ddd',
-    paddingBottom: 10,
-    marginTop: 5, // Reduced top margin
+    backgroundColor: 'white',
+    padding: 16,
+    borderRadius: 18,
+    marginBottom: 16,
+    //borderWidth: 1,
+    borderColor: '#F0F0F0',
+    shadowColor: '#000',
+    shadowOffset: {width: 0, height: 2},
+    shadowOpacity: 0.07,
+    shadowRadius: 10,
+    elevation: 4,
   },
+
+  selectedContainer: {
+    backgroundColor: '#FFF5F5',
+    borderColor: '#FFCCCC',
+  },
+
   profileImage: {
-    height: 50,
-    width: 50,
-    borderRadius: 30,
-    objectFit: 'cover',
-    resizeMode: 'contain',
-    marginHorizontal: 6,
+    width: 48,
+    height: 48,
+    borderRadius: 24,
+    marginRight: 14,
   },
+
   commentContent: {
     flex: 1,
   },
+
+  headerRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 8,
+  },
+
   username: {
+    fontSize: 16.5,
+    fontWeight: '700',
+    color: '#1C1C1E',
+  },
+
+  editedText: {
+    fontSize: 13.5,
+    color: '#8E8E93',
+    marginLeft: 6,
+    fontStyle: 'italic',
+  },
+
+  commentText: {
     fontSize: 16,
-    fontWeight: 'bold',
-    color: '#333',
-    marginEnd: 4,
+    lineHeight: 23.5,
+    color: '#2C2C2E',
+    marginBottom: 8,
   },
-  comment: {
-    fontSize: 15,
-    color: '#555',
-    marginVertical: 0,
-  },
-  likeCount: {
-    fontSize: 14,
-    color: '#666',
-    marginStart: 3,
-    marginVertical: 2,
-  },
+
   timestamp: {
-    fontSize: 12,
-    color: '#888',
+    fontSize: 12.8,
+    color: '#8E8E93',
   },
+
   mention: {
-    color: 'blue',
-    fontWeight: 'bold',
-    paddingTop: 4,
-  },
-  shareIconContainer: {
-    position: 'absolute',
-    top: 1,
-    right: 7,
-    zIndex: 1,
+    color: '#007AFF',
+    fontWeight: '700',
   },
 });

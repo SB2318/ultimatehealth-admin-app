@@ -1,203 +1,174 @@
+import React from 'react';
 import {
-    StyleSheet,
-    Text,
-    View,
-    Image,
-    TouchableOpacity,
-  } from 'react-native';
-  import React from 'react';
-  import EllipseSvg from '../../assets/svg/EllipseSvg';
-  import {ON_PRIMARY_COLOR, PRIMARY_COLOR} from '../helper/Theme';
-  import MaterialIcons from '@expo/vector-icons/MaterialIcons';
-  import MaterialCommunityIcon from '@expo/vector-icons/MaterialCommunityIcons';
-  import {fp, hp, wp} from '../helper/Metric';
-  import {ProfileHeaderProps} from '../type';
+  StyleSheet,
+  Text,
+  View,
+  Image,
+  TouchableOpacity,
+} from 'react-native';
+import EllipseSvg from '../../assets/svg/EllipseSvg';
+import {ON_PRIMARY_COLOR, PRIMARY_COLOR, TEXT_PRIMARY, TEXT_SECONDARY} from '../helper/Theme';
+import MaterialIcons from '@expo/vector-icons/MaterialIcons';
+import MaterialCommunityIcon from '@expo/vector-icons/MaterialCommunityIcons';
+import {fp, hp, wp} from '../helper/Metric';
+import {ProfileHeaderProps} from '../type';
+import {GET_STORAGE_DATA} from '../helper/APIUtils';
+
+const ProfileHeader = ({
+  username,
+  userhandle,
+  profileImg,
+  onOverviewClick,
+  onEditProfileClick,
+  onLogoutClick,
+}: ProfileHeaderProps) => {
   
-  import {GET_STORAGE_DATA} from '../helper/APIUtils';
-  
-  const ProfileHeader = ({
-    username,
-    userhandle,
-    profileImg,
-    onOverviewClick,
-    onEditProfileClick,
-    onLogoutClick
-  }: ProfileHeaderProps) => {
-    
-   
-    return (
-      <View style={styles.container}>
-        <EllipseSvg style={styles.ellipseSvg} />
-        <View style={styles.contentContainer}>
+  const avatarUri = profileImg
+    ? profileImg.startsWith('https')
+      ? profileImg
+      : `${GET_STORAGE_DATA}/${profileImg}`
+    : 'https://images.pexels.com/photos/771742/pexels-photo-771742.jpeg?auto=compress&cs=tinysrgb&dpr=1&w=500';
+
+  return (
+    <View style={styles.container}>
+      <EllipseSvg style={styles.ellipseSvg} />
+
+      <View style={styles.content}>
+        {/* Profile Image with Ring */}
+        <View style={styles.avatarContainer}>
           <Image
-            source={{
-              uri: profileImg ? profileImg.startsWith('https')
-                ? profileImg
-                : `${GET_STORAGE_DATA}/${profileImg}`:
-                'https://images.pexels.com/photos/771742/pexels-photo-771742.jpeg?auto=compress&cs=tinysrgb&dpr=1&w=500',
-            }}
-            style={[
-              styles.profileImage,
-              !profileImg && {borderWidth: 0.5, borderColor: 'black'},
-            ]}
+            source={{uri: avatarUri}}
+            style={styles.profileImage}
           />
-          <Text style={styles.nameText}>{username}</Text>
-          <Text style={[styles.usernameText, {color: PRIMARY_COLOR}]}>
-            {userhandle}
-          </Text>
-        
-           
-            <TouchableOpacity
-              onPress={() => {
-              //  navigation.navigate('ProfileEditScreen');
-              onEditProfileClick();
-              }}>
-              <View style={styles.btnSM}>
-                <MaterialIcons name="edit" size={20} color="black" />
-                <Text style={styles.btnSMText}>Edit Profile</Text>
-              </View>
-            </TouchableOpacity>
-          
-          <TouchableOpacity onPress={onOverviewClick}>
-           
-              <View style={styles.btnSM}>
-                <MaterialCommunityIcon
-                  name="view-dashboard"
-                  size={20}
-                  color="black"
-                />
-                <Text style={styles.btnSMText}>Work History</Text>
-              </View>
-            
-          </TouchableOpacity>
-  
-          <TouchableOpacity
-            onPress={onLogoutClick}>
-           
-              <View style={styles.btnSM}>
-                <MaterialIcons name="logout" size={20} color="black" />
-                <Text style={styles.btnSMText}>Logout</Text>
-              </View>
-            
-          </TouchableOpacity>
-       
-          </View>
+          <View style={styles.avatarRing} />
         </View>
-      
-    );
-  };
-  
-  export default ProfileHeader;
-  
-  const styles = StyleSheet.create({
-    container: {
-      //marginBottom: 20,
-      backgroundColor: ON_PRIMARY_COLOR,
-    },
-    ellipseSvg: {
-      position: 'absolute',
-      top: -2,
-    },
-    contentContainer: {
-      justifyContent: 'center',
-      alignItems: 'center',
-      marginTop: hp(12),
-      // backgroundColor: ON_PRIMARY_COLOR
-    },
-    profileImage: {
-      height: 130,
-      width: 130,
-      borderRadius: 100,
-      objectFit: 'cover',
-      resizeMode: 'contain',
-    },
-    nameText: {
-      fontSize: fp(7),
-      fontWeight: 'bold',
-      color: 'black',
-    },
-    usernameText: {
-      fontSize: fp(4.5),
-      fontWeight: 'regular',
-      marginTop: 1,
-    },
-    experienceContainer: {
-      flexDirection: 'row',
-      justifyContent: 'center',
-      alignItems: 'center',
-      gap: 5,
-      marginTop: 2,
-    },
-    experienceText: {
-      fontSize: 14,
-      fontWeight: 'medium',
-      color: 'black',
-    },
-    contactContainer: {
-      flexDirection: 'row',
-      alignItems: 'center',
-      gap: 14,
-      marginVertical: 10,
-    },
-    iconButton: {
-      height: 50,
-      width: 50,
-      borderRadius: 100,
-      justifyContent: 'center',
-      alignItems: 'center',
-      borderWidth: 1,
-    },
-    editProfileButton: {
-      borderWidth: 0.5,
-      width: wp(70),
-      alignItems: 'center',
-      borderRadius: 10,
-      paddingVertical: 5,
-      marginVertical: 10,
-    },
-    editProfileButtonText: {
-      fontSize: 16,
-      fontWeight: 'semibold',
-    },
-    infoContainer: {
-      width: wp(100),
-      flexDirection: 'row',
-      //numRows: 2,
-      alignItems: 'center',
-      justifyContent: 'space-evenly',
-      marginVertical: 10,
-    },
-    infoBlock: {
-      alignItems: 'center',
-    },
-    infoText: {
-      fontSize: 22,
-      fontWeight: 'bold',
-    },
-    infoLabel: {
-      fontSize: 18,
-      fontWeight: 'regular',
-      color: 'black',
-    },
-    btnSM: {
-      flexDirection: 'row',
-      alignItems: 'center',
-      justifyContent: 'center',
-      borderRadius: 8,
-      paddingVertical: 8,
-      marginVertical: 8,
-      paddingHorizontal: 16,
-      borderWidth: 1,
-      backgroundColor: '#fff',
-      borderColor: '#d1d5db',
-      width: wp(70),
-      gap: 10,
-    },
-    btnSMText: {
-      fontSize: 17,
-      lineHeight: 20,
-      fontWeight: '600',
-      color: '#374151',
-    },
-  });
-  
+
+        {/* Name & Handle */}
+        <Text style={styles.nameText}>{username}</Text>
+        <Text style={styles.usernameText}>@{userhandle}</Text>
+
+        {/* Action Buttons */}
+        <View style={styles.buttonsContainer}>
+          <TouchableOpacity
+            style={styles.actionButton}
+            onPress={onEditProfileClick}>
+            <MaterialIcons name="edit" size={22} color={PRIMARY_COLOR} />
+            <Text style={styles.buttonText}>Edit Profile</Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            style={styles.actionButton}
+            onPress={onOverviewClick}>
+            <MaterialCommunityIcon
+              name="view-dashboard"
+              size={22}
+              color={PRIMARY_COLOR}
+            />
+            <Text style={styles.buttonText}>Work History</Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            style={[styles.actionButton, styles.logoutButton]}
+            onPress={onLogoutClick}>
+            <MaterialIcons name="logout" size={22} color="#EF4444" />
+            <Text style={[styles.buttonText, {color: '#EF4444'}]}>Logout</Text>
+          </TouchableOpacity>
+        </View>
+      </View>
+    </View>
+  );
+};
+
+export default ProfileHeader;
+
+const styles = StyleSheet.create({
+  container: {
+    backgroundColor: ON_PRIMARY_COLOR,
+    paddingBottom: hp(4),
+  },
+
+  ellipseSvg: {
+    position: 'absolute',
+    top: -hp(8),
+    left: 0,
+    right: 0,
+  },
+
+  content: {
+    alignItems: 'center',
+    marginTop: hp(10),
+  },
+
+  avatarContainer: {
+    position: 'relative',
+    marginBottom: hp(2),
+  },
+
+  profileImage: {
+    width: hp(18),
+    height: hp(18),
+    borderRadius: hp(9),
+    borderWidth: 5,
+    borderColor: 'white',
+    backgroundColor: '#F3F4F6',
+  },
+
+  avatarRing: {
+    position: 'absolute',
+    top: -8,
+    left: -8,
+    right: -8,
+    bottom: -8,
+    borderRadius: hp(10),
+    borderWidth: 2,
+    borderColor: PRIMARY_COLOR + '30',
+  },
+
+  nameText: {
+    fontSize: fp(7.5),
+    fontWeight: '700',
+    color: TEXT_PRIMARY,
+    marginTop: hp(1),
+  },
+
+  usernameText: {
+    fontSize: fp(4.4),
+    color: TEXT_SECONDARY,
+    marginTop: 2,
+    marginBottom: hp(3),
+  },
+
+  buttonsContainer: {
+    width: '88%',
+    gap: hp(1.8),
+  },
+
+  actionButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: 'white',
+    paddingVertical: hp(2),
+    paddingHorizontal: wp(5),
+    borderRadius: 16,
+    gap: 12,
+    borderWidth: 1.2,
+    borderColor: '#E5E7EB',
+    shadowColor: '#000',
+    shadowOffset: {width: 0, height: 2},
+    shadowOpacity: 0.06,
+    shadowRadius: 8,
+    elevation: 3,
+  },
+
+  logoutButton: {
+    borderColor: '#FECACA',
+    backgroundColor: '#FEF2F2',
+  },
+
+  buttonText: {
+    fontSize: fp(4.2),
+    fontWeight: '600',
+    color: '#374151',
+  },
+});

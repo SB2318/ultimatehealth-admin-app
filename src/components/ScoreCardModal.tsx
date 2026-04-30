@@ -1,149 +1,202 @@
 import React from 'react';
-import {View, Text, StyleSheet, TouchableOpacity, Modal} from 'react-native';
-import {ScoreCardProps} from '../type';
-import { hp } from '../helper/Metric';
-import { PRIMARY_COLOR } from '../helper/Theme';
+import {
+  Modal,
+  View,
+  Text,
+  TouchableOpacity,
+  StyleSheet,
+} from 'react-native';
+import { hp, wp } from '../helper/Metric';
+import { PRIMARY_COLOR, TEXT_PRIMARY, TEXT_SECONDARY } from '../helper/Theme';
+import { ScoreCardProps } from '../type';
 
-const ScorecardModal = ({isVisible, onClose, data}: ScoreCardProps) => {
+const ScorecardModal = ({ isVisible, onClose, data }: ScoreCardProps) => {
   const getScoreColor = (score: number) => {
-    if (score < 5) return styles.scoreRed;
-    if (score <= 8) return styles.scoreOrange;
-    return styles.scoreBlue;
+    if (score < 5) return '#EF4444';      // Red
+    if (score <= 7) return '#F59E0B';     // Orange
+    return '#10B981';                     // Green
   };
+
+  const scoreColor = getScoreColor(data.score);
 
   return (
     <Modal
       animationType="fade"
       transparent={true}
       visible={isVisible}
-      onDismiss={onClose}>
-    
-      <View style={styles.modalWrapper}>
-      <View style={styles.modalContent}>
-        
+      onRequestClose={onClose}>
+      
+      <View style={styles.overlay}>
+        <View style={styles.modalContainer}>
+          
+          {/* Header */}
+          <View style={styles.header}>
+            <Text style={styles.title}>Grammar Score Report</Text>
+            <TouchableOpacity onPress={onClose} style={styles.closeButton}>
+              <Text style={styles.closeIcon}>✕</Text>
+            </TouchableOpacity>
+          </View>
 
-        <Text style={styles.header}>📝 Grammar Score</Text>
+          {/* Score Circle */}
+          <View style={styles.scoreCircleContainer}>
+            <View style={[styles.scoreCircle, { borderColor: scoreColor }]}>
+              <Text style={[styles.scoreNumber, { color: scoreColor }]}>
+                {data.score}
+              </Text>
+              <Text style={styles.scoreOutOf}>/ 10</Text>
+            </View>
+          </View>
 
-        <View style={styles.divider} />
+          {/* Details */}
+          <View style={styles.detailsContainer}>
+            <DetailRow 
+              label="Correction Status" 
+              value={data.corrected ? 'Corrected' : 'Not Corrected'}
+              valueColor={data.corrected ? '#10B981' : '#EF4444'}
+            />
+            <DetailRow 
+              label="Correction Percentage" 
+              value={`${data.correction_percentage}%`} 
+            />
+            <DetailRow 
+              label="Approved" 
+              value={data.approved ? 'Yes' : 'No'}
+              valueColor={data.approved ? PRIMARY_COLOR : '#EF4444'}
+            />
+          </View>
 
-        <View style={styles.item}>
-          <Text style={styles.label}>Correction Status:</Text>
-          <Text style={{...styles.value, color: data.corrected? 'green':'red'}}>
-            {data.corrected ? 'Corrected' : 'Not Corrected'}
-          </Text>
+          {/* Close Button */}
+          <TouchableOpacity style={styles.closeMainButton} onPress={onClose}>
+            <Text style={styles.closeMainButtonText}>Close</Text>
+          </TouchableOpacity>
         </View>
-
-        <View style={styles.item}>
-          <Text style={styles.label}>Correction Percentage:</Text>
-          <Text style={styles.value}>{data.correction_percentage}%</Text>
-        </View>
-
-        <View style={styles.item}>
-          <Text style={styles.label}>Approved:</Text>
-          <Text style={{...styles.value, color: data.approved ? PRIMARY_COLOR:'red' }}>{data.approved ? 'Yes' : 'No'}</Text>
-        </View>
-
-        <View style={styles.item}>
-          <Text style={styles.label}>Score:</Text>
-          <Text style={[styles.value, getScoreColor(data.score)]}>
-            {data.score} / 10
-          </Text>
-        </View>
-
-        <TouchableOpacity style={styles.button} onPress={onClose}>
-          <Text style={styles.buttonText}>Close</Text>
-        </TouchableOpacity>
-      </View>
       </View>
     </Modal>
   );
 };
 
-const styles = StyleSheet.create({
-
-   overlay: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    backgroundColor: 'rgba(0, 0, 0, 0.5)',
-  }, 
-  modalWrapper: {
-    alignItems: 'center',
-    justifyContent: 'center',
-    flex: 1,
-     backgroundColor: 'rgba(0, 0, 0, 0.5)',
-  },
-  modalContent: {
-    width: hp(45),
-    height: hp(50),
-    backgroundColor: '#fefefe',
-    padding: 20,
-    borderRadius: 16,
-    elevation: 10,
-    shadowColor: '#000',
-    shadowOpacity: 0.2,
-    shadowOffset: { width: 0, height: 6 },
-    shadowRadius: 10,
-    position: 'relative',
-  },
-  header: {
-    fontSize: 26,
-    fontWeight: 'bold',
-    color: '#3A3A3A',
-    textAlign: 'center',
-    marginBottom: 10,
-  },
-  divider: {
-    height: 1,
-    backgroundColor: '#ddd',
-    marginBottom: 20,
-  },
-  item: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    marginVertical: 10,
-  },
-  label: {
-    fontWeight: '600',
-    fontSize: 16,
-    color: '#555',
-  },
-  value: {
-    fontWeight: '700',
-    fontSize: 16,
-    color: '#222',
-  },
-  button: {
-    backgroundColor: '#4A90E2',
-    paddingVertical: 12,
-    marginTop: 30,
-    borderRadius: 8,
-    alignItems: 'center',
-  },
-  buttonText: {
-    color: '#fff',
-    fontWeight: '700',
-    fontSize: 16,
-  },
-  closeIcon: {
-    position: 'absolute',
-    top: 12,
-    right: 12,
-    zIndex: 1,
-  },
-  closeText: {
-    fontSize: 22,
-  },
-
-  scoreRed: {
-    color: '#FF4C4C', // Bright red
-  },
-  scoreOrange: {
-    color: '#FFA500', // Orange
-  },
-  scoreBlue: {
-    color: '#4A90E2', // Blue
-  },
-});
+const DetailRow = ({ label, value, valueColor }: { 
+  label: string; 
+  value: string; 
+  valueColor?: string;
+}) => (
+  <View style={styles.detailRow}>
+    <Text style={styles.detailLabel}>{label}</Text>
+    <Text style={[styles.detailValue, valueColor && { color: valueColor }]}>
+      {value}
+    </Text>
+  </View>
+);
 
 export default ScorecardModal;
+
+const styles = StyleSheet.create({
+  overlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.75)',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+
+  modalContainer: {
+    width: '88%',
+    backgroundColor: '#FFFFFF',
+    borderRadius: 24,
+    padding: hp(3),
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 12 },
+    shadowOpacity: 0.25,
+    shadowRadius: 20,
+    elevation: 20,
+  },
+
+  header: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: hp(2.5),
+  },
+
+  title: {
+    fontSize: 22,
+    fontWeight: '700',
+    color: TEXT_PRIMARY,
+  },
+
+  closeButton: {
+    padding: 8,
+  },
+
+  closeIcon: {
+    fontSize: 28,
+    color: '#64748B',
+    fontWeight: '500',
+  },
+
+  scoreCircleContainer: {
+    alignItems: 'center',
+    marginVertical: hp(2),
+  },
+
+  scoreCircle: {
+    width: hp(18),
+    height: hp(18),
+    borderRadius: hp(9),
+    borderWidth: 8,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+
+  scoreNumber: {
+    fontSize: 52,
+    fontWeight: '800',
+    lineHeight: 58,
+  },
+
+  scoreOutOf: {
+    fontSize: 18,
+    color: '#64748B',
+    fontWeight: '600',
+  },
+
+  detailsContainer: {
+    backgroundColor: '#F8FAFC',
+    borderRadius: 16,
+    padding: hp(2),
+    marginBottom: hp(3),
+  },
+
+  detailRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingVertical: hp(1.4),
+    borderBottomWidth: 1,
+    borderBottomColor: '#E2E8F0',
+  },
+
+  detailLabel: {
+    fontSize: 16,
+    color: TEXT_SECONDARY,
+    fontWeight: '600',
+  },
+
+  detailValue: {
+    fontSize: 16.5,
+    fontWeight: '700',
+    color: TEXT_PRIMARY,
+  },
+
+  closeMainButton: {
+    backgroundColor: PRIMARY_COLOR,
+    paddingVertical: hp(2),
+    borderRadius: 14,
+    alignItems: 'center',
+  },
+
+  closeMainButtonText: {
+    color: 'white',
+    fontSize: 17,
+    fontWeight: '700',
+  },
+});

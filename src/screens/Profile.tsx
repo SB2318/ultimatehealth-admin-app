@@ -1,239 +1,144 @@
-import {StyleSheet, Text, View} from 'react-native';
 import React, {useCallback} from 'react';
-import {ON_PRIMARY_COLOR, PRIMARY_COLOR} from '../helper/Theme';
-import ActivityOverview from '../components/ActivityOverview';
+import {useColorScheme, View} from 'react-native';
+import {SafeAreaView} from 'react-native-safe-area-context';
 import {Tabs, MaterialTabBar} from 'react-native-collapsible-tab-view';
-
-import {useDispatch, useSelector} from 'react-redux';
-import {SafeAreaView, useSafeAreaInsets} from 'react-native-safe-area-context';
-import ProfileHeader from '../components/ProfileHeader';
-import {GET_PROFILE_API} from '../helper/APIUtils';
-import {ProfileScreenProps, Admin} from '../type';
 import {useQuery} from '@tanstack/react-query';
-import axios from 'axios';
-import Loader from '../components/Loader';
+import {useDispatch, useSelector} from 'react-redux';
 import {useFocusEffect} from '@react-navigation/native';
+
+import ProfileHeader from '../components/ProfileHeader';
+import ActivityOverview from '../components/ActivityOverview';
+import Loader from '../components/Loader';
+
+import {GET_PROFILE_API} from '../helper/APIUtils';
 import {setUserHandle} from '../stores/UserSlice';
-import { wp } from '../helper/Metric';
+import {ProfileScreenProps, Admin} from '../type';
+import axios from 'axios';
+
+const COLORS = {
+  light: {
+    background: '#F8FAFC',
+    surface: '#FFFFFF',
+    text: '#0F172A',
+    secondaryText: '#64748B',
+    primary: '#2563EB',
+    border: '#E2E8F0',
+  },
+  dark: {
+    background: '#0F172A',
+    surface: '#1E2937',
+    text: '#F1F5F9',
+    secondaryText: '#94A3B8',
+    primary: '#3B82F6',
+    border: '#334155',
+  },
+};
 
 const ProfileScreen = ({navigation}: ProfileScreenProps) => {
+  const isDarkMode = useColorScheme() === 'dark';
+  const colors = isDarkMode ? COLORS.dark : COLORS.light;
+
   const {user_token} = useSelector((state: any) => state.user);
   const {isConnected} = useSelector((state: any) => state.network);
   const dispatch = useDispatch();
 
-  console.log('User token', user_token);
-
-  const {
-    data: user,
-    refetch,
-    isLoading,
-  } = useQuery({
+  const {data: user, refetch, isLoading} = useQuery({
     queryKey: ['get-profile'],
     queryFn: async () => {
-      const response = await axios.get(`${GET_PROFILE_API}`, {
-        //headers: {
-        //  Authorization: `Bearer ${user_token}`,
-        //},
-      });
-      return response.data as Admin;
+      const res = await axios.get(GET_PROFILE_API);
+      return res.data as Admin;
     },
-    enabled: !!isConnected && !!user_token
+    enabled: !!user_token && isConnected,
   });
 
   if (user) {
     dispatch(setUserHandle(user.user_handle));
   }
 
-  //const insets = useSafeAreaInsets();
+  useFocusEffect(useCallback(() => {
+    refetch();
+  }, [refetch]));
 
-  useFocusEffect(
-    useCallback(() => {
-      refetch();
-    }, [refetch]),
+  const renderHeader = () => (
+    <ProfileHeader
+      username={user?.user_name || 'Admin'}
+      userhandle={user?.user_handle || ''}
+      profileImg={user?.Profile_avtar}
+      onOverviewClick={() => navigation.navigate('WorkHistoryScreen')}
+      onEditProfileClick={() => navigation.navigate('EditProfile')}
+      onLogoutClick={() => navigation.navigate('LogoutScreen', {
+        profile_image: user?.Profile_avtar || '',
+        username: user?.user_name || 'Admin User',
+      })} userEmailID={''} contriutions={''}    />
   );
 
-  const renderHeader = () => {
-    if (user === undefined) {
-      return null;
-    } // Safeguard to prevent rendering if user is undefined
-
-    return (
-      <ProfileHeader
-        username={user.user_name || ''}
-        userhandle={user.user_handle || ''}
-        profileImg={
-          user?.Profile_avtar ||
-          'https://images.pexels.com/photos/771742/pexels-photo-771742.jpeg?auto=compress&cs=tinysrgb&dpr=1&w=500'
-        }
-        userEmailID={user?.email}
-        contriutions=""
-        onOverviewClick={() => {
-          if (user) {
-            navigation.navigate('WorkHistoryScreen');
-          }
-        }}
-        onEditProfileClick={() => {
-          navigation.navigate('EditProfile');
-        }}
-        onLogoutClick={() => {
-          navigation.navigate('LogoutScreen', {
-            profile_image: user && user.Profile_avtar ? user.Profile_avtar : '',
-            username: user?.user_name,
-          });
-        }}
-      />
-    );
-  };
-
-  const renderTabBar = props => {
-    return (
-      <MaterialTabBar
-        {...props}
-        indicatorStyle={styles.indicatorStyle}
-        style={styles.tabBarStyle}
-        activeColor={PRIMARY_COLOR}
-        inactiveColor="#9098A3"
-        labelStyle={styles.labelStyle}
-        contentContainerStyle={styles.contentContainerStyle}
-      />
-    );
-  };
+  const renderTabBar = (props: any) => (
+    <MaterialTabBar
+      {...props}
+      indicatorStyle={{backgroundColor: colors.primary, height: 3, borderRadius: 3}}
+      style={{
+        backgroundColor: colors.surface,
+        borderBottomWidth: 1,
+        borderBottomColor: colors.border,
+        shadowOpacity: 0,
+      }}
+      activeColor={colors.primary}
+      inactiveColor={colors.secondaryText}
+      labelStyle={{
+        fontSize: 13,
+        fontWeight: '600',
+        textTransform: 'capitalize',
+      }}
+    />
+  );
 
   if (isLoading) {
     return (
-      <View style={styles.loadingContainer}>
+      <View style={{flex: 1, backgroundColor: colors.background, justifyContent: 'center'}}>
         <Loader />
       </View>
     );
   }
 
   return (
-    <SafeAreaView style={styles.container}>
-      <View style={{ marginVertical: 3, marginHorizontal: 10}}>
-        <Text style={styles.btnSMText}>Your Insights</Text>
-      </View>
-      <View style={[styles.innerContainer]}>
-        <Tabs.Container
-          initialTabName="Articles" 
-          renderHeader={renderHeader}
-          renderTabBar={renderTabBar}
-          containerStyle={styles.tabsContainer}>
-          {/* Tab 1 */}
-          <Tabs.Tab name="Articles">
-            <Tabs.ScrollView
-              automaticallyAdjustContentInsets={true}
-              contentInsetAdjustmentBehavior="always"
-              contentContainerStyle={styles.scrollViewContentContainer}>
-              <ActivityOverview ctype={1} />
-            </Tabs.ScrollView>
-          </Tabs.Tab>
-          {/* Tab 2 */}
-          <Tabs.Tab name="Revision">
-            <Tabs.ScrollView
-              automaticallyAdjustContentInsets={true}
-              contentInsetAdjustmentBehavior="always"
-              contentContainerStyle={styles.scrollViewContentContainer}>
-              <ActivityOverview ctype={2} />
-            </Tabs.ScrollView>
-          </Tabs.Tab>
+    <SafeAreaView style={{flex: 1, backgroundColor: colors.background}}>
+      <Tabs.Container
+        initialTabName="Articles"
+        renderHeader={renderHeader}
+        renderTabBar={renderTabBar}
+        headerHeight={380} // Adjust based on your ProfileHeader height
+        containerStyle={{backgroundColor: colors.background}}
+      >
+        {/* Articles Tab */}
+        <Tabs.Tab name="Articles">
+          <Tabs.ScrollView showsVerticalScrollIndicator={false}>
+            <ActivityOverview ctype={1} />
+          </Tabs.ScrollView>
+        </Tabs.Tab>
 
-          {/* Tab 3 */}
-          <Tabs.Tab name="Podcast">
-            <Tabs.ScrollView
-              automaticallyAdjustContentInsets={true}
-              contentInsetAdjustmentBehavior="always"
-              contentContainerStyle={styles.scrollViewContentContainer}>
-              <ActivityOverview ctype={4} />
-            </Tabs.ScrollView>
-          </Tabs.Tab>
+        {/* Revision Tab */}
+        <Tabs.Tab name="Revision">
+          <Tabs.ScrollView showsVerticalScrollIndicator={false}>
+            <ActivityOverview ctype={2} />
+          </Tabs.ScrollView>
+        </Tabs.Tab>
 
-          <Tabs.Tab name="Report">
-            <Tabs.ScrollView
-              automaticallyAdjustContentInsets={true}
-              contentInsetAdjustmentBehavior="always"
-              contentContainerStyle={styles.scrollViewContentContainer}>
-              <ActivityOverview ctype={3} />
-            </Tabs.ScrollView>
-          </Tabs.Tab>
-        </Tabs.Container>
-      </View>
+        {/* Podcast Tab */}
+        <Tabs.Tab name="Podcast">
+          <Tabs.ScrollView showsVerticalScrollIndicator={false}>
+            <ActivityOverview ctype={4} />
+          </Tabs.ScrollView>
+        </Tabs.Tab>
+
+        {/* Report Tab */}
+        <Tabs.Tab name="Report">
+          <Tabs.ScrollView showsVerticalScrollIndicator={false}>
+            <ActivityOverview ctype={3} />
+          </Tabs.ScrollView>
+        </Tabs.Tab>
+      </Tabs.Container>
     </SafeAreaView>
   );
 };
 
 export default ProfileScreen;
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#0CAFFF',
-  },
-  innerContainer: {
-    flex: 1,
-    backgroundColor: ON_PRIMARY_COLOR,
-  },
-  tabsContainer: {
-    backgroundColor: ON_PRIMARY_COLOR,
-    overflow: 'hidden',
-  },
-  scrollViewContentContainer: {
-    paddingHorizontal: 16,
-    marginTop: 16,
-    backgroundColor: ON_PRIMARY_COLOR,
-  },
-  flatListContentContainer: {
-    paddingHorizontal: 16,
-  },
-
-  profileImage: {
-    height: 130,
-    width: 130,
-    borderRadius: 100,
-    objectFit: 'cover',
-    resizeMode: 'contain',
-  },
-  indicatorStyle: {
-    backgroundColor: 'white',
-  },
-  tabBarStyle: {
-    backgroundColor: ON_PRIMARY_COLOR,
-  },
-  labelStyle: {
-    fontWeight: '600',
-    fontSize: 13,
-   // color: 'black',
-    textTransform: 'capitalize',
-  },
-  contentContainerStyle: {
-    width: '100%',
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    shadowOpacity: 0,
-    shadowOffset: {width: 0, height: 0},
-    shadowColor: 'white',
-  },
-  message: {
-    fontSize: 16,
-    color: '#555',
-    textAlign: 'center',
-  },
-  emptyContainer: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    padding: 20,
-  },
-  loadingContainer: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  btnSMText: {
-    fontSize: wp(7),
-    //lineHeight: 20,
-    fontWeight: '600',
-    //color: '#374151',
-    color: 'white',
-  },
-});

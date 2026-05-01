@@ -219,7 +219,7 @@ const StackNavigation = () => {
         name="EditProfile"
         component={EditProfile}
         options={({navigation}) => ({
-          headerShown: true,
+          headerShown: false,
           title: 'Edit Profile',
           headerBackTitleVisible: false,
           headerShadowVisible: false,

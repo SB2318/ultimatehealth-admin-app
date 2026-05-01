@@ -5,7 +5,13 @@ import {
   launchImageLibrary,
   ImagePickerResponse,
 } from 'react-native-image-picker';
-import {Alert, Image} from 'react-native';
+import {
+  Alert,
+  Image,
+  KeyboardAvoidingView,
+  Platform,
+  TouchableOpacity,
+} from 'react-native';
 import ImageResizer from '@bam.tech/react-native-image-resizer';
 import axios, {AxiosError} from 'axios';
 import {
@@ -21,10 +27,28 @@ import Icon from '@expo/vector-icons/MaterialIcons';
 import Loader from '../../components/Loader';
 import EmailVerifiedModal from '../../components/EmailVerifiedModal';
 import {SafeAreaView} from 'react-native-safe-area-context';
-import {ScrollView, YStack, Text, Button, XStack, Input} from 'tamagui';
+import {
+  ScrollView,
+  YStack,
+  Text,
+  Button,
+  XStack,
+  Input,
+  Spinner,
+} from 'tamagui';
 import validator from 'email-validator';
 import {useSelector} from 'react-redux';
 import {SignUpScreenProp} from '@/src/type';
+
+const COLORS = {
+  primary: '#2563EB',
+  primaryDark: '#1E40AF',
+  surface: '#FFFFFF',
+  text: '#0F172A',
+  secondaryText: '#64748B',
+  success: '#10B981',
+  error: '#EF4444',
+};
 
 export default function SignUpScreen({navigation}: SignUpScreenProp) {
   const {uploadImage, loading} = useUploadImage();
@@ -35,7 +59,7 @@ export default function SignUpScreen({navigation}: SignUpScreenProp) {
   const [password, setPassword] = useState('');
   const [verifyBtntext, setVerifyBtntxt] = useState('Request Verification');
   const [verifiedModalVisible, setVerifiedModalVisible] = useState(false);
-  const [isHandleAvailable, setIsHandleAvailable] = useState(false);
+  const [isHandleAvailable, setIsHandleAvailable] = useState(true);
   const [token, setToken] = useState('');
   const [isSecureEntry, setIsSecureEntry] = useState(true);
   const [error, setError] = useState('');
@@ -318,189 +342,424 @@ export default function SignUpScreen({navigation}: SignUpScreenProp) {
     return <Loader />;
   }
 
+  const isLoading =
+    adminRegisterMutation.isPending || verifyMail.isPending || loading;
+
   return (
-    <ScrollView
-      backgroundColor="$background"
-      showsVerticalScrollIndicator={false}>
-      <SafeAreaView>
-        {/* Header */}
-        <YStack
-          width="94%"
-          height={140}
-          alignItems="center"
-          justifyContent="center"
-          backgroundColor="$blue10"
-          alignSelf="center"
-          borderRadius="$4"
-          marginTop="$2"
-          padding="$3"
-          space="$2">
-          <Text fontSize={16} color="white" textAlign="center" fontWeight="600">
-            He who has health has hope and he who has hope has everything.
-          </Text>
-          <Text fontSize={16} color="white" textAlign="center" fontWeight="600">
-            ~ Arabian Proverb.
-          </Text>
-        </YStack>
-
-        {/* Profile Image */}
-        <YStack alignItems="center" marginTop="$4" marginBottom="$3">
-          <Button
-            circular
-            size="$9"
-            backgroundColor="$blue10"
-            onPress={selectImage}
-            padding="$3">
-            {user_profile_image === '' ? (
-              <AntDesign
-                name="camera"
-                size={26}
-                color="#ffffff"
-                style={{transform: [{scaleX: -1}]}}
-              />
-            ) : (
-              <Image
-                source={{uri: user_profile_image}}
-                style={{
-                  height: 80,
-                  width: 80,
-                  borderRadius: 40,
-                }}
-              />
-            )}
-          </Button>
-        </YStack>
-
-        {/* Title */}
-        <Text
-          fontSize={20}
-          fontWeight="700"
-          color="$blue10"
-          textAlign="center"
-          textTransform="uppercase">
-          Sign up
-        </Text>
-
-        {/* Form */}
-        <YStack padding="$4" space="$4">
-          {/* Name */}
-          <XStack position="relative">
-            <Input
-              flex={1}
-              height="$5"
-              borderColor="$blue10"
-              borderWidth={1}
-              borderRadius="$3"
-              placeholder="Name"
-              value={name}
-              onChangeText={setName}
-            />
-            <YStack position="absolute" right={14} top={10}>
-              <Icon name="person" size={20} color="#000" />
-            </YStack>
-          </XStack>
-
-          {/* Handle Error */}
-          {isHandleAvailable && (
-            <Text color="red" fontSize={14}>
-              User handle is already in use.
-            </Text>
-          )}
-
-          {/* User Handle */}
-          <XStack position="relative">
-            <Input
-              flex={1}
-              height="$5"
-              borderColor="$blue10"
-              borderWidth={1}
-              borderRadius="$3"
-              placeholder="User Handle"
-              value={username}
-              onChangeText={handleUserHandleChange}
-            />
-            <YStack position="absolute" right={14} top={10}>
-              <Icon name="person" size={20} color="#000" />
-            </YStack>
-          </XStack>
-
-          {/* Email */}
-          <XStack position="relative">
-            <Input
-              flex={1}
-              height="$5"
-              borderColor="$blue10"
-              borderWidth={1}
-              borderRadius="$3"
-              placeholder="Email"
-              value={email}
-              onChangeText={setEmail}
-              keyboardType="email-address"
-            />
-            <YStack position="absolute" right={14} top={10}>
-              <Icon name="email" size={20} color="#000" />
-            </YStack>
-          </XStack>
-
-          {/* Password */}
-          <XStack position="relative">
-            <Input
-              flex={1}
-              height="$5"
-              borderColor="$blue10"
-              borderWidth={1}
-              borderRadius="$3"
-              placeholder="Password"
-              value={password}
-              onChangeText={setPassword}
-              secureTextEntry={isSecureEntry}
-            />
-            <Button
-              chromeless
-              position="absolute"
-              right={1}
-              top={8}
-              onPress={() => setIsSecureEntry(!isSecureEntry)}>
-              <AntDesign
-                name={isSecureEntry ? 'eye-invisible' : 'eye'}
-                size={17}
-                color="#000"
-              />
-            </Button>
-          </XStack>
-
-          {/* Role Dropdown */}
-
-          {/* Submit Button */}
-          <Button
-            backgroundColor="$blue10"
-            size={'$7'}
-            padding="$3"
-            borderRadius="$4"
+    <KeyboardAvoidingView
+      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+      style={{flex: 1, backgroundColor: '#F8FAFC'}}>
+      <ScrollView showsVerticalScrollIndicator={false}>
+        <SafeAreaView>
+          {/* Gradient Header */}
+          <YStack
+            backgroundColor={COLORS.primary}
+            paddingTop="$8"
+            paddingBottom="$9"
             alignItems="center"
-            alignSelf="center"
-            width="100%"
-            onPress={handleSubmit}>
-            <Text color="white" fontWeight="bold" fontSize={18}>
-              Register
+            borderBottomLeftRadius={32}
+            borderBottomRightRadius={32}>
+            {/* <Image
+              source={require('../../../assets/images/icon.png')}
+              style={{
+                width: 90,
+                height: 90,
+                borderRadius: 45,
+                marginBottom: 6,
+              }}
+            /> */}
+            <Text
+              color="white"
+              fontSize={28}
+              fontWeight="700"
+              textAlign="center"
+              marginBottom="$1"
+              >
+              Create Admin Account
             </Text>
-          </Button>
-        </YStack>
+            <Text color="#E0F2FE" fontSize={16} marginTop="$1">
+              Join the management portal
+            </Text>
+          </YStack>
 
-        {/* Modal */}
-        <EmailVerifiedModal
-          visible={verifiedModalVisible}
-          onClick={handleVerifyModalCallback}
-          onClose={() => {
-            if (verifyBtntext !== 'Request Verification') {
-              setVerifiedModalVisible(false);
-            }
-          }}
-          message={verifyBtntext}
-        />
-      </SafeAreaView>
-    </ScrollView>
+          {/* Profile Avatar */}
+          <YStack alignItems="center" marginTop={-20} zIndex={10}>
+            <TouchableOpacity onPress={selectImage} activeOpacity={0.8}>
+              <YStack
+                width={100}
+                height={100}
+                borderRadius={50}
+                backgroundColor="white"
+                shadowColor="#000"
+                shadowOffset={{width: 0, height: 8}}
+                shadowOpacity={0.15}
+                shadowRadius={20}
+                elevation={15}
+                alignItems="center"
+                justifyContent="center"
+                overflow="hidden">
+                {user_profile_image ? (
+                  <Image
+                    source={{uri: user_profile_image}}
+                    style={{width: 100, height: 100, borderRadius: 50}}
+                  />
+                ) : (
+                  <YStack
+                    width={100}
+                    height={100}
+                    backgroundColor={COLORS.primary}
+                    alignItems="center"
+                    justifyContent="center">
+                    <AntDesign name="camera" size={36} color="white" />
+                  </YStack>
+                )}
+                <YStack
+                  position="absolute"
+                  bottom={4}
+                  right={4}
+                  backgroundColor="white"
+                  borderRadius={999}
+                  padding={6}
+                  shadowColor="#000"
+                  shadowOpacity={0.2}
+                  elevation={5}>
+                  <AntDesign name="edit" size={18} color={COLORS.primary} />
+                </YStack>
+              </YStack>
+            </TouchableOpacity>
+            <Text marginTop="$2" color={COLORS.secondaryText} fontSize={14}>
+              Tap to change photo
+            </Text>
+          </YStack>
+
+          {/* Form Card */}
+          <YStack
+            marginHorizontal="$5"
+            marginTop="$6"
+            backgroundColor="white"
+            borderRadius={20}
+            padding="$6"
+            shadowColor="#000"
+            shadowOffset={{width: 0, height: 10}}
+            shadowOpacity={0.08}
+            shadowRadius={20}
+            elevation={12}>
+            <Input
+              placeholder="Full Name"
+              value={name}
+              onChangeText={e => setName(e.nativeEvent.text)}
+              height={52}
+              backgroundColor="white"
+              color={COLORS.text}
+              //placeholderTextColor={COLORS.secondaryText}
+              borderWidth={1.5}
+              borderRadius={10}
+              borderColor="#E2E8F0"
+              focusStyle={{
+                borderColor: COLORS.primary,
+                backgroundColor: 'white',
+              }}
+              fontSize={16}
+            />
+
+            <XStack position="relative" marginTop="$4">
+              <Input
+                flex={1}
+                placeholder="User Handle"
+                value={username}
+                backgroundColor="white"
+                onChangeText={u => setUsername(u.nativeEvent.text)}
+                height={52}
+                borderWidth={1.5}
+                borderRadius={10}
+                borderColor={
+                  isHandleAvailable === false ? COLORS.error : "#E2E8F0"
+                }
+                focusStyle={{borderColor: COLORS.primary}}
+                fontSize={16}
+              />
+              {isHandleAvailable !== null && username.length > 2 && (
+                <Text
+                  position="absolute"
+                  right={16}
+                  top={16}
+                  color={isHandleAvailable ? COLORS.success : COLORS.error}
+                  fontSize={14}
+                  fontWeight="600">
+                  {isHandleAvailable
+                    ? 'User handle is available'
+                    : error || 'User handle is already in use'}
+                </Text>
+              )}
+            </XStack>
+
+            <Input
+              marginTop="$4"
+              placeholder="Email Address"
+              value={email}
+              onChangeText={e => setEmail(e.nativeEvent.text)}
+              backgroundColor="white"
+              color={COLORS.text}
+              keyboardType="email-address"
+              autoCapitalize="none"
+              height={52}
+              borderWidth={1.5}
+              borderColor="#E2E8F0"
+              borderRadius={10}
+              //borderColor={COLORS.border}
+              focusStyle={{
+                borderColor: COLORS.primary,
+                backgroundColor: 'white',
+              }}
+              fontSize={16}
+            />
+
+            <XStack position="relative" marginTop="$4">
+              <Input
+                flex={1}
+                placeholder="Password"
+                value={password}
+                onChangeText={e => setPassword(e.nativeEvent.text)}
+                secureTextEntry={isSecureEntry}
+                height={52}
+                backgroundColor="white"
+                color={COLORS.text}
+                borderWidth={1.5}
+                borderColor="#E2E8F0"
+                borderRadius={10}
+                focusStyle={{
+                  borderColor: COLORS.primary,
+                  backgroundColor: 'white',
+                }}
+                fontSize={16}
+              />
+              <TouchableOpacity
+                onPress={() => setIsSecureEntry(!isSecureEntry)}
+                style={{position: 'absolute', right: 16, top: 16}}>
+                <AntDesign
+                  name={isSecureEntry ? 'eye-invisible' : 'eye'}
+                  size={22}
+                  color={COLORS.secondaryText}
+                />
+              </TouchableOpacity>
+            </XStack>
+
+            <Button
+              marginTop="$6"
+              height={56}
+              backgroundColor={COLORS.primaryDark}
+              borderRadius={14}
+              onPress={handleSubmit}
+              disabled={isLoading || isHandleAvailable === false}
+              pressStyle={{scale: 0.98}}>
+              {isLoading ? (
+                <Spinner color="white" size="small" />
+              ) : (
+                <Text color="white" fontSize={18} fontWeight="700">
+                  Create Account
+                </Text>
+              )}
+            </Button>
+
+            <XStack justifyContent="center" marginTop="$5">
+              <Text color={COLORS.secondaryText}>
+                Already have an account?{' '}
+              </Text>
+              <Text
+                color={COLORS.primary}
+                fontWeight="600"
+                onPress={() => navigation.navigate('LoginScreen')}>
+                Sign in
+              </Text>
+            </XStack>
+          </YStack>
+        </SafeAreaView>
+      </ScrollView>
+    </KeyboardAvoidingView>
   );
+  // return (
+  //   <ScrollView
+  //     backgroundColor="$background"
+  //     showsVerticalScrollIndicator={false}>
+  //     <SafeAreaView>
+  //       {/* Header */}
+  //       <YStack
+  //         width="94%"
+  //         height={140}
+  //         alignItems="center"
+  //         justifyContent="center"
+  //         backgroundColor="$blue10"
+  //         alignSelf="center"
+  //         borderRadius="$4"
+  //         marginTop="$2"
+  //         padding="$3"
+  //         space="$2">
+  //         <Text fontSize={16} color="white" textAlign="center" fontWeight="600">
+  //           He who has health has hope and he who has hope has everything.
+  //         </Text>
+  //         <Text fontSize={16} color="white" textAlign="center" fontWeight="600">
+  //           ~ Arabian Proverb.
+  //         </Text>
+  //       </YStack>
+
+  //       {/* Profile Image */}
+  //       <YStack alignItems="center" marginTop="$4" marginBottom="$3">
+  //         <Button
+  //           circular
+  //           size="$9"
+  //           backgroundColor="$blue10"
+  //           onPress={selectImage}
+  //           padding="$3">
+  //           {user_profile_image === '' ? (
+  //             <AntDesign
+  //               name="camera"
+  //               size={26}
+  //               color="#ffffff"
+  //               style={{transform: [{scaleX: -1}]}}
+  //             />
+  //           ) : (
+  //             <Image
+  //               source={{uri: user_profile_image}}
+  //               style={{
+  //                 height: 80,
+  //                 width: 80,
+  //                 borderRadius: 40,
+  //               }}
+  //             />
+  //           )}
+  //         </Button>
+  //       </YStack>
+
+  //       {/* Title */}
+  //       <Text
+  //         fontSize={20}
+  //         fontWeight="700"
+  //         color="$blue10"
+  //         textAlign="center"
+  //         textTransform="uppercase">
+  //         Sign up
+  //       </Text>
+
+  //       {/* Form */}
+  //       <YStack padding="$4" space="$4">
+  //         {/* Name */}
+  //         <XStack position="relative">
+  //           <Input
+  //             flex={1}
+  //             height="$5"
+  //             borderColor="$blue10"
+  //             borderWidth={1}
+  //             borderRadius="$3"
+  //             placeholder="Name"
+  //             value={name}
+  //             onChangeText={setName}
+  //           />
+  //           <YStack position="absolute" right={14} top={10}>
+  //             <Icon name="person" size={20} color="#000" />
+  //           </YStack>
+  //         </XStack>
+
+  //         {/* Handle Error */}
+  //         {isHandleAvailable && (
+  //           <Text color="red" fontSize={14}>
+  //             User handle is already in use.
+  //           </Text>
+  //         )}
+
+  //         {/* User Handle */}
+  //         <XStack position="relative">
+  //           <Input
+  //             flex={1}
+  //             height="$5"
+  //             borderColor="$blue10"
+  //             borderWidth={1}
+  //             borderRadius="$3"
+  //             placeholder="User Handle"
+  //             value={username}
+  //             onChangeText={handleUserHandleChange}
+  //           />
+  //           <YStack position="absolute" right={14} top={10}>
+  //             <Icon name="person" size={20} color="#000" />
+  //           </YStack>
+  //         </XStack>
+
+  //         {/* Email */}
+  //         <XStack position="relative">
+  //           <Input
+  //             flex={1}
+  //             height="$5"
+  //             borderColor="$blue10"
+  //             borderWidth={1}
+  //             borderRadius="$3"
+  //             placeholder="Email"
+  //             value={email}
+  //             onChangeText={setEmail}
+  //             keyboardType="email-address"
+  //           />
+  //           <YStack position="absolute" right={14} top={10}>
+  //             <Icon name="email" size={20} color="#000" />
+  //           </YStack>
+  //         </XStack>
+
+  //         {/* Password */}
+  //         <XStack position="relative">
+  //           <Input
+  //             flex={1}
+  //             height="$5"
+  //             borderColor="$blue10"
+  //             borderWidth={1}
+  //             borderRadius="$3"
+  //             placeholder="Password"
+  //             value={password}
+  //             onChangeText={setPassword}
+  //             secureTextEntry={isSecureEntry}
+  //           />
+  //           <Button
+  //             chromeless
+  //             position="absolute"
+  //             right={1}
+  //             top={8}
+  //             onPress={() => setIsSecureEntry(!isSecureEntry)}>
+  //             <AntDesign
+  //               name={isSecureEntry ? 'eye-invisible' : 'eye'}
+  //               size={17}
+  //               color="#000"
+  //             />
+  //           </Button>
+  //         </XStack>
+
+  //         {/* Role Dropdown */}
+
+  //         {/* Submit Button */}
+  //         <Button
+  //           backgroundColor="$blue10"
+  //           size={'$7'}
+  //           padding="$3"
+  //           borderRadius="$4"
+  //           alignItems="center"
+  //           alignSelf="center"
+  //           width="100%"
+  //           onPress={handleSubmit}>
+  //           <Text color="white" fontWeight="bold" fontSize={18}>
+  //             Register
+  //           </Text>
+  //         </Button>
+  //       </YStack>
+
+  //       {/* Modal */}
+  //       <EmailVerifiedModal
+  //         visible={verifiedModalVisible}
+  //         onClick={handleVerifyModalCallback}
+  //         onClose={() => {
+  //           if (verifyBtntext !== 'Request Verification') {
+  //             setVerifiedModalVisible(false);
+  //           }
+  //         }}
+  //         message={verifyBtntext}
+  //       />
+  //     </SafeAreaView>
+  //   </ScrollView>
+  // );
 }
 
 // const styles = StyleSheet.create({

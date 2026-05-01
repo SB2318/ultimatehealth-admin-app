@@ -1,5 +1,5 @@
 import React, {useCallback, useState} from 'react';
-import {View, Text, StyleSheet, Image} from 'react-native';
+import {View, Text, StyleSheet, Image, useColorScheme} from 'react-native';
 import {MaterialTabBar, Tabs} from 'react-native-collapsible-tab-view';
 import {PRIMARY_COLOR, ON_PRIMARY_COLOR, BUTTON_COLOR} from '../helper/Theme';
 import {SafeAreaView, useSafeAreaInsets} from 'react-native-safe-area-context';
@@ -28,12 +28,34 @@ import {StatusEnum} from '../helper/Utils';
 import ReportCard from '../components/ReportCard';
 import ImprovementCard from '../components/ImprovementCard';
 import PodcastCard from '../components/PodcastCard';
-import { Fontisto, MaterialIcons } from '@expo/vector-icons';
+import {Fontisto, MaterialIcons} from '@expo/vector-icons';
+import {YStack} from 'tamagui';
+
+const COLORS = {
+  light: {
+    background: '#F8FAFC',
+    surface: '#FFFFFF',
+    text: '#0F172A',
+    secondaryText: '#64748B',
+    primary: '#2563EB',
+    border: '#E2E8F0',
+  },
+  dark: {
+    background: '#0F172A',
+    surface: '#1E2937',
+    text: '#F1F5F9',
+    secondaryText: '#94A3B8',
+    primary: '#3B82F6',
+    border: '#334155',
+  },
+};
 
 export default function WorkHistoryScreen({navigation}: WorkHistoryProps) {
   //const bottomBarHeight = useBottomTabBarHeight();
   const {user_token, user_id} = useSelector((state: any) => state.user);
   const {isConnected} = useSelector((state: any) => state.network);
+  const isDarkMode = useColorScheme() === 'dark';
+  const colors = isDarkMode ? COLORS.dark : COLORS.light;
   const insets = useSafeAreaInsets();
   const [selectedCardId, setSelectedCardId] = useState<string>('');
 
@@ -51,8 +73,8 @@ export default function WorkHistoryScreen({navigation}: WorkHistoryProps) {
   >([]);
   const [completedArticles, setCompletedArticles] = useState<ArticleData[]>([]);
 
-  const[reportPage, setReportPage] = useState(1);
-  const[totalReportPage, setTotalReportPage] = useState(0);
+  const [reportPage, setReportPage] = useState(1);
+  const [totalReportPage, setTotalReportPage] = useState(0);
 
   const [assignedReports, setAssignedReports] = useState<Report[]>([]);
 
@@ -123,7 +145,9 @@ export default function WorkHistoryScreen({navigation}: WorkHistoryProps) {
   } = useQuery({
     queryKey: ['get-publish-podcasts', podcastPage],
     queryFn: async () => {
-      const response = await axios.get(`${GET_COMPLETED_PODCAST}?page=${podcastPage}`);
+      const response = await axios.get(
+        `${GET_COMPLETED_PODCAST}?page=${podcastPage}`,
+      );
       if (Number(podcastPage) === 1) {
         if (response.data.totalPages) {
           const pages = response.data.totalPages;
@@ -143,7 +167,6 @@ export default function WorkHistoryScreen({navigation}: WorkHistoryProps) {
   });
 
   const {
-
     refetch: refetchAssignReports,
     isLoading: isRefetchAssignReportLoading,
   } = useQuery({
@@ -153,7 +176,7 @@ export default function WorkHistoryScreen({navigation}: WorkHistoryProps) {
         `${GET_ASSIGNED_REPORTS}?isCompleted=${true}&page=${reportPage}`,
       );
 
-      if(Number(reportPage) === 1) {
+      if (Number(reportPage) === 1) {
         if (response.data.totalPages) {
           setTotalReportPage(response.data.totalPages);
         }
@@ -265,7 +288,7 @@ export default function WorkHistoryScreen({navigation}: WorkHistoryProps) {
             navigation.navigate('PodcastDetail', {
               trackId: item._id,
               audioUrl: item.audio_url,
-              podcast: item
+              podcast: item,
             });
           }}
         />
@@ -277,6 +300,20 @@ export default function WorkHistoryScreen({navigation}: WorkHistoryProps) {
   if (isCompletedArticleLoading || isRefetchAssignReportLoading) {
     return <Loader />;
   }
+
+  const renderEmptyState = (message: string, icon: React.ReactNode) => (
+    <YStack
+      flex={1}
+      alignItems="center"
+      justifyContent="center"
+      padding="$10"
+      gap="$4">
+      {icon}
+      <Text fontSize={17} color={colors.secondaryText} textAlign="center">
+        {message}
+      </Text>
+    </YStack>
+  );
 
   const renderTabBar = props => {
     return (
@@ -291,168 +328,291 @@ export default function WorkHistoryScreen({navigation}: WorkHistoryProps) {
       />
     );
   };
+
   return (
-    <SafeAreaView style={styles.container}>
-      <View style={[styles.innerContainer]}>
-        <Tabs.Container
-          //renderHeader={renderHeader}
-          renderTabBar={renderTabBar}
-          containerStyle={styles.tabsContainer}>
-          {/* Tab 2 */}
-          <Tabs.Tab name={'Articles'}>
-            <Tabs.FlatList
-              data={completedArticles ? completedArticles : []}
-              renderItem={renderItem}
-              showsVerticalScrollIndicator={false}
-              contentContainerStyle={[
-                styles.flatListContentContainer,
-                {paddingBottom: 15},
-              ]}
-              keyExtractor={item => item?._id}
-              refreshing={isCompletedArticleLoading}
-              onRefresh={()=>{
-                setArticlePage(1);
-                refetchCompletedArticles();
-              }}
-              ListEmptyComponent={
-                <View style={styles.emptyContainer}>
-                  {/* <Image
-                    source={require('../../assets/images/identify-audience.png')}
-                    style={styles.image}
-                  /> */}
-
-                  <Fontisto name="onenote" size={wp(25)} color={'#6A89A7'} />
-                  <Text style={styles.message}>No articles available</Text>
-                </View>
+    <SafeAreaView style={{flex: 1, backgroundColor: colors.background}}>
+      <Tabs.Container
+        renderTabBar={renderTabBar}
+        containerStyle={{backgroundColor: colors.background}}>
+        {/* Articles Tab */}
+        <Tabs.Tab name="Articles">
+          <Tabs.FlatList
+            data={completedArticles}
+            renderItem={renderItem}
+            keyExtractor={item => item._id}
+            ListEmptyComponent={renderEmptyState(
+              'No articles available',
+              <Fontisto name="onenote" size={80} color="#6A89A7" />,
+            )}
+            showsVerticalScrollIndicator={false}
+            refreshing={isCompletedArticleLoading}
+            onRefresh={() => {
+              setArticlePage(1);
+              refetchCompletedArticles();
+            }}
+            onEndReached={() => {
+              if (articlePage < totalArticlePage) {
+                setArticlePage(prev => prev + 1);
               }
-              onEndReached={()=>{
-                if(articlePage < totalArticlePage){
-                  setArticlePage(prev => prev + 1);
-                }
-              }}
-              onEndReachedThreshold={0.5}
-            />
-          </Tabs.Tab>
+            }}
+            onEndReachedThreshold={0.5}
+          />
+        </Tabs.Tab>
 
-          <Tabs.Tab name={'Revision'}>
-            <Tabs.FlatList
-              data={completedImprovements ? completedImprovements : []}
-              renderItem={renderRevisionItem}
-              showsVerticalScrollIndicator={false}
-              contentContainerStyle={[
-                styles.flatListContentContainer,
-                {paddingBottom: 15},
-              ]}
-              keyExtractor={item => item?._id}
-              refreshing={isCompletedImprovementLoading}
-              onRefresh={() => {
-                setImprovePage(1);
-                refetchCompletedImprovements();
-              }}
-              ListEmptyComponent={
-                <View style={styles.emptyContainer}>
-                  {/* <Image
-                    source={require('../../assets/images/identify-audience.png')}
-                    style={styles.image}
-                  /> */}
-                  <Fontisto name="onenote" size={wp(25)} color={'#6A89A7'} />
-                  <Text style={styles.message}>No revisions available</Text>
-                </View>
+        {/* Revision Tab */}
+        <Tabs.Tab name="Revision">
+          <Tabs.FlatList
+            data={completedImprovements}
+            renderItem={renderRevisionItem}
+            ListEmptyComponent={renderEmptyState(
+              'No revisions available',
+              <Fontisto name="onenote" size={80} color="#6A89A7" />,
+            )}
+            refreshing={isCompletedImprovementLoading}
+            onRefresh={() => {
+              setImprovePage(1);
+              refetchCompletedImprovements();
+            }}
+            onEndReached={() => {
+              if (improvePage < totalImprovePage) {
+                setImprovePage(prev => prev + 1);
               }
-              onEndReached={() => {
-                if (improvePage < totalImprovePage) {
-                  setImprovePage(prev => prev + 1);
-                }
-              }}
-              onEndReachedThreshold={0.5}
-            />
-          </Tabs.Tab>
+            }}
+            onEndReachedThreshold={0.5}
+          />
+        </Tabs.Tab>
 
-          <Tabs.Tab name={'Podcast'}>
-            <Tabs.FlatList
-              data={completedPodcasts ? completedPodcasts : []}
-              renderItem={renderPodcastItem}
-              showsVerticalScrollIndicator={false}
-              contentContainerStyle={[
-                styles.flatListContentContainer,
-                {paddingBottom: 15},
-                
-              ]}
-              keyExtractor={item => item?._id}
-              refreshing={isCompletedPodcastLoading}
-              onRefresh={refetchCompletedPodcasts}
-              ListEmptyComponent={
-                <View style={styles.emptyContainer}>
-                  {/* <Image
-                    source={require('../../assets/images/identify-audience.png')}
-                    style={styles.image}
-                  /> */}
-                  <MaterialIcons name="podcasts" size={hp(17)} color={'#6A89A7'} style={{marginBottom: hp(2)}} />
-                  <Text style={styles.message}>No podcasts available</Text>
-                </View>
+        {/* Podcast Tab */}
+        <Tabs.Tab name="Podcast">
+          <Tabs.FlatList
+            data={completedPodcasts}
+            renderItem={renderPodcastItem}
+            ListEmptyComponent={renderEmptyState(
+              'No podcasts available',
+              <MaterialIcons name="podcasts" size={80} color="#6A89A7" />,
+            )}
+            refreshing={isCompletedPodcastLoading}
+            onRefresh={() => {
+              setPodcastPage(1);
+              refetchCompletedPodcasts();
+            }}
+            onEndReached={() => {
+              if (podcastPage < totalPodcastPage) {
+                setPodcastPage(prev => prev + 1);
               }
-              onEndReached={() => {
-                if (podcastPage < totalPodcastPage) {
-                  setPodcastPage(prev => prev + 1);
-                }
-              }}
-              onEndReachedThreshold={0.5}
-            />
-          </Tabs.Tab>
-          <Tabs.Tab name={'Reports'}>
-            <View style={{flex: 1}}>
-              <Tabs.FlatList
-                data={assignedReports ? assignedReports : []}
-                keyExtractor={item => item._id}
-                renderItem={({item}) => (
-                  <ReportCard
-                    report={item}
-                    onViewContent={() => {
-                      onViewContent(item);
-                    }}
-                    onTakeActionReport={onTakeActionReport}
-                  />
-                )}
-                ListEmptyComponent={
-                  <View style={styles.emptyContainer}>
-                    {/* <Image
-                      source={require('../../assets/images/identify-audience.png')}
-                      style={styles.image}
-                  /> */}
-                    <MaterialIcons name="report-off" size={wp(25)} color={'#6A89A7'} style={{marginBottom: hp(2)}} />
-                    <Text style={styles.message}>No report available</Text>
-                  </View>
-                }
-                onRefresh={()=>{
-                  setReportPage(1);
-                  refetchAssignReports();
+            }}
+            onEndReachedThreshold={0.5}
+          />
+        </Tabs.Tab>
+
+        {/* Reports Tab */}
+        <Tabs.Tab name="Reports">
+          <Tabs.FlatList
+            data={assignedReports}
+            renderItem={({item}) => (
+              <ReportCard
+                report={item}
+                onViewContent={() => {
+                  onViewContent(item);
                 }}
-                refreshing={isRefetchAssignReportLoading}
-                //contentContainerStyle={styles.container}
-                showsVerticalScrollIndicator={false}
-                onEndReached={() => {
-                  if (reportPage < totalReportPage) {
-                    setReportPage(prev => prev + 1);
-                  }
-                }}
-                onEndReachedThreshold={0.5}
+                onTakeActionReport={onTakeActionReport}
               />
-            </View>
-          </Tabs.Tab>
-        </Tabs.Container>
-      </View>
+            )}
+            ListEmptyComponent={renderEmptyState(
+              'No reports available',
+              <MaterialIcons name="report-off" size={80} color="#6A89A7" />,
+            )}
+            onRefresh={() => {
+              setReportPage(1);
+              refetchAssignReports();
+            }}
+            refreshing={isRefetchAssignReportLoading}
+            onEndReached={() => {
+              if (improvePage < totalImprovePage) {
+                setImprovePage(prev => prev + 1);
+              }
+            }}
+            onEndReachedThreshold={0.5}
+          />
+        </Tabs.Tab>
+      </Tabs.Container>
+
+      {/* Floating Back Button */}
       <FAB
-        style={styles.fab}
-        small
-        icon={({size, color}) => (
-          <Ionicons name="arrow-back" size={size} color={'white'} />
-        )}
-        onPress={() => {
-          navigation.goBack();
+        style={{
+          position: 'absolute',
+          right: 20,
+          bottom: 30,
+          backgroundColor: BUTTON_COLOR,
         }}
+        small
+        icon={() => <Ionicons name="arrow-back" size={24} color="white" />}
+        onPress={() => navigation.goBack()}
       />
     </SafeAreaView>
   );
+  // return (
+  //   <SafeAreaView style={styles.container}>
+  //     <View style={[styles.innerContainer]}>
+  //       <Tabs.Container
+  //         //renderHeader={renderHeader}
+  //         renderTabBar={renderTabBar}
+  //         containerStyle={styles.tabsContainer}>
+  //         {/* Tab 2 */}
+  //         <Tabs.Tab name={'Articles'}>
+  //           <Tabs.FlatList
+  //             data={completedArticles ? completedArticles : []}
+  //             renderItem={renderItem}
+  //             showsVerticalScrollIndicator={false}
+  //             contentContainerStyle={[
+  //               styles.flatListContentContainer,
+  //               {paddingBottom: 15},
+  //             ]}
+  //             keyExtractor={item => item?._id}
+  //             refreshing={isCompletedArticleLoading}
+  //             onRefresh={()=>{
+  //               setArticlePage(1);
+  //               refetchCompletedArticles();
+  //             }}
+  //             ListEmptyComponent={
+  //               <View style={styles.emptyContainer}>
+  //                 {/* <Image
+  //                   source={require('../../assets/images/identify-audience.png')}
+  //                   style={styles.image}
+  //                 /> */}
+
+  //                 <Fontisto name="onenote" size={wp(25)} color={'#6A89A7'} />
+  //                 <Text style={styles.message}>No articles available</Text>
+  //               </View>
+  //             }
+  //             onEndReached={()=>{
+  //               if(articlePage < totalArticlePage){
+  //                 setArticlePage(prev => prev + 1);
+  //               }
+  //             }}
+  //             onEndReachedThreshold={0.5}
+  //           />
+  //         </Tabs.Tab>
+
+  //         <Tabs.Tab name={'Revision'}>
+  //           <Tabs.FlatList
+  //             data={completedImprovements ? completedImprovements : []}
+  //             renderItem={renderRevisionItem}
+  //             showsVerticalScrollIndicator={false}
+  //             contentContainerStyle={[
+  //               styles.flatListContentContainer,
+  //               {paddingBottom: 15},
+  //             ]}
+  //             keyExtractor={item => item?._id}
+  //             refreshing={isCompletedImprovementLoading}
+  //             onRefresh={() => {
+  //               setImprovePage(1);
+  //               refetchCompletedImprovements();
+  //             }}
+  //             ListEmptyComponent={
+  //               <View style={styles.emptyContainer}>
+  //                 {/* <Image
+  //                   source={require('../../assets/images/identify-audience.png')}
+  //                   style={styles.image}
+  //                 /> */}
+  //                 <Fontisto name="onenote" size={wp(25)} color={'#6A89A7'} />
+  //                 <Text style={styles.message}>No revisions available</Text>
+  //               </View>
+  //             }
+  //             onEndReached={() => {
+  //               if (improvePage < totalImprovePage) {
+  //                 setImprovePage(prev => prev + 1);
+  //               }
+  //             }}
+  //             onEndReachedThreshold={0.5}
+  //           />
+  //         </Tabs.Tab>
+
+  //         <Tabs.Tab name={'Podcast'}>
+  //           <Tabs.FlatList
+  //             data={completedPodcasts ? completedPodcasts : []}
+  //             renderItem={renderPodcastItem}
+  //             showsVerticalScrollIndicator={false}
+  //             contentContainerStyle={[
+  //               styles.flatListContentContainer,
+  //               {paddingBottom: 15},
+
+  //             ]}
+  //             keyExtractor={item => item?._id}
+  //             refreshing={isCompletedPodcastLoading}
+  //             onRefresh={refetchCompletedPodcasts}
+  //             ListEmptyComponent={
+  //               <View style={styles.emptyContainer}>
+  //                 {/* <Image
+  //                   source={require('../../assets/images/identify-audience.png')}
+  //                   style={styles.image}
+  //                 /> */}
+  //                 <MaterialIcons name="podcasts" size={hp(17)} color={'#6A89A7'} style={{marginBottom: hp(2)}} />
+  //                 <Text style={styles.message}>No podcasts available</Text>
+  //               </View>
+  //             }
+  //             onEndReached={() => {
+  //               if (podcastPage < totalPodcastPage) {
+  //                 setPodcastPage(prev => prev + 1);
+  //               }
+  //             }}
+  //             onEndReachedThreshold={0.5}
+  //           />
+  //         </Tabs.Tab>
+  //         <Tabs.Tab name={'Reports'}>
+  //           <View style={{flex: 1}}>
+  //             <Tabs.FlatList
+  //               data={assignedReports ? assignedReports : []}
+  //               keyExtractor={item => item._id}
+  //               renderItem={({item}) => (
+  //                 <ReportCard
+  //                   report={item}
+  //                   onViewContent={() => {
+  //                     onViewContent(item);
+  //                   }}
+  //                   onTakeActionReport={onTakeActionReport}
+  //                 />
+  //               )}
+  //               ListEmptyComponent={
+  //                 <View style={styles.emptyContainer}>
+  //                   {/* <Image
+  //                     source={require('../../assets/images/identify-audience.png')}
+  //                     style={styles.image}
+  //                 /> */}
+  //                   <MaterialIcons name="report-off" size={wp(25)} color={'#6A89A7'} style={{marginBottom: hp(2)}} />
+  //                   <Text style={styles.message}>No report available</Text>
+  //                 </View>
+  //               }
+  //               onRefresh={()=>{
+  //                 setReportPage(1);
+  //                 refetchAssignReports();
+  //               }}
+  //               refreshing={isRefetchAssignReportLoading}
+  //               //contentContainerStyle={styles.container}
+  //               showsVerticalScrollIndicator={false}
+  //               onEndReached={() => {
+  //                 if (reportPage < totalReportPage) {
+  //                   setReportPage(prev => prev + 1);
+  //                 }
+  //               }}
+  //               onEndReachedThreshold={0.5}
+  //             />
+  //           </View>
+  //         </Tabs.Tab>
+  //       </Tabs.Container>
+  //     </View>
+  //     <FAB
+  //       style={styles.fab}
+  //       small
+  //       icon={({size, color}) => (
+  //         <Ionicons name="arrow-back" size={size} color={'white'} />
+  //       )}
+  //       onPress={() => {
+  //         navigation.goBack();
+  //       }}
+  //     />
+  //   </SafeAreaView>
+  // );
 }
 
 const styles = StyleSheet.create({
@@ -477,7 +637,7 @@ const styles = StyleSheet.create({
   flatListContentContainer: {
     paddingHorizontal: wp(1),
     marginBottom: 80,
-    alignItems:"center"
+    alignItems: 'center',
   },
 
   profileImage: {
@@ -498,7 +658,7 @@ const styles = StyleSheet.create({
   labelStyle: {
     fontWeight: '600',
     fontSize: 13,
-   // color: 'black',
+    // color: 'black',
     textTransform: 'capitalize',
   },
   contentContainerStyle: {

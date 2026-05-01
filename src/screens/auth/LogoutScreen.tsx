@@ -1,222 +1,185 @@
 import React from 'react';
 import {
-  StyleSheet,
-  View,
-  Image,
-  Text,
-  TouchableOpacity,
   Alert,
+  Image,
+  KeyboardAvoidingView,
+  Platform,
+  ScrollView,
+  useColorScheme,
 } from 'react-native';
-import {PRIMARY_COLOR} from '../../helper/Theme';
-import {GET_STORAGE_DATA, ADMIN_LOGOUT} from '../../helper/APIUtils';
+import {SafeAreaView} from 'react-native-safe-area-context';
 import {useMutation} from '@tanstack/react-query';
 import axios, {AxiosError} from 'axios';
-import {resetUserState} from '../../stores/UserSlice';
 import {useDispatch, useSelector} from 'react-redux';
-import {clearStorage} from '../../helper/Utils';
-import {LogoutScreenProp} from '../../type';
-import {SafeAreaView} from 'react-native-safe-area-context';
 import Snackbar from 'react-native-snackbar';
 
-const LogoutScreen = ({navigation, route}: LogoutScreenProp) => {
+import {YStack, Text, Button, XStack} from 'tamagui';
+import Icon from '@expo/vector-icons/Ionicons';
+
+import {GET_STORAGE_DATA, ADMIN_LOGOUT} from '../../helper/APIUtils';
+import {resetUserState} from '../../stores/UserSlice';
+import {clearStorage} from '../../helper/Utils';
+import { PRIMARY_COLOR } from '@/src/helper/Theme';
+
+const COLORS = {
+  light: {
+    background: '#F8FAFC',
+    surface: '#FFFFFF',
+    text: '#0F172A',
+    secondaryText: '#64748B',
+    border: '#E2E8F0',
+    primary: '#2563EB',
+    danger: '#EF4444',
+  },
+  dark: {
+    background: '#0F172A',
+    surface: '#1E2937',
+    text: '#F1F5F9',
+    secondaryText: '#94A3B8',
+    border: '#334155',
+    primary: '#3B82F6',
+    danger: '#F87171',
+  },
+};
+
+const LogoutScreen = ({navigation, route}) => {
   const {profile_image, username} = route.params;
   const {user_token} = useSelector((state: any) => state.user);
   const {isConnected} = useSelector((state: any) => state.network);
   const dispatch = useDispatch();
+  const isDarkMode = useColorScheme() === 'dark';
+  const colors = isDarkMode ? COLORS.dark : COLORS.light;
 
   const userLogoutMutation = useMutation({
-    mutationKey: ['user-logout'],
     mutationFn: async () => {
-      const response = await axios.post(
-        `${ADMIN_LOGOUT}`,
-        {},
-        {
-          //headers: {
-          //  Authorization: `Bearer ${user_token}`,
-          //},
-        },
-      );
-      return response.data as any;
+      await axios.post(ADMIN_LOGOUT, {}, {
+        // headers: { Authorization: `Bearer ${user_token}` }
+      });
     },
     onSuccess: async () => {
-      Alert.alert('Success', 'Logout successfully');
       await clearStorage();
       dispatch(resetUserState());
       navigation.reset({
         index: 0,
-        routes: [{name: 'LoginScreen'}], // Send user to LoginScreen after logout
+        routes: [{name: 'LoginScreen'}],
       });
     },
-
     onError: (err: AxiosError) => {
-      if (err.response) {
-        const statusCode = err.response.status;
-        switch (statusCode) {
-          case 500:
-            // Handle internal server errors
-            Alert.alert(
-              'Logout Failed',
-              'Internal server error. Please try again later.',
-            );
-            break;
-          default:
-            // Handle any other errors
-            Alert.alert(
-              'Logout Failed',
-              'Something went wrong. Please try again later.',
-            );
-        }
-      } else {
-        // Handle network errors
-        console.log('General Update Error', err);
-        Alert.alert(
-          'Logout Failed',
-          'Network error. Please check your connection.',
-        );
-      }
+      Alert.alert('Logout Failed', 'Something went wrong. Please try again.');
     },
   });
+
   const handleLogout = () => {
     if (!isConnected) {
-      Snackbar.show({
-        text: 'You are currently offline',
-        duration: Snackbar.LENGTH_SHORT,
-      });
+      Snackbar.show({text: 'You are offline', duration: Snackbar.LENGTH_SHORT});
       return;
     }
     userLogoutMutation.mutate();
   };
+
   return (
-    <SafeAreaView style={{flex: 1, backgroundColor: '#fff'}}>
-      <View style={styles.container}>
-        <View style={styles.alert}>
-          <View style={styles.alertContent}>
-            <Image
-              alt=""
-              style={[
-                styles.alertAvatar,
-                !profile_image && {borderWidth: 0.5, borderColor: 'black'},
-              ]}
-              source={{
-                uri: profile_image.startsWith('https')
-                  ? profile_image
-                  : `${GET_STORAGE_DATA}/${profile_image}`,
-              }}
-            />
+    <KeyboardAvoidingView
+      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+      style={{flex: 1, backgroundColor: colors.background}}>
+      <SafeAreaView style={{flex: 1}}>
+        <ScrollView contentContainerStyle={{flexGrow: 1}}>
+          <YStack flex={1} justifyContent="center" padding="$5">
 
-            <Text style={styles.alertTitle}>
-              Log out of
-              {'\n'}
-              {username}
-            </Text>
+            {/* Main Card */}
+            <YStack
+              backgroundColor={colors.surface}
+              borderRadius={24}
+              padding="$8"
+              shadowColor="#000"
+              shadowOffset={{width: 0, height: 15}}
+              shadowOpacity={0.1}
+              shadowRadius={30}
+              elevation={20}
+              alignItems="center">
 
-            <Text style={styles.alertMessage}>
-              Are you sure you would like to log out of this account ?
-            </Text>
-          </View>
+              {/* Avatar */}
+              <YStack
+                marginBottom="$6"
+                borderWidth={4}
+                borderColor={colors.surface}
+                borderRadius={999}
+                shadowColor="#000"
+                shadowOpacity={0.15}
+                shadowRadius={20}
+                elevation={10}>
+                <Image
+                  source={{
+                    uri: profile_image?.startsWith('https')
+                      ? profile_image
+                      : `${GET_STORAGE_DATA}/${profile_image}`,
+                  }}
+                  style={{
+                    width: 140,
+                    height: 140,
+                    borderRadius: 70,
+                    backgroundColor: '#E2E8F0',
+                  }}
+                />
+              </YStack>
 
-          <TouchableOpacity onPress={handleLogout}>
-            <View style={styles.btn}>
-              <Text style={styles.btnText}>Yes, log me out</Text>
-            </View>
-          </TouchableOpacity>
+              {/* Title */}
+              <Text
+                fontSize={28}
+                fontWeight="700"
+                color={colors.text}
+                textAlign="center"
+                marginBottom="$3">
+                Log out of{'\n'}{username}
+              </Text>
 
-          <View style={{marginTop: 8}}>
-            <TouchableOpacity
-              onPress={() => {
-                navigation.goBack();
-              }}>
-              <View style={styles.btnSecondary}>
-                <Text style={styles.btnSecondaryText}>Cancel</Text>
-              </View>
-            </TouchableOpacity>
-          </View>
-        </View>
-      </View>
-    </SafeAreaView>
+              {/* Message */}
+              <Text
+                fontSize={16}
+                lineHeight={24}
+                color={colors.secondaryText}
+                textAlign="center"
+                marginBottom="$8">
+                Are you sure you want to log out?{'\n'}
+                You will need to sign in again to access the admin portal.
+              </Text>
+
+              {/* Logout Button (Destructive) */}
+              <Button
+                height={56}
+                width="100%"
+                backgroundColor={PRIMARY_COLOR}
+                borderRadius={14}
+                onPress={handleLogout}
+                pressStyle={{scale: 0.98}}
+                disabled={userLogoutMutation.isPending}>
+                <Text color="white" fontSize={17} fontWeight="700">
+                  {userLogoutMutation.isPending ? 'Logging out...' : 'Yes, Log Me Out'}
+                </Text>
+              </Button>
+
+              {/* Cancel Button */}
+              <Button
+                height={56}
+                width="100%"
+                marginTop="$3"
+                backgroundColor="transparent"
+                borderWidth={1.5}
+                borderColor={colors.border}
+                onPress={() => navigation.goBack()}
+                pressStyle={{backgroundColor: isDarkMode ? '#334155' : '#F1F5F9'}}>
+                <Text
+                  color={colors.text}
+                  fontSize={17}
+                  fontWeight="600">
+                  Cancel
+                </Text>
+              </Button>
+            </YStack>
+          </YStack>
+        </ScrollView>
+      </SafeAreaView>
+    </KeyboardAvoidingView>
   );
 };
 
 export default LogoutScreen;
-
-const styles = StyleSheet.create({
-  container: {
-    padding: 24,
-    flexGrow: 1,
-    flexShrink: 1,
-    flexBasis: 0,
-  },
-  /** Alert */
-  alert: {
-    position: 'relative',
-    flexDirection: 'column',
-    alignItems: 'stretch',
-    flexGrow: 1,
-    flexShrink: 1,
-    flexBasis: 0,
-    paddingTop: 80,
-  },
-  alertContent: {
-    flexGrow: 1,
-    flexShrink: 1,
-    flexBasis: 0,
-  },
-  alertAvatar: {
-    width: 160,
-    height: 160,
-    borderRadius: 9999,
-    alignSelf: 'center',
-    marginBottom: 24,
-  },
-  alertTitle: {
-    marginBottom: 16,
-    fontSize: 34,
-    lineHeight: 44,
-    fontWeight: '700',
-    color: '#000',
-    textAlign: 'center',
-  },
-  alertMessage: {
-    marginBottom: 24,
-    textAlign: 'center',
-    fontSize: 16,
-    lineHeight: 22,
-    fontWeight: '500',
-    color: '#9a9a9a',
-  },
-  /** Button */
-  btn: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    borderRadius: 8,
-    paddingVertical: 8,
-    paddingHorizontal: 16,
-    borderWidth: 1,
-    backgroundColor: PRIMARY_COLOR,
-    borderColor: PRIMARY_COLOR,
-  },
-  btnText: {
-    fontSize: 17,
-    lineHeight: 24,
-    fontWeight: '600',
-    color: '#fff',
-  },
-  btnSecondary: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    borderRadius: 8,
-    paddingVertical: 8,
-    paddingHorizontal: 16,
-    borderWidth: 1,
-    backgroundColor: 'transparent',
-    borderColor: 'transparent',
-  },
-  btnSecondaryText: {
-    fontSize: 17,
-    lineHeight: 24,
-    fontWeight: '600',
-    color: PRIMARY_COLOR,
-  },
-});

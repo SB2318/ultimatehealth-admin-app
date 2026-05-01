@@ -2,6 +2,8 @@ import React, {useState} from 'react';
 import {
   Alert,
   Image,
+  KeyboardAvoidingView,
+  Platform,
   ScrollView,
   StatusBar,
   StyleSheet,
@@ -11,14 +13,9 @@ import {
   useColorScheme,
   View,
 } from 'react-native';
-//import { Colors } from 'react-native/Libraries/NewAppScreen';
-import {BUTTON_COLOR, PRIMARY_COLOR} from '../../helper/Theme';
-//import { getMessaging, getToken } from 'firebase/messaging';
 
-import messaging from '@react-native-firebase/messaging';
 import {useMutation} from '@tanstack/react-query';
 import axios, {AxiosError} from 'axios';
-import {useSafeAreaInsets} from 'react-native-safe-area-context';
 import Icon from '@expo/vector-icons/Ionicons';
 import {useDispatch, useSelector} from 'react-redux';
 import {useFirebaseMessaging} from '../../../FirebaseContext';
@@ -27,16 +24,25 @@ import {LOGIN_API, RESEND_VERIFICATION, SEND_OTP} from '../../helper/APIUtils';
 import {fp, hp, wp} from '../../helper/Metric';
 import {KEYS, storeItem} from '../../helper/Utils';
 import {setUserHandle, setUserId, setUserToken} from '../../stores/UserSlice';
-import {Admin, AuthData} from '../../type';
+import {Admin, AuthData, LoginScreenProp} from '../../type';
 import Snackbar from 'react-native-snackbar';
-//import { getApp } from '@react-native-firebase/app';
+import { PRIMARY_COLOR } from '@/src/helper/Theme';
 
-//import { useFirebaseMessaging } from '../../hooks/FirebaseContext';
-//import { getToken } from 'firebase/messaging';
+const COLORS = {
+  primary: '#2563EB',
+  primaryDark: '#1E40AF',
+  surface: '#FFFFFF',
+  surfaceDark: '#1E2937',
+  text: '#0F172A',
+  textDark: '#F1F5F9',
+  secondaryText: '#64748B',
+  border: '#E2E8F0',
+  error: '#EF4444',
+  success: '#10B981',
+};
 
-export default function LoginScreen({navigation}) {
-  //const messaging1 = useFirebaseMessaging();
-  const inset = useSafeAreaInsets();
+export default function LoginScreen({navigation}: LoginScreenProp) {
+
   const {fcmToken} = useFirebaseMessaging();
   const dispatch = useDispatch();
   const isDarkMode = useColorScheme() === 'dark';
@@ -46,62 +52,11 @@ export default function LoginScreen({navigation}) {
   const [email, setEmail] = useState('');
   const [otpMail, setOtpMail] = useState('');
   const {isConnected} = useSelector((state: any) => state.network);
-  //  const [fcmToken, setFcmToken] = useState<string | null>(null);
+  // const [fcmToken, setFcmToken] = useState<string | null>(null);
   const [emailVerify, setEmailVerify] = useState(false);
   const [output, setOutput] = useState(true);
-  const [passwordMessage, setPasswordMessage] = useState(false);
-  const [emailMessage, setEmailMessage] = useState(false);
 
   const [secureTextEntry, setSecureTextEntry] = useState(true);
-
-  const handleSecureEntryClickEvent = () => {
-    setSecureTextEntry(!secureTextEntry);
-  };
-
-  async function requestUserPermission() {
-    try {
-      // Request user permission to receive notifications
-      const authStatus = await messaging().requestPermission();
-
-      // Check if the authorization status is either AUTHORIZED or PROVISIONAL
-      const enabled =
-        authStatus === messaging.AuthorizationStatus.AUTHORIZED ||
-        authStatus === messaging.AuthorizationStatus.PROVISIONAL;
-
-      if (enabled) {
-        console.log('Authorization status:', authStatus);
-      } else {
-        console.log('Notification permission denied');
-      }
-    } catch (error) {
-      console.error('Error requesting permission:', error);
-    }
-  }
-
-  /*
-    async function getFCMToken() {
-      await requestUserPermission(); // Ask for permission (iOS only)
-      
-      try {
-      //  const app = getApp('UTH_Admin'); // Initialize the app (ensure Firebase is configured correctly)
-       // const messaging2 = getMessaging(app);
-    
-        // Get the FCM Token
-        const  fcmToken = await getApp().messaging().getToken();
-        //const fcmToken = await getToken(messaging1);
-    
-        if (fcmToken) {
-          console.log('FCM Token:', fcmToken);
-          setFcmToken(fcmToken); // Update state with the FCM token
-        } else {
-          console.log('Failed to get FCM Token');
-          return null;
-        }
-      } catch (error) {
-        console.error('Error getting FCM Token:', error);
-      }
-    }
-      */
 
   const validateAndSubmit = async () => {
     if (!isConnected) {
@@ -113,20 +68,14 @@ export default function LoginScreen({navigation}) {
     }
     if (validate()) {
       // await getFCMToken();
-      setPasswordMessage(false);
-      setEmailMessage(false);
+      //setPasswordMessage(false);
+      //setEmailMessage(false);
       console.log('enter');
       loginMutation.mutate();
     } else {
       setOutput(true);
-      setPasswordMessage(false);
-      setEmailMessage(false);
-      if (output && !passwordVerify) {
-        setPasswordMessage(true);
-      }
-      if (output && !emailVerify) {
-        setEmailMessage(true);
-      }
+      //setPasswordMessage(false);
+      //setEmailMessage(false);
     }
   };
 
@@ -137,8 +86,8 @@ export default function LoginScreen({navigation}) {
       return false;
     }
   };
-  const handlePassword = e => {
-    let pass = e.nativeEvent.text;
+  const handlePassword = (text: string) => {
+    let pass = text;
     setPassword(pass);
     setPasswordVerify(false);
 
@@ -148,14 +97,11 @@ export default function LoginScreen({navigation}) {
     }
   };
 
-  const handleEmail = e => {
-    let email = e.nativeEvent.text;
-    setEmail(email);
-    setEmailVerify(false);
-    if (/^[\w.%+-]+@[\w.-]+\.[a-zA-Z]{2,}$/.test(email)) {
-      setEmail(email);
-      setEmailVerify(true);
-    }
+  const handleEmail = (text: string) => {
+    setEmail(text);
+
+    const isValid = /^[\w.%+-]+@[\w.-]+\.[a-zA-Z]{2,}$/.test(text);
+    setEmailVerify(isValid);
   };
 
   const handleEmailInputBack = () => {
@@ -332,112 +278,128 @@ export default function LoginScreen({navigation}) {
       email: otpMail,
     });
   };
+
   return (
-    <ScrollView style={styles.container}>
-      <StatusBar
-        barStyle={isDarkMode ? 'dark-content' : 'light-content'}
-        backgroundColor={BUTTON_COLOR}
-      />
-      <View style={[styles.innercontainer, {paddingTop: inset.top}]}>
-        <View style={styles.logoContainer}>
-          {/* image */}
+    <KeyboardAvoidingView
+      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+      style={styles.container}>
+      <StatusBar barStyle={isDarkMode ? 'light-content' : 'dark-content'} />
+
+      <ScrollView
+        contentContainerStyle={styles.scrollContent}
+        keyboardShouldPersistTaps="handled">
+        {/* Gradient Header */}
+        <View style={styles.header}>
           <Image
             source={require('../../../assets/images/icon.png')}
             style={styles.logo}
           />
-          {/* brand text container */}
-          <Text style={styles.brandText}>Admin</Text>
+          <Text style={styles.brandText}>Admin Portal</Text>
+          <Text style={styles.welcomeText}>Sign in to continue</Text>
         </View>
-        {/* login form */}
-        <View
-          style={[
-            styles.formContainer,
-            {backgroundColor: isDarkMode ? 'black' : 'white'},
-          ]}>
-          {/* email input */}
-          <Text style={styles.inputLabelTxt}>Email</Text>
-          {emailMessage ? (
-            <Text style={{color: 'red'}}>Please Enter a Valid Email</Text>
-          ) : null}
-          <View style={styles.input}>
-            <TextInput
-              onChange={e => handleEmail(e)}
-              autoCapitalize="none"
-              autoCorrect={false}
-              clearButtonMode="while-editing"
-              keyboardType="email-address"
-              //placeholder="Enter your mail id"
-              placeholderTextColor="#948585"
-              style={[
-                styles.inputControl,
-                {
-                  borderColor: isDarkMode ? 'white' : 'black',
-                  color: isDarkMode ? 'white' : 'black',
-                },
-              ]}
-            />
-          </View>
-          <Text style={styles.inputLabelTxt}>Password</Text>
-          {passwordMessage ? (
-            <Text style={{color: 'red'}}>
-              Password must be 6 Characters Longs
-            </Text>
-          ) : null}
-          <View style={styles.input}>
-            <View style={styles.passwordContainer}>
+
+        {/* Login Card */}
+        <View style={[styles.card, isDarkMode && styles.cardDark]}>
+          {/* Email */}
+          <View style={styles.field}>
+            <Text style={styles.label}>Email Address</Text>
+            <View
+              style={[styles.inputWrapper, emailVerify && styles.inputSuccess]}>
               <TextInput
+                style={styles.input}
+                value={email}
+                onChangeText={handleEmail}
+                keyboardType="email-address"
                 autoCapitalize="none"
                 autoCorrect={false}
-                clearButtonMode="while-editing"
-                keyboardType="ascii-capable"
-                //placeholder="Password"
-                placeholderTextColor="#948585"
-                secureTextEntry={secureTextEntry}
-                style={[
-                  styles.inputControl,
-                  {
-                    borderColor: isDarkMode ? 'white' : 'black',
-                    color: isDarkMode ? 'white' : 'black',
-                  },
-                ]}
-                onChange={e => handlePassword(e)}
-                value={password}
-                underlineColorAndroid="transparent"
+                placeholder="you@gmail.com"
+                placeholderTextColor={isDarkMode ? '#64748B' : '#94A3B8'}
               />
+              {emailVerify && (
+                <Icon
+                  name="checkmark-circle"
+                  size={20}
+                  color={COLORS.success}
+                />
+              )}
+            </View>
+            {!emailVerify && email.length > 0 && (
+              <Text style={styles.errorText}>Please enter a valid email</Text>
+            )}
+          </View>
 
+          {/* Password */}
+          <View style={styles.field}>
+            <Text style={styles.label}>Password</Text>
+            <View
+              style={[
+                styles.inputWrapper,
+                passwordVerify && styles.inputSuccess,
+              ]}>
+              <TextInput
+                style={styles.input}
+                value={password}
+                onChangeText={handlePassword}
+                secureTextEntry={secureTextEntry}
+                placeholder="••••••••"
+                placeholderTextColor={isDarkMode ? '#64748B' : '#94A3B8'}
+              />
               <TouchableOpacity
-                style={styles.eyeIcon}
-                onPress={handleSecureEntryClickEvent}>
-                {secureTextEntry ? (
-                  <Icon
-                    name="eye-off"
-                    size={20}
-                    color={isDarkMode ? 'white' : 'black'}
-                  />
-                ) : (
-                  <Icon
-                    name="eye"
-                    size={20}
-                    color={isDarkMode ? 'white' : 'black'}
-                  />
-                )}
+                onPress={() => setSecureTextEntry(!secureTextEntry)}
+                style={styles.eyeIcon}>
+                <Icon
+                  name={secureTextEntry ? 'eye-off' : 'eye'}
+                  size={20}
+                  color={isDarkMode ? '#CBD5E1' : '#64748B'}
+                />
               </TouchableOpacity>
             </View>
+            {!passwordVerify && password.length > 0 && (
+              <Text style={styles.errorText}>
+                Password must be at least 6 characters
+              </Text>
+            )}
           </View>
 
-          <View style={styles.loginButtonContainer}>
-            <TouchableOpacity
-              style={styles.loginButton}
-              onPress={() => {
-                validateAndSubmit();
-              }}>
-              <Text style={styles.loginText}>Login</Text>
-            </TouchableOpacity>
-          </View>
+          {/* Forgot Password */}
+          <TouchableOpacity
+            style={styles.forgotContainer}
+            onPress={() => setEmailInputVisible(true)}>
+            <Text style={styles.forgotText}>Forgot Password?</Text>
+          </TouchableOpacity>
 
-          <EmailInputModal
-            // eslint-disable-next-line @typescript-eslint/no-shadow
-            callback={(email: string) => {
+          {/* Login Button */}
+          <TouchableOpacity
+            style={[
+              styles.loginButton,
+              loginMutation.isPending && styles.buttonDisabled,
+            ]}
+            onPress={validateAndSubmit}
+            disabled={loginMutation.isPending}>
+            <Text style={styles.loginButtonText}>
+              {loginMutation.isPending ? 'Signing in...' : 'Sign In'}
+            </Text>
+          </TouchableOpacity>
+
+          {/* Sign Up */}
+          <TouchableOpacity
+            style={styles.signUpContainer}
+            onPress={() => navigation.navigate('SignUpScreen')}>
+            <Text style={styles.signUpText}>
+              Don&apos;t have an account?{' '}
+              <Text style={styles.signUpHighlight}>Sign up</Text>
+            </Text>
+          </TouchableOpacity>
+
+          {/* Request Verification (secondary) */}
+          <TouchableOpacity
+            style={styles.secondaryButton}
+            onPress={() => {
+              if (!email) {
+                Alert.alert('Enter your email first');
+                return;
+              }
+
               if (!isConnected) {
                 Snackbar.show({
                   text: 'You are currently offline',
@@ -445,188 +407,139 @@ export default function LoginScreen({navigation}) {
                 });
                 return;
               }
-              setOtpMail(email);
-              sendOtpMutation.mutate({
-                email: email,
-              });
-            }}
-            visible={emailInputVisible}
-            backButtonClick={handleEmailInputBack}
-            onDismiss={() => setEmailInputVisible(false)}
-            isRequestVerification={false}
-            onRequestVerification={() => {}}
-          />
 
-          <TouchableOpacity
-            style={styles.createAccountContainer}
-            onPress={() => {
-              navigation.navigate('SignUpScreen');
+              requestVerification.mutate();
             }}>
-            <View style={{...styles.loginButton, backgroundColor: '#F5f5f5'}}>
-              <Text
-                style={[
-                  styles.createAccountText,
-                  {
-                    // color: isDarkMode ? 'white' : 'black',
-                    color: 'black',
-                  },
-                ]}>
-                Sign up
-              </Text>
-            </View>
+            <Text style={styles.secondaryButtonText}>
+              Resend Verification Email
+            </Text>
           </TouchableOpacity>
-
-          <TouchableOpacity
-            style={styles.forgotPasswordContainer}
-            onPress={() => {
-              //console.log('Forgot Password Click');
-              setEmailInputVisible(!emailInputVisible);
-            }}>
-            <Text style={styles.inputLabelTxt}>Forgot Password?</Text>
-          </TouchableOpacity>
-
-          <View style={styles.loginButtonContainer}>
-            <TouchableOpacity
-              style={{...styles.loginButton}}
-              onPress={() => {
-                // validateAndSubmit();
-
-                if (email === '') {
-                  Alert.alert('Please enter your mail id');
-                  return;
-                }
-                if (!isConnected) {
-                  Snackbar.show({
-                    text: 'You are currently offline',
-                    duration: Snackbar.LENGTH_SHORT,
-                  });
-                  return;
-                }
-                requestVerification.mutate();
-              }}>
-              <Text style={styles.loginText}>Request Verification</Text>
-            </TouchableOpacity>
-          </View>
         </View>
-      </View>
-    </ScrollView>
-    // <DropDownComponent data={Categories} />
+      </ScrollView>
+
+      <EmailInputModal
+        // eslint-disable-next-line @typescript-eslint/no-shadow
+        callback={(email: string) => {
+          if (!isConnected) {
+            Snackbar.show({
+              text: 'You are currently offline',
+              duration: Snackbar.LENGTH_SHORT,
+            });
+            return;
+          }
+          setOtpMail(email);
+          sendOtpMutation.mutate({
+            email: email,
+          });
+        }}
+        visible={emailInputVisible}
+        backButtonClick={handleEmailInputBack}
+        onDismiss={() => setEmailInputVisible(false)}
+        isRequestVerification={false}
+        onRequestVerification={() => {}}
+      />
+    </KeyboardAvoidingView>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#ffffff',
-  },
-  innercontainer: {
-    flex: 1,
-    //  backgroundColor: PRIMARY_COLOR,
-  },
-  logoContainer: {
-    flex: 0,
-    width: '100%',
-    justifyContent: 'center',
+  container: {flex: 1, backgroundColor: '#F8FAFC'},
+  scrollContent: {flexGrow: 1, paddingBottom: hp(5)},
+
+  header: {
+    backgroundColor: '#2563EB',
+    paddingTop: hp(8),
+    paddingBottom: hp(6),
     alignItems: 'center',
-    //marginBottom: hp(3),
-    marginTop: hp(2),
-    flexDirection: 'column',
-    marginHorizontal: 18,
-    marginLeft: wp(2),
+    borderBottomLeftRadius: 32,
+    borderBottomRightRadius: 32,
   },
   logo: {
-    height: hp(16),
-    width: wp(20),
-    borderRadius: 70,
-    resizeMode: 'cover',
+    height: hp(14),
+    width: hp(14),
+    borderRadius: hp(7),
+    marginBottom: hp(2),
   },
   brandText: {
-    color: 'black',
-    fontSize: hp(4),
-    fontFamily: 'Lobster-Regular',
-    fontWeight: '600',
-    alignSelf: 'center',
-  },
-  formContainer: {
-    flex: 1,
-    // marginTop: hp(1),
-    // borderWidth: 10,
-    // borderColor: ON_PRIMARY_COLOR,
-    // borderTopRightRadius: wp(2),
-    //borderTopLeftRadius: wp(26),
-    paddingHorizontal: wp(5.5),
-    paddingTop: hp(3),
-    flexDirection: 'column',
-  },
-  input: {
-    flexDirection: 'column',
-    marginBottom: hp(2),
-    height: hp(6),
-    justifyContent: 'center',
-    alignItems: 'center',
-    borderWidth: 1,
-    borderRadius: 6,
-    backgroundColor: '#f5f5f5',
-    borderColor: '#99ccff',
-  },
-  inputLabel: {
-    fontSize: fp(5),
-    fontWeight: '600',
-    lineHeight: hp(3),
-    color: '#ffffff',
-    marginBottom: hp(1),
-  },
-
-  inputLabelTxt: {
-    fontSize: fp(4),
-    fontWeight: '500',
-    color: PRIMARY_COLOR,
-    //marginLeft: hp(1),
-    marginBottom: hp(1),
-  },
-
-  inputControl: {
-    // borderWidth: 1,
-    width: '100%',
-    paddingRight: 40,
-    fontSize: fp(4),
-    fontWeight: '500',
-    alignItems: 'center',
-    height: hp(5),
-  },
-  forgotPasswordContainer: {
-    alignItems: 'flex-start',
-    marginVertical: 1,
-  },
-  forgotPasswordText: {color: '	#000000', fontWeight: '700', marginBottom: 6},
-  loginButtonContainer: {marginVertical: hp(2)},
-  loginButton: {
-    backgroundColor: PRIMARY_COLOR,
-    paddingVertical: hp(1.3),
-    paddingHorizontal: wp(1.3),
-    justifyContent: 'center',
-    alignItems: 'center',
-    borderRadius: 8,
-    width: '100%',
-  },
-  loginText: {
-    fontSize: fp(5),
+    fontSize: fp(7),
     fontWeight: '700',
-    color: '#fff',
+    color: '#FFFFFF',
+    marginBottom: hp(1),
   },
-  createAccountContainer: {marginVertical: hp(1), alignItems: 'center'},
-  createAccountText: {
-    fontSize: 16,
-    fontWeight: '500',
-    marginBottom: 5,
+  welcomeText: {
+    fontSize: fp(4.5),
+    color: '#E0F2FE',
+    opacity: 0.9,
   },
-  passwordContainer: {
+
+  card: {
+    marginTop: -hp(4),
+    marginHorizontal: wp(5),
+    backgroundColor: '#FFFFFF',
+    borderRadius: 20,
+    padding: wp(6),
+    shadowColor: '#000',
+    shadowOffset: {width: 0, height: 10},
+    shadowOpacity: 0.1,
+    shadowRadius: 20,
+    elevation: 15,
+  },
+  cardDark: {backgroundColor: '#1E2937'},
+
+  field: {marginBottom: hp(3)},
+  label: {
+    fontSize: fp(3.8),
+    fontWeight: '600',
+    color: COLORS.text,
+    marginBottom: hp(1.5),
+  },
+  inputWrapper: {
     flexDirection: 'row',
     alignItems: 'center',
+    backgroundColor: '#F8FAFC',
+    borderWidth: 1.5,
+    borderColor: '#E2E8F0',
+    borderRadius: 12,
+    paddingHorizontal: wp(4),
   },
-  eyeIcon: {
-    position: 'absolute',
-    right: 0,
-    padding: 10,
+  inputSuccess: {borderColor: COLORS.success},
+  input: {
+    flex: 1,
+    paddingVertical: hp(2.2),
+    fontSize: fp(4.2),
+    color: COLORS.text,
+  },
+  eyeIcon: {padding: 8},
+
+  errorText: {color: COLORS.error, fontSize: fp(3.2), marginTop: hp(1)},
+
+  forgotContainer: {alignSelf: 'flex-end', marginBottom: hp(3)},
+  forgotText: {color: COLORS.primary, fontWeight: '600', fontSize: fp(3.8)},
+
+  loginButton: {
+    backgroundColor: '#2563EB',
+    paddingVertical: hp(2.2),
+    borderRadius: 12,
+    alignItems: 'center',
+    marginBottom: hp(3),
+  },
+  loginButtonText: {
+    color: '#FFFFFF',
+    fontSize: fp(4.8),
+    fontWeight: '700',
+  },
+  buttonDisabled: {opacity: 0.7},
+
+  signUpContainer: {alignItems: 'center', marginBottom: hp(3)},
+  signUpText: {fontSize: fp(4), color: COLORS.secondaryText},
+  signUpHighlight: {color: COLORS.primary, fontWeight: '600'},
+
+  secondaryButton: {
+    alignItems: 'center',
+    paddingVertical: hp(1.5),
+  },
+  secondaryButtonText: {
+    color: COLORS.secondaryText,
+    fontSize: fp(3.8),
   },
 });

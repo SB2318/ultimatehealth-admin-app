@@ -4,7 +4,7 @@
     "slug": "UltimateHealth-Admin",
     "version": "1.1.0",
     "orientation": "portrait",
-    "icon": "./assets/images/ic_uth_admin-playstore.png",
+    "icon": "./assets/images/ic_admin-playstore.png",
     "scheme": "ultimatehealth-admin",
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
@@ -13,7 +13,7 @@
       "barStyle": "light-content"
     },
     "splash": {
-      "image": "./assets/images/ic_uth_admin-playstore.png",
+      "image": "./assets/images/ic_admin-playstore.png",
       "resizeMode": "contain",
       "backgroundColor": "#E6F4FE"
     },
@@ -48,8 +48,8 @@
       "googleServicesFile": "./google-services.json",
       "adaptiveIcon": {
         "backgroundColor": "#E6F4FE",
-        "foregroundImage": "./assets/images/ic_launcher_foreground.png",
-        "backgroundImage": "./assets/images/ic_launcher_background.png"
+        "foregroundImage": "./assets/images/ic_admin_foreground.png",
+        "backgroundImage": "./assets/images/ic_admin.png"
       },
       "edgeToEdgeEnabled": true,
       "predictiveBackGestureEnabled": false,
@@ -58,7 +58,7 @@
     },
     "web": {
       "output": "static",
-      "favicon": "./assets/images/favicon.png"
+      "favicon": "./assets/images/ic_admin_round.png"
     },
     "plugins": [
       "expo-router",
@@ -67,7 +67,7 @@
       [
         "expo-splash-screen",
         {
-          "image": "./assets/images/ic_uth_admin-playstore.png",
+          "image": "./assets/images/ic_admin-playstore.png",
           "imageWidth": 150,
           "borderRadius": 75,
           "resizeMode": "contain",

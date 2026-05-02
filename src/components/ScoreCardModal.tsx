@@ -148,13 +148,13 @@ const styles = StyleSheet.create({
   },
 
   scoreNumber: {
-    fontSize: 52,
+    fontSize: 24,
     fontWeight: '800',
     lineHeight: 58,
   },
 
   scoreOutOf: {
-    fontSize: 18,
+    fontSize: 26,
     color: '#64748B',
     fontWeight: '600',
   },

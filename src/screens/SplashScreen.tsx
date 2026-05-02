@@ -381,7 +381,7 @@ export default function SplashScreen({navigation}: SplashScreenProp) {
             elevation: 30,
           }}>
           <Image
-            source={require('../../assets/images/icon.png')}
+            source={require('../../assets/images/ic_admin.png')}
             style={{
               width: 160,
               height: 160,

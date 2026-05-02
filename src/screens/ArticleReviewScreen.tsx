@@ -1402,6 +1402,7 @@ const ReviewScreen = ({route, navigation}: ReviewScreenProp) => {
                   placeholder="Write your feedback here..."
                   height={140}
                   borderWidth={1.5}
+                  backgroundColor={colors.surface}
                   borderColor={colors.border}
                   focusStyle={{borderColor: colors.primary}}
                   color={colors.text}

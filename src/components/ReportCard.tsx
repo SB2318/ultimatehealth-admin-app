@@ -25,7 +25,7 @@ const ReportCard = ({
         <Text style={styles.reportId}>Report #{report._id}</Text>
         <View style={[styles.statusBadge, isPending ? styles.pendingBadge : styles.resolvedBadge]}>
           <Text style={isPending ? styles.pendingText : styles.resolvedText}>
-            {isPending ? 'PENDING' : 'ACTION TAKEN'}
+            {isPending ? 'PENDING' : 'ASSIGNED'}
           </Text>
         </View>
       </View>

@@ -127,7 +127,8 @@ export default function Podcast({navigation}: PodcastProps) {
     }
     // 2 -> Approve podcast
     if (index === 2) {
-      approvePodcastMutation.mutate(item._id);
+     // approvePodcastMutation.mutate(item._id);
+     // unassignPodcastMutation.mutate(item._id);
     }
   };
 
@@ -522,7 +523,7 @@ const styles = StyleSheet.create({
   },
 
   reasonTabContainer: {
-    paddingHorizontal: wp(2),
+    paddingHorizontal: wp(1),
     paddingTop: hp(2),
     backgroundColor: ON_PRIMARY_COLOR,
     flex: 0,

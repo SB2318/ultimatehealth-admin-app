@@ -1,8 +1,8 @@
 {
   "expo": {
     "name": "UltimateHealth-Admin",
-    "slug": "UltimateHealth-Admin",
-    "version": "1.1.0",
+    "slug": "UHealth-Admin",
+    "version": "1.1.1",
     "orientation": "portrait",
     "icon": "./assets/images/ic_admin-playstore.png",
     "scheme": "ultimatehealth-admin",

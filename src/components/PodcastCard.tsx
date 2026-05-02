@@ -61,17 +61,66 @@ const PodcastCard = ({
 
   const hostName = item.user_id?.user_name || 'Unknown Host';
 
-  const menuActions = item.status === 'review-pending'
-    ? [
-        { name: 'Pick Podcast', action: () => { handleClick(item, 0, ''); toggleMenu(); }, icon: 'hand-point-right', color: '#10B981' },
-        { name: 'View Details', action: () => { handleClick(item, 3, ''); toggleMenu(); }, icon: 'eye', color: PRIMARY_COLOR },
-        { name: 'Discard Podcast', action: () => { handleClick(item, 1, ''); toggleMenu(); }, icon: 'times-circle', color: '#EF4444' },
-      ]
-    : [
-        { name: 'View Details', action: () => { handleClick(item, 3, ''); toggleMenu(); }, icon: 'eye', color: PRIMARY_COLOR },
-        { name: 'Discard Podcast', action: () => { handleClick(item, 1, ''); toggleMenu(); }, icon: 'ban', color: '#EF4444' },
-        { name: 'Unassign Yourself', action: () => { handleClick(item, 2, ''); toggleMenu(); }, icon: 'minus-circle', color: '#10B981' },
-      ];
+  const menuActions =
+    item.status === 'review-pending'
+      ? [
+          {
+            name: 'Pick Podcast',
+            action: () => {
+              handleClick(item, 0, '');
+              toggleMenu();
+            },
+            icon: 'hand-point-right',
+            color: '#10B981',
+          },
+          {
+            name: 'View Details',
+            action: () => {
+              handleClick(item, 3, '');
+              toggleMenu();
+            },
+            icon: 'eye',
+            color: PRIMARY_COLOR,
+          },
+          {
+            name: 'Discard Podcast',
+            action: () => {
+              handleClick(item, 1, '');
+              toggleMenu();
+            },
+            icon: 'times-circle',
+            color: '#EF4444',
+          },
+        ]
+      : [
+          {
+            name: 'View Details',
+            action: () => {
+              handleClick(item, 3, '');
+              toggleMenu();
+            },
+            icon: 'eye',
+            color: PRIMARY_COLOR,
+          },
+          {
+            name: 'Discard Podcast',
+            action: () => {
+              handleClick(item, 1, '');
+              toggleMenu();
+            },
+            icon: 'ban',
+            color: '#EF4444',
+          },
+          {
+            name: 'Unassign Yourself',
+            action: () => {
+              handleClick(item, 2, '');
+              toggleMenu();
+            },
+            icon: 'minus-circle',
+            color: '#10B981',
+          },
+        ];
 
   const toggleMenu = () => {
     const isOpening = width.value === 0;
@@ -88,7 +137,7 @@ const PodcastCard = ({
   };
 
   const menuAnimatedStyle = useAnimatedStyle(() => ({
-    transform: [{ translateY: yValue.value }],
+    transform: [{translateY: yValue.value}],
     opacity: width.value > 50 ? 1 : 0,
     width: width.value,
   }));
@@ -99,8 +148,7 @@ const PodcastCard = ({
         if (width.value > 0) toggleMenu();
         handleClick(item, 3, '');
       }}
-      style={({pressed}) => [{opacity: pressed ? 0.96 : 1}]}
-    >
+      style={({pressed}) => [{opacity: pressed ? 0.96 : 1}]}>
       <View style={styles.cardContainer}>
         {/* Image Section */}
         <View style={styles.imageContainer}>
@@ -129,7 +177,7 @@ const PodcastCard = ({
           {/* Tags */}
           {item.tags?.length > 0 && (
             <Text style={styles.tags}>
-              {item.tags.map((tag) => `#${tag.name}`).join(' • ')}
+              {item.tags.map(tag => `#${tag.name}`).join(' • ')}
             </Text>
           )}
 
@@ -140,18 +188,24 @@ const PodcastCard = ({
 
           {/* Host */}
           <View style={styles.hostContainer}>
-            <Ionicons name="person-circle-outline" size={18} color={PRIMARY_COLOR} />
+            <Ionicons
+              name="person-circle-outline"
+              size={18}
+              color={PRIMARY_COLOR}
+            />
             <Text style={styles.hostText}>{hostName}</Text>
           </View>
 
           {/* Stats */}
           <View style={styles.statsContainer}>
-            <View style={styles.statItem}>
-              <Ionicons name="eye-outline" size={16} color="#6B7280" />
-              <Text style={styles.statText}>
-                {item?.viewUsers?.length || 0} views
-              </Text>
-            </View>
+            {item.status === StatusEnum.PUBLISHED && (
+              <View style={styles.statItem}>
+                <Ionicons name="eye-outline" size={16} color="#6B7280" />
+                <Text style={styles.statText}>
+                  {item?.viewUsers?.length || 0} views
+                </Text>
+              </View>
+            )}
             <View style={styles.statItem}>
               <Ionicons name="time-outline" size={16} color="#6B7280" />
               <Text style={styles.statText}>{msToTime(item.duration)}</Text>

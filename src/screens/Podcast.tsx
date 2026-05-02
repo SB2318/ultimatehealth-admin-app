@@ -1,8 +1,7 @@
-import {StyleSheet, Text, View} from 'react-native';
+import {StyleSheet, Text, useColorScheme, View} from 'react-native';
 import {PodcastData, PodcastProps} from '../type';
 import {BUTTON_COLOR, ON_PRIMARY_COLOR} from '../helper/Theme';
-import {FAB} from 'react-native-paper';
-import AntDesign from '@expo/vector-icons/AntDesign';
+
 import {MaterialTabBar, Tabs} from 'react-native-collapsible-tab-view';
 import {hp, wp} from '../helper/Metric';
 import {SafeAreaView, useSafeAreaInsets} from 'react-native-safe-area-context';
@@ -22,8 +21,8 @@ import Loader from '../components/Loader';
 //import React from 'react';
 import {useSelector} from 'react-redux';
 import DiscardReasonModal from '../components/DiscardReasonModal';
-import { StatusEnum } from '../helper/Utils';
-import { MaterialIcons } from '@expo/vector-icons';
+import {StatusEnum} from '../helper/Utils';
+import {MaterialIcons} from '@expo/vector-icons';
 
 export default function Podcast({navigation}: PodcastProps) {
   const insets = useSafeAreaInsets();
@@ -116,11 +115,10 @@ export default function Podcast({navigation}: PodcastProps) {
     }
     // 1 -> Discard podcast
     if (index === 1) {
-      if(item.status === StatusEnum.UNASSIGNED){
+      if (item.status === StatusEnum.UNASSIGNED) {
         Snackbar.show({
-          text:"Please pick the podcast in order to take any action",
-          duration: Snackbar.LENGTH_LONG
-
+          text: 'Please pick the podcast in order to take any action',
+          duration: Snackbar.LENGTH_LONG,
         });
         return;
       }
@@ -133,11 +131,11 @@ export default function Podcast({navigation}: PodcastProps) {
     }
   };
 
-  const navigateToDetails = ( item: PodcastData) => {
+  const navigateToDetails = (item: PodcastData) => {
     navigation.navigate('PodcastDetail', {
       trackId: item._id,
       audioUrl: item.audio_url,
-      podcast: item
+      podcast: item,
     });
   };
 
@@ -224,17 +222,36 @@ export default function Podcast({navigation}: PodcastProps) {
   const onPodcastSelect = (id: string) => {
     setSelectedPodcastId(id);
   };
-
-  const renderTabBar = props => {
+  const isDarkMode = useColorScheme() === 'dark';
+  const renderTabBar = (props: any) => {
     return (
       <MaterialTabBar
         {...props}
-        indicatorStyle={styles.indicatorStyle}
-        style={styles.tabBarStyle}
-        activeColor={'black'}
-        inactiveColor="#9098A3"
-        labelStyle={styles.labelStyle}
-        contentContainerStyle={styles.contentContainerStyle}
+        indicatorStyle={{
+          backgroundColor: isDarkMode ? '#4ACDFF' : '#2563EB',
+          height: 3.5,
+          borderRadius: 3,
+        }}
+        style={{
+          backgroundColor: isDarkMode ? '#1E2937' : '#FFFFFF',
+          borderBottomWidth: 1,
+          borderBottomColor: isDarkMode ? '#334155' : '#E2E8F0',
+          elevation: 0,
+          shadowOpacity: 0,
+        }}
+        activeColor={isDarkMode ? '#4ACDFF' : '#2563EB'}
+        inactiveColor={isDarkMode ? '#94A3B8' : '#64748B'}
+        labelStyle={{
+          fontSize: 15,
+          fontWeight: '600',
+          textTransform: 'capitalize',
+        }}
+        contentContainerStyle={{
+          width: '100%',
+          flexDirection: 'row',
+          justifyContent: 'space-between',
+          alignItems: 'center',
+        }}
       />
     );
   };
@@ -288,7 +305,12 @@ export default function Podcast({navigation}: PodcastProps) {
                         source={require('../../assets/images/identify-audience.png')}
                         style={styles.image}
                       /> */}
-                      <MaterialIcons name="podcasts" size={hp(17)} color={'#6A89A7'} style={{marginBottom: hp(2)}} />
+                      <MaterialIcons
+                        name="podcasts"
+                        size={hp(17)}
+                        color={'#6A89A7'}
+                        style={{marginBottom: hp(2)}}
+                      />
                       <Text style={styles.message}>
                         No podcasts available for review
                       </Text>
@@ -336,7 +358,12 @@ export default function Podcast({navigation}: PodcastProps) {
                   showsVerticalScrollIndicator={false}
                   ListEmptyComponent={
                     <View style={styles.emptyContainer}>
-                      <MaterialIcons name="podcasts" size={hp(17)} color={'#6A89A7'} style={{marginBottom: hp(2)}} />
+                      <MaterialIcons
+                        name="podcasts"
+                        size={hp(17)}
+                        color={'#6A89A7'}
+                        style={{marginBottom: hp(2)}}
+                      />
                       <Text style={styles.message}>
                         No podcasts available for review
                       </Text>

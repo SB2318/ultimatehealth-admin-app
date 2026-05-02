@@ -5,6 +5,7 @@ import {
   Alert,
   Image,
   TouchableOpacity,
+  useColorScheme,
 } from 'react-native';
 import {BUTTON_COLOR, ON_PRIMARY_COLOR, PRIMARY_COLOR} from '../helper/Theme';
 import React, {useRef, useState} from 'react';
@@ -31,7 +32,7 @@ import Snackbar from 'react-native-snackbar';
 import Loader from '../components/Loader';
 import ReasonItemCard from '../components/ReasonItemCard';
 import AddTagModal from '../components/AddTagModal';
-import { MaterialIcons } from '@expo/vector-icons';
+import {MaterialIcons} from '@expo/vector-icons';
 
 export default function ReportScreen({navigation}) {
   const {user_token} = useSelector((state: any) => state.user);
@@ -288,16 +289,36 @@ export default function ReportScreen({navigation}) {
     },
   });
 
-  const renderTabBar = props => {
+  const isDarkMode = useColorScheme() === 'dark';
+  const renderTabBar = (props: any) => {
     return (
       <MaterialTabBar
         {...props}
-        indicatorStyle={styles.indicatorStyle}
-        style={styles.tabBarStyle}
-        activeColor={'black'}
-        inactiveColor="#9098A3"
-        labelStyle={styles.labelStyle}
-        contentContainerStyle={styles.contentContainerStyle}
+        indicatorStyle={{
+          backgroundColor: isDarkMode ? '#4ACDFF' : '#2563EB',
+          height: 3.5,
+          borderRadius: 3,
+        }}
+        style={{
+          backgroundColor: isDarkMode ? '#1E2937' : '#FFFFFF',
+          borderBottomWidth: 1,
+          borderBottomColor: isDarkMode ? '#334155' : '#E2E8F0',
+          elevation: 0,
+          shadowOpacity: 0,
+        }}
+        activeColor={isDarkMode ? '#4ACDFF' : '#2563EB'}
+        inactiveColor={isDarkMode ? '#94A3B8' : '#64748B'}
+        labelStyle={{
+          fontSize: 15,
+          fontWeight: '600',
+          textTransform: 'capitalize',
+        }}
+        contentContainerStyle={{
+          width: '100%',
+          flexDirection: 'row',
+          justifyContent: 'space-between',
+          alignItems: 'center',
+        }}
       />
     );
   };
@@ -376,7 +397,11 @@ export default function ReportScreen({navigation}) {
                         source={require('../../assets/images/identify-audience.png')}
                         style={styles.image}
                       /> */}
-                      <MaterialIcons name="report-off" size={wp(25)} color={'#6A89A7'} />
+                      <MaterialIcons
+                        name="report-off"
+                        size={wp(25)}
+                        color={'#6A89A7'}
+                      />
                       <Text style={styles.message}>No reason found</Text>
                     </View>
                   }
@@ -408,7 +433,11 @@ export default function ReportScreen({navigation}) {
                       source={require('../../assets/images/identify-audience.png')}
                       style={styles.image}
                     /> */}
-                    <MaterialIcons name="report-off" size={wp(25)} color={'#6A89A7'} />
+                    <MaterialIcons
+                      name="report-off"
+                      size={wp(25)}
+                      color={'#6A89A7'}
+                    />
                     <Text style={styles.message}>No report found</Text>
                   </View>
                 }
@@ -448,7 +477,11 @@ export default function ReportScreen({navigation}) {
                       source={require('../../assets/images/identify-audience.png')}
                       style={styles.image}
                     /> */}
-                    <MaterialIcons name="report-off" size={wp(25)} color={'#6A89A7'} />
+                    <MaterialIcons
+                      name="report-off"
+                      size={wp(25)}
+                      color={'#6A89A7'}
+                    />
                     <Text style={styles.message}>No Report Found</Text>
                   </View>
                 }
@@ -624,16 +657,17 @@ const styles = StyleSheet.create({
   },
 
   addButton: {
-    backgroundColor: BUTTON_COLOR,
-    paddingVertical: hp(1.5),
-    borderRadius: 10,
+    backgroundColor: '#2563EB',
+    paddingVertical: hp(1.7),
+    borderRadius: 14,
     alignItems: 'center',
     marginTop: hp(7),
+    borderWidth: 1.5,
+    borderColor: '#1E40AF',
   },
-
   addButtonText: {
     color: 'white',
-    fontSize: 16,
+    fontSize: 17,
     fontWeight: '600',
   },
   list: {

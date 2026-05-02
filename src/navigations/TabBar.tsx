@@ -1,35 +1,27 @@
 import React from 'react';
 import {View, Pressable, StyleSheet, useColorScheme, Text} from 'react-native';
-import {FontAwesome, Ionicons} from '@expo/vector-icons';
-import MaterialIcon from '@expo/vector-icons/MaterialIcons';
-import {PRIMARY_COLOR} from '../helper/Theme';
-import {useFocusEffect} from '@react-navigation/native';
+import Ionicons from '@expo/vector-icons/Ionicons';
+import FontAwesome from '@expo/vector-icons/FontAwesome';
+import MaterialIcons from '@expo/vector-icons/MaterialIcons';
+import {useSelector} from 'react-redux';
 import {useQuery} from '@tanstack/react-query';
 import axios from 'axios';
-import {useSelector} from 'react-redux';
 import {PROD_URL} from '../helper/APIUtils';
 import {hp} from '../helper/Metric';
 
 const TabBar = ({state, descriptors, navigation}: any) => {
   const isDarkMode = useColorScheme() === 'dark';
+
   const {user_token} = useSelector((state: any) => state.user);
   const {isConnected} = useSelector((state: any) => state.network);
 
   const {data: unreadCount = 0} = useQuery({
-    queryKey: ['get-unread-notifications-count'],
+    queryKey: ['unread-notifications'],
     queryFn: async () => {
-      try {
-        const response = await axios.get(`${PROD_URL}/notification/unread-count?role=1`);
-        return response.data?.unreadCount || 0;
-      } catch (err) {
-        return 0;
-      }
+      const res = await axios.get(`${PROD_URL}/notification/unread-count?role=1`);
+      return res.data?.unreadCount || 0;
     },
-    enabled: !!user_token && !!isConnected,
-  });
-
-  useFocusEffect(() => {
-    // Optional: refetch logic if needed
+    enabled: !!user_token && isConnected,
   });
 
   return (
@@ -51,24 +43,25 @@ const TabBar = ({state, descriptors, navigation}: any) => {
         };
 
         return (
-          <Pressable
-            key={index}
-            onPress={onPress}
-            style={styles.tabItem}>
+          <Pressable key={index} onPress={onPress} style={styles.tabItem}>
             <View style={[styles.iconContainer, isFocused && styles.iconContainerActive]}>
               {label === 'Article' && (
                 <Ionicons
                   name={isFocused ? "home" : "home-outline"}
-                  size={26}
-                  color={isFocused ? 'white' : isDarkMode ? '#ddd' : '#555'}
+                  size={28}
+                  color={isFocused 
+                    ? (isDarkMode ? '#4ACDFF' : '#2563EB') 
+                    : (isDarkMode ? '#94A3B8' : '#555')}
                 />
               )}
 
               {label === 'Podcast' && (
                 <FontAwesome
                   name="podcast"
-                  size={26}
-                  color={isFocused ? 'white' : isDarkMode ? '#ddd' : '#555'}
+                  size={28}
+                  color={isFocused 
+                    ? (isDarkMode ? '#4ACDFF' : '#2563EB') 
+                    : (isDarkMode ? '#94A3B8' : '#555')}
                 />
               )}
 
@@ -76,8 +69,10 @@ const TabBar = ({state, descriptors, navigation}: any) => {
                 <View>
                   <Ionicons
                     name={isFocused ? "notifications" : "notifications-outline"}
-                    size={26}
-                    color={isFocused ? 'white' : isDarkMode ? '#ddd' : '#555'}
+                    size={28}
+                    color={isFocused 
+                      ? (isDarkMode ? '#4ACDFF' : '#2563EB') 
+                      : (isDarkMode ? '#94A3B8' : '#555')}
                   />
                   {unreadCount > 0 && (
                     <View style={styles.badge}>
@@ -90,18 +85,22 @@ const TabBar = ({state, descriptors, navigation}: any) => {
               )}
 
               {label === 'Report' && (
-                <MaterialIcon
+                <MaterialIcons
                   name="report"
-                  size={26}
-                  color={isFocused ? 'white' : isDarkMode ? '#ddd' : '#555'}
+                  size={28}
+                  color={isFocused 
+                    ? (isDarkMode ? '#4ACDFF' : '#2563EB') 
+                    : (isDarkMode ? '#94A3B8' : '#555')}
                 />
               )}
 
               {label === 'Profile' && (
-                <MaterialIcon
+                <MaterialIcons
                   name={isFocused ? "person" : "person-outline"}
-                  size={26}
-                  color={isFocused ? 'white' : isDarkMode ? '#ddd' : '#555'}
+                  size={28}
+                  color={isFocused 
+                    ? (isDarkMode ? '#4ACDFF' : '#2563EB') 
+                    : (isDarkMode ? '#94A3B8' : '#555')}
                 />
               )}
             </View>
@@ -121,15 +120,15 @@ const styles = StyleSheet.create({
   mainContainer: {
     flexDirection: 'row',
     position: 'absolute',
-    bottom: hp(3),
+    bottom: hp(4),
     left: 0,
     right: 0,
-    backgroundColor: 'white',
-    height: hp(9),
-    borderTopLeftRadius: 24,
-    borderTopRightRadius: 24,
+    backgroundColor: '#FFFFFF',
+    height: hp(9.5),
+    borderTopLeftRadius: 28,
+    borderTopRightRadius: 28,
     shadowColor: '#000',
-    shadowOffset: {width: 0, height: -4},
+    shadowOffset: {width: 0, height: -8},
     shadowOpacity: 0.12,
     shadowRadius: 20,
     elevation: 15,
@@ -137,7 +136,7 @@ const styles = StyleSheet.create({
   },
 
   mainContainerDark: {
-    backgroundColor: '#1A1A1A',
+    backgroundColor: '#1C2533',
   },
 
   tabItem: {
@@ -148,36 +147,30 @@ const styles = StyleSheet.create({
   },
 
   iconContainer: {
-    width: 48,
-    height: 48,
+    width: 52,
+    height: 52,
     justifyContent: 'center',
     alignItems: 'center',
-    borderRadius: 24,
+    borderRadius: 26,
   },
 
   iconContainerActive: {
-    backgroundColor: PRIMARY_COLOR,
-    shadowColor: PRIMARY_COLOR,
-    shadowOffset: {width: 0, height: 4},
-    shadowOpacity: 0.3,
-    shadowRadius: 10,
-    elevation: 8,
-    borderRadius: 46,
+    backgroundColor: '#EFF6FF',
   },
 
   activeIndicator: {
     position: 'absolute',
-    bottom: hp(1.2),
-    width: 6,
-    height: 6,
-    borderRadius: 3,
-    backgroundColor: PRIMARY_COLOR,
+    bottom: hp(1.6),
+    width: 7,
+    height: 7,
+    borderRadius: 4,
+    backgroundColor: '#2563EB',
   },
 
   badge: {
     position: 'absolute',
-    top: 2,
-    right: 2,
+    top: 4,
+    right: 4,
     backgroundColor: '#EF4444',
     minWidth: 18,
     height: 18,
@@ -185,7 +178,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     borderWidth: 1.5,
-    borderColor: 'white',
+    borderColor: '#FFFFFF',
   },
 
   badgeText: {

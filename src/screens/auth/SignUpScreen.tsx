@@ -447,7 +447,7 @@ export default function SignUpScreen({navigation}: SignUpScreenProp) {
             <Input
               placeholder="Full Name"
               value={name}
-              onChangeText={e => setName(e.nativeEvent.text)}
+              onChangeText={setName}
               height={52}
               backgroundColor="white"
               color={COLORS.text}
@@ -468,7 +468,7 @@ export default function SignUpScreen({navigation}: SignUpScreenProp) {
                 placeholder="User Handle"
                 value={username}
                 backgroundColor="white"
-                onChangeText={u => setUsername(u.nativeEvent.text)}
+                onChangeText={setUsername}
                 height={52}
                 borderWidth={1.5}
                 borderRadius={10}
@@ -497,7 +497,7 @@ export default function SignUpScreen({navigation}: SignUpScreenProp) {
               marginTop="$4"
               placeholder="Email Address"
               value={email}
-              onChangeText={e => setEmail(e.nativeEvent.text)}
+              onChangeText={setEmail}
               backgroundColor="white"
               color={COLORS.text}
               keyboardType="email-address"
@@ -519,7 +519,7 @@ export default function SignUpScreen({navigation}: SignUpScreenProp) {
                 flex={1}
                 placeholder="Password"
                 value={password}
-                onChangeText={e => setPassword(e.nativeEvent.text)}
+                onChangeText={setPassword}
                 secureTextEntry={isSecureEntry}
                 height={52}
                 backgroundColor="white"

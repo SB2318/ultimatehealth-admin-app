@@ -1398,7 +1398,7 @@ const ReviewScreen = ({route, navigation}: ReviewScreenProp) => {
               <YStack padding="$5" gap="$3">
                 <TextArea
                   value={feedback}
-                  onChangeText={text => setFeedback(text.nativeEvent.text)}
+                  onChangeText={setFeedback}
                   placeholder="Write your feedback here..."
                   height={140}
                   borderWidth={1.5}

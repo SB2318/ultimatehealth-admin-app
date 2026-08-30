@@ -123,9 +123,7 @@ export default function AddTagModal({
               </Text>
               <Input
                 value={inputValue}
-                onChangeText={(text)=>{
-                  setInputValue(text.nativeEvent.text)
-                }}
+                onChangeText={setInputValue}
                 placeholder={placeholder}
                 height={52}
                 borderWidth={1.5}

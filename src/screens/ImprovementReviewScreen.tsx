@@ -1605,7 +1605,7 @@ const ImprovementReviewScreen = ({
               <YStack padding="$5" gap="$3">
                 <TextArea
                   value={feedback}
-                  onChangeText={e => setFeedback(e.nativeEvent.text)}
+                  onChangeText={setFeedback}
                   placeholder="Write your feedback here..."
                   height={140}
                   borderWidth={1.5}

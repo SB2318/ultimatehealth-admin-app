@@ -995,7 +995,7 @@ const PodcastDiscussion = ({navigation, route}: PodcastDiscussionProp) => {
             <TextArea
               {...textInputProps}
               value={newComment}
-              onChangeText={e => setNewComment(e.nativeEvent.text)}
+              onChangeText={setNewComment}
               placeholder="Write a comment or mention someone..."
               height={100}
               borderWidth={1.5}

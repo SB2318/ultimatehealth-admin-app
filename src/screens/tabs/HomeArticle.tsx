@@ -1,174 +1,320 @@
-import React, { useState } from 'react';
-import { FlatList, Image, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
-import { hp, wp } from '../../helper/Metric';
-import { ON_PRIMARY_COLOR, PRIMARY_COLOR } from '../../helper/Theme';
-import { ArticleData } from '../../type';
-import { Fontisto } from '@expo/vector-icons';
+import React, {useState} from 'react';
+import {
+  FlatList,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
+} from 'react-native';
+import {hp, wp} from '../../helper/Metric';
+import {
+  PRIMARY_COLOR,
+  PRIMARY_DARK,
+  SCREEN_BG,
+  CARD_BG,
+  BORDER_COLOR,
+  TEXT_PRIMARY,
+  TEXT_SECONDARY,
+  TEXT_MUTED,
+  CLINICAL_SHADOW_SUBTLE,
+} from '../../helper/Theme';
+import {ArticleData} from '../../type';
+import {Feather, MaterialCommunityIcons} from '@expo/vector-icons';
 
 type Props = {
   inProgressArticle: ArticleData[];
   availableArticle: ArticleData[];
   refreshing: boolean;
-  onRefresh: (num: number)=> void;
+  onRefresh: (num: number) => void;
   renderItem: ({item}: {item: ArticleData}) => React.JSX.Element;
-  onAvailablePageEnd: ()=> void;
-  onProgressPageEnd: ()=> void;
+  onAvailablePageEnd: () => void;
+  onProgressPageEnd: () => void;
 };
+
 export default function HomeArticle({
-  inProgressArticle,
-  availableArticle,
+  inProgressArticle = [],
+  availableArticle = [],
   refreshing,
   onRefresh,
   renderItem,
   onAvailablePageEnd,
-  onProgressPageEnd
+  onProgressPageEnd,
 }: Props) {
-  const [selectedCategory, setSelectedCategory] = useState<string>('Available');
-  const categories = ['Available', 'Inprogress'];
-  
+  const [selectedCategory, setSelectedCategory] = useState<'Available' | 'Inprogress'>('Available');
+
+  const availableCount = availableArticle?.length || 0;
+  const inProgressCount = inProgressArticle?.length || 0;
 
   return (
-    <View style={{ flex: 1, backgroundColor: ON_PRIMARY_COLOR}}>
-    <View style={styles.container}>
-
-      <View style={styles.buttonContainer}>
-        {categories.map((item, index) => (
+    <View style={styles.outerContainer}>
+      {/* Modern Clinical Segmented Pill Controller */}
+      <View style={styles.segmentWrapper}>
+        <View style={styles.segmentContainer}>
           <TouchableOpacity
-            key={index}
-            style={{
-              ...styles.button,
-              backgroundColor:
-                selectedCategory !== item ? 'white' : PRIMARY_COLOR,
-              borderColor: selectedCategory !== item ? PRIMARY_COLOR : 'white',
-            }}
-            onPress={() => {
-              setSelectedCategory(item);
-            }}>
-            <Text
-              style={{
-                ...styles.labelStyle,
-                color: selectedCategory !== item ? 'black' : 'white',
-              }}>
-              {item}
-            </Text>
+            style={[
+              styles.segmentButton,
+              selectedCategory === 'Available' && styles.segmentButtonActive,
+            ]}
+            onPress={() => setSelectedCategory('Available')}
+            activeOpacity={0.8}>
+            <View style={styles.segmentContent}>
+              <Text
+                style={[
+                  styles.segmentLabel,
+                  selectedCategory === 'Available' && styles.segmentLabelActive,
+                ]}>
+                Available Queue
+              </Text>
+              <View
+                style={[
+                  styles.badge,
+                  selectedCategory === 'Available'
+                    ? styles.badgeActive
+                    : styles.badgeInactive,
+                ]}>
+                <Text
+                  style={[
+                    styles.badgeText,
+                    selectedCategory === 'Available'
+                      ? styles.badgeTextActive
+                      : styles.badgeTextInactive,
+                  ]}>
+                  {availableCount}
+                </Text>
+              </View>
+            </View>
           </TouchableOpacity>
-        ))}
+
+          <TouchableOpacity
+            style={[
+              styles.segmentButton,
+              selectedCategory === 'Inprogress' && styles.segmentButtonActive,
+            ]}
+            onPress={() => setSelectedCategory('Inprogress')}
+            activeOpacity={0.8}>
+            <View style={styles.segmentContent}>
+              <Text
+                style={[
+                  styles.segmentLabel,
+                  selectedCategory === 'Inprogress' && styles.segmentLabelActive,
+                ]}>
+                In Progress
+              </Text>
+              <View
+                style={[
+                  styles.badge,
+                  selectedCategory === 'Inprogress'
+                    ? styles.badgeActive
+                    : styles.badgeInactive,
+                ]}>
+                <Text
+                  style={[
+                    styles.badgeText,
+                    selectedCategory === 'Inprogress'
+                      ? styles.badgeTextActive
+                      : styles.badgeTextInactive,
+                  ]}>
+                  {inProgressCount}
+                </Text>
+              </View>
+            </View>
+          </TouchableOpacity>
+        </View>
       </View>
 
-      <View style={styles.articleContainer}>
+      {/* Moderation Queue Subtitle Bar */}
+      <View style={styles.queueMetaBar}>
+        <Feather
+          name={selectedCategory === 'Available' ? 'inbox' : 'activity'}
+          size={14}
+          color={PRIMARY_COLOR}
+        />
+        <Text style={styles.queueMetaText}>
+          {selectedCategory === 'Available'
+            ? `${availableCount} article${availableCount === 1 ? '' : 's'} awaiting clinical moderation`
+            : `${inProgressCount} article${inProgressCount === 1 ? '' : 's'} currently under review`}
+        </Text>
+      </View>
+
+      {/* Articles List */}
+      <View style={styles.listContainer}>
         <FlatList
-          data={
-            selectedCategory === categories[0]
-              ? availableArticle
-              : inProgressArticle
-          }
+          data={selectedCategory === 'Available' ? availableArticle : inProgressArticle}
           renderItem={renderItem}
           keyExtractor={item => item._id.toString()}
-          contentContainerStyle={styles.flatListContentContainer}
+          contentContainerStyle={styles.flatListContent}
           refreshing={refreshing}
-          onRefresh={()=>{
-            if(selectedCategory === categories[0]){
-                onRefresh(1);
-            }else{
+          onRefresh={() => {
+            if (selectedCategory === 'Available') {
+              onRefresh(1);
+            } else {
               onRefresh(2);
             }
-
           }}
           ListEmptyComponent={
             <View style={styles.emptyContainer}>
-              {/* <Image
-                source={require('../../../assets/images/article.png')}
-                style={styles.image}
-              /> */}
-              <Fontisto name="onenote" size={wp(25)} color={'#6A89A7'} />
-              <Text style={styles.message}>No Article Found</Text>
+              <View style={styles.emptyIconCircle}>
+                <MaterialCommunityIcons
+                  name="clipboard-check-outline"
+                  size={42}
+                  color={PRIMARY_COLOR}
+                />
+              </View>
+              <Text style={styles.emptyTitle}>
+                {selectedCategory === 'Available'
+                  ? 'All Caught Up!'
+                  : 'No Articles in Progress'}
+              </Text>
+              <Text style={styles.emptySubtitle}>
+                {selectedCategory === 'Available'
+                  ? 'There are no pending articles in the review queue right now.'
+                  : 'Self-assign articles from the Available Queue to start reviewing.'}
+              </Text>
             </View>
           }
-          onEndReached={()=>{
-            if(selectedCategory === categories[0]){
+          onEndReached={() => {
+            if (selectedCategory === 'Available') {
               onAvailablePageEnd();
-            }else{
+            } else {
               onProgressPageEnd();
             }
           }}
           onEndReachedThreshold={0.5}
+          showsVerticalScrollIndicator={false}
         />
       </View>
-    </View>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  buttonContainer: {
-    //alignSelf:"center",
-    flexDirection: 'row',
-    paddingHorizontal: 6,
-   // backgroundColor:"red"
-  },
-  button: {
+  outerContainer: {
     flex: 1,
-    borderRadius: 14,
-    marginHorizontal: 6,
-    marginVertical: 4,
-    padding: 8,
-    borderWidth: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
+    backgroundColor: SCREEN_BG,
+    paddingTop: 8,
   },
-  labelStyle: {
-    fontWeight: 'bold',
-    fontSize: 15,
-    textTransform: 'capitalize',
-  },
-  container: {
-    flex: 1,
-   // backgroundColor: '#F0F8FF',
-    marginTop: hp(8),
-    //justifyContent: 'center',
-    //alignItems: 'center',
-  },
-  articleContainer: {
-    flex: 1,
-    width: '100%',
-    paddingHorizontal: 0,
-    marginBottom: 80,
-   // alignItems:"center",
-   // justifyContent:"center",
-    //zIndex: -2,
-  },
-   flatListContentContainer: {
-    //marginTop: hp(20),
-      paddingHorizontal: 16,
-      backgroundColor: ON_PRIMARY_COLOR,
-     // alignItems: 'center',
-     // justifyContent: 'center',
-    },
- 
- image: {
-      height: 190,
-    width: 190,
-    //borderRadius: 80,
-    resizeMode: 'cover',
-    marginTop: hp(10),
-    marginBottom: hp(4)
-   },
 
-   message: {
-    fontSize: 17,
-    color: '#6A89A7',
+  segmentWrapper: {
+    paddingHorizontal: 16,
+    paddingVertical: 6,
+  },
+
+  segmentContainer: {
+    flexDirection: 'row',
+    backgroundColor: '#E2E8F0',
+    borderRadius: 14,
+    padding: 3,
+  },
+
+  segmentButton: {
+    flex: 1,
+    borderRadius: 11,
+    paddingVertical: 8,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+
+  segmentButtonActive: {
+    backgroundColor: CARD_BG,
+    ...CLINICAL_SHADOW_SUBTLE,
+  },
+
+  segmentContent: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+  },
+
+  segmentLabel: {
+    fontSize: 13,
+    fontWeight: '600',
+    color: TEXT_SECONDARY,
+  },
+
+  segmentLabelActive: {
+    color: TEXT_PRIMARY,
+    fontWeight: '700',
+  },
+
+  badge: {
+    paddingHorizontal: 7,
+    paddingVertical: 2,
+    borderRadius: 10,
+  },
+
+  badgeActive: {
+    backgroundColor: '#E0F2FE',
+  },
+
+  badgeInactive: {
+    backgroundColor: '#CBD5E1',
+  },
+
+  badgeText: {
+    fontSize: 11,
+    fontWeight: '700',
+  },
+
+  badgeTextActive: {
+    color: PRIMARY_DARK,
+  },
+
+  badgeTextInactive: {
+    color: '#475569',
+  },
+
+  queueMetaBar: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    paddingHorizontal: 20,
+    paddingVertical: 6,
+  },
+
+  queueMetaText: {
+    fontSize: 12,
+    color: TEXT_MUTED,
     fontWeight: '500',
-    marginTop: hp(3),
+  },
+
+  listContainer: {
+    flex: 1,
+    marginBottom: hp(10), // Padding to avoid overlap with floating tab bar
+  },
+
+  flatListContent: {
+    paddingHorizontal: 16,
+    paddingBottom: 24,
+  },
+
+  emptyContainer: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: hp(10),
+    paddingHorizontal: 28,
+  },
+
+  emptyIconCircle: {
+    width: 80,
+    height: 80,
+    borderRadius: 40,
+    backgroundColor: '#E0F2FE',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 16,
+  },
+
+  emptyTitle: {
+    fontSize: 18,
+    fontWeight: '700',
+    color: TEXT_PRIMARY,
+    marginBottom: 8,
+  },
+
+  emptySubtitle: {
+    fontSize: 13,
+    lineHeight: 19,
+    color: TEXT_MUTED,
     textAlign: 'center',
   },
-  emptyContainer: {
-    flex: 1,
-    marginTop: hp(20),
-   // backgroundColor: 'red',
-    justifyContent: 'center',
-    alignItems: 'center',
-    alignSelf: 'center',
-    padding: 10,
-  },
- 
 });

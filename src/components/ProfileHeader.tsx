@@ -4,34 +4,28 @@ import {
   TouchableOpacity,
   useColorScheme,
   ScrollView,
+  StyleSheet,
+  View,
 } from 'react-native';
 import {YStack, XStack, Text} from 'tamagui';
 import MaterialIcons from '@expo/vector-icons/MaterialIcons';
 import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
+import {Feather} from '@expo/vector-icons';
 
 import {GET_STORAGE_DATA} from '../helper/APIUtils';
 import {ProfileHeaderProps} from '../type';
-
-const COLORS = {
-  light: {
-    background: '#F8FAFC',
-    surface: '#FFFFFF',
-    text: '#0F172A',
-    secondaryText: '#64748B',
-    border: '#E2E8F0',
-    primary: '#2563EB',
-    danger: '#EF4444',
-  },
-  dark: {
-    background: '#0F172A',
-    surface: '#1E2937',
-    text: '#F1F5F9',
-    secondaryText: '#94A3B8',
-    border: '#334155',
-    primary: '#3B82F6',
-    danger: '#F87171',
-  },
-};
+import {
+  PRIMARY_COLOR,
+  PRIMARY_DARK,
+  BORDER_COLOR,
+  CARD_BG,
+  SCREEN_BG,
+  TEXT_PRIMARY,
+  TEXT_SECONDARY,
+  TEXT_MUTED,
+  DARK_THEME,
+  CLINICAL_SHADOW,
+} from '../helper/Theme';
 
 const ProfileHeader = ({
   username,
@@ -42,7 +36,6 @@ const ProfileHeader = ({
   onLogoutClick,
 }: ProfileHeaderProps) => {
   const isDarkMode = useColorScheme() === 'dark';
-  const colors = isDarkMode ? COLORS.dark : COLORS.light;
 
   const avatarUri = profileImg
     ? profileImg.startsWith('https')
@@ -50,126 +43,144 @@ const ProfileHeader = ({
       : `${GET_STORAGE_DATA}/${profileImg}`
     : 'https://images.pexels.com/photos/771742/pexels-photo-771742.jpeg?auto=compress&cs=tinysrgb&dpr=1&w=500';
 
-  return (
-    <YStack backgroundColor={colors.background} paddingBottom="$8" alignItems="center">
+  const bgColor = isDarkMode ? DARK_THEME.screenBg : SCREEN_BG;
+  const surfaceColor = isDarkMode ? DARK_THEME.cardBg : CARD_BG;
+  const borderColor = isDarkMode ? DARK_THEME.borderColor : BORDER_COLOR;
+  const textColor = isDarkMode ? DARK_THEME.textPrimary : TEXT_PRIMARY;
+  const secondaryTextColor = isDarkMode ? DARK_THEME.textSecondary : TEXT_SECONDARY;
 
-      {/* Top Gradient */}
+  return (
+    <YStack backgroundColor={bgColor} paddingBottom="$6" alignItems="center">
+      {/* Top Clinical Curved Header Banner */}
       <YStack
-        height={140}
+        height={130}
         width="100%"
-        backgroundColor={colors.primary}
+        backgroundColor={PRIMARY_COLOR}
         position="absolute"
-        borderBottomRightRadius={65}
-        borderBottomLeftRadius={65}
+        borderBottomRightRadius={40}
+        borderBottomLeftRadius={40}
         top={0}
       />
 
-      <YStack alignItems="center" marginTop={60}>
-
-        {/* Avatar */}
+      <YStack alignItems="center" marginTop={50}>
+        {/* Avatar Container with Clinical White Rim */}
         <YStack
           position="relative"
-          marginBottom="$5"
-          shadowColor="#000"
-          shadowOffset={{width: 0, height: 10}}
+          marginBottom="$3"
+          shadowColor="#0F172A"
+          shadowOffset={{width: 0, height: 6}}
           shadowOpacity={0.15}
-          shadowRadius={20}
-          elevation={15}>
+          shadowRadius={14}
+          elevation={10}>
           <Image
             source={{uri: avatarUri}}
             style={{
-              width: 128,
-              height: 128,
-              borderRadius: 999,
-              borderWidth: 6,
-              borderColor: colors.surface,
+              width: 114,
+              height: 114,
+              borderRadius: 57,
+              borderWidth: 4,
+              borderColor: surfaceColor,
             }}
           />
         </YStack>
 
         {/* Name & Handle */}
-        <Text fontSize={26} fontWeight="700" color={colors.text}>
+        <Text fontSize={22} fontWeight="800" color={textColor} letterSpacing={0.2}>
           {username}
         </Text>
-        <Text fontSize={16} color={colors.secondaryText} marginTop="$1" marginBottom="$6">
+        <Text fontSize={14} color={secondaryTextColor} marginTop="$1" marginBottom="$2">
           @{userhandle}
         </Text>
 
-        {/* Buttons in One Row */}
-        <ScrollView
-          horizontal
-          showsHorizontalScrollIndicator={false}
-          contentContainerStyle={{paddingHorizontal: 20}}>
-          <XStack gap="$3" alignItems="center">
+        {/* Clinical Role Badge */}
+        <View style={styles.roleBadge}>
+          <Feather name="shield" size={12} color={PRIMARY_COLOR} />
+          <Text style={styles.roleBadgeText}>Clinical Moderator</Text>
+        </View>
 
-            {/* Edit Profile */}
-            <TouchableOpacity onPress={onEditProfileClick}>
-              <XStack
-                backgroundColor={colors.surface}
-                paddingHorizontal={20}
-                paddingVertical={14}
-                borderRadius={16}
-                borderWidth={1}
-                borderColor={colors.border}
-                alignItems="center"
-                gap="$2.5"
-                >
-                <MaterialIcons name="edit" size={22} color={colors.primary} />
-                <Text fontSize={15} fontWeight="600" color={colors.text}>
-                  Edit Profile
-                </Text>
-              </XStack>
-            </TouchableOpacity>
+        {/* Action Buttons Row */}
+        <XStack gap="$3" alignItems="center" marginTop="$4" paddingHorizontal={16}>
+          {/* Edit Profile */}
+          <TouchableOpacity onPress={onEditProfileClick} activeOpacity={0.8}>
+            <XStack
+              backgroundColor={surfaceColor}
+              paddingHorizontal={16}
+              paddingVertical={11}
+              borderRadius={14}
+              borderWidth={1}
+              borderColor={borderColor}
+              alignItems="center"
+              gap="$2">
+              <MaterialIcons name="edit" size={18} color={PRIMARY_COLOR} />
+              <Text fontSize={13} fontWeight="700" color={textColor}>
+                Edit Profile
+              </Text>
+            </XStack>
+          </TouchableOpacity>
 
-            {/* Work History */}
-            <TouchableOpacity onPress={onOverviewClick}>
-              <XStack
-                backgroundColor={colors.surface}
-                paddingHorizontal={20}
-                paddingVertical={14}
-                borderRadius={16}
-                borderWidth={1}
-                borderColor={colors.border}
-                alignItems="center"
-                gap="$2.5"
-                >
-                <MaterialCommunityIcons
-                  name="view-dashboard"
-                  size={22}
-                  color={colors.primary}
-                />
-                <Text fontSize={15} fontWeight="600" color={colors.text}>
-                  Work History
-                </Text>
-              </XStack>
-            </TouchableOpacity>
-
-
-          </XStack>
-        </ScrollView>
+          {/* Work History */}
+          <TouchableOpacity onPress={onOverviewClick} activeOpacity={0.8}>
+            <XStack
+              backgroundColor={surfaceColor}
+              paddingHorizontal={16}
+              paddingVertical={11}
+              borderRadius={14}
+              borderWidth={1}
+              borderColor={borderColor}
+              alignItems="center"
+              gap="$2">
+              <MaterialCommunityIcons
+                name="clipboard-text-clock-outline"
+                size={18}
+                color={PRIMARY_COLOR}
+              />
+              <Text fontSize={13} fontWeight="700" color={textColor}>
+                Work History
+              </Text>
+            </XStack>
+          </TouchableOpacity>
 
           {/* Logout */}
-            <TouchableOpacity onPress={onLogoutClick}>
-              <XStack
-                backgroundColor="#FEF2F2"
-                paddingHorizontal={30}
-                paddingVertical={14}
-                borderRadius={16}
-                borderWidth={1}
-                marginTop="$3"
-                borderColor="#FECACA"
-                alignItems="center"
-                gap="$2.5"
-                >
-                <MaterialIcons name="logout" size={22} color={colors.danger} />
-                <Text fontSize={15} fontWeight="600" color={colors.danger}>
-                  Logout
-                </Text>
-              </XStack>
-            </TouchableOpacity>
+          <TouchableOpacity onPress={onLogoutClick} activeOpacity={0.8}>
+            <XStack
+              backgroundColor="#FEF2F2"
+              paddingHorizontal={14}
+              paddingVertical={11}
+              borderRadius={14}
+              borderWidth={1}
+              borderColor="#FECACA"
+              alignItems="center"
+              gap="$1.5">
+              <MaterialIcons name="logout" size={18} color="#DC2626" />
+              <Text fontSize={13} fontWeight="700" color="#DC2626">
+                Logout
+              </Text>
+            </XStack>
+          </TouchableOpacity>
+        </XStack>
       </YStack>
     </YStack>
   );
 };
 
 export default ProfileHeader;
+
+const styles = StyleSheet.create({
+  roleBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#ECFEFF',
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    borderRadius: 14,
+    borderWidth: 1,
+    borderColor: '#A5F3FC',
+    gap: 5,
+  },
+  roleBadgeText: {
+    color: PRIMARY_DARK,
+    fontSize: 11,
+    fontWeight: '700',
+    letterSpacing: 0.3,
+  },
+});

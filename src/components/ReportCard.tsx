@@ -1,9 +1,20 @@
 import React from 'react';
-import { StyleSheet, View, Text, TouchableOpacity } from 'react-native';
-import { wp, hp } from '../helper/Metric';
-import { PRIMARY_COLOR, BUTTON_COLOR, TEXT_PRIMARY, TEXT_SECONDARY } from '../helper/Theme';
-import { Report, reportActionEnum } from '../type';
+import {StyleSheet, View, Text, TouchableOpacity} from 'react-native';
+import {wp, hp} from '../helper/Metric';
+import {
+  PRIMARY_COLOR,
+  PRIMARY_DARK,
+  STATUS_COLORS,
+  BORDER_COLOR,
+  CARD_BG,
+  TEXT_PRIMARY,
+  TEXT_SECONDARY,
+  TEXT_MUTED,
+  CLINICAL_SHADOW,
+} from '../helper/Theme';
+import {Report, reportActionEnum} from '../type';
 import moment from 'moment';
+import {Feather, MaterialIcons} from '@expo/vector-icons';
 
 export type ReportCardProps = {
   report: Report;
@@ -17,52 +28,85 @@ const ReportCard = ({
   onTakeActionReport,
 }: ReportCardProps) => {
   const isPending = report.action_taken === reportActionEnum.PENDING;
+  const statusTheme = isPending ? STATUS_COLORS.pending : STATUS_COLORS.approved;
 
   return (
     <View style={styles.card}>
       {/* Header */}
       <View style={styles.header}>
-        <Text style={styles.reportId}>Report #{report._id}</Text>
-        <View style={[styles.statusBadge, isPending ? styles.pendingBadge : styles.resolvedBadge]}>
-          <Text style={isPending ? styles.pendingText : styles.resolvedText}>
-            {isPending ? 'PENDING' : 'ASSIGNED'}
+        <View style={styles.reportIdContainer}>
+          <MaterialIcons name="shield" size={18} color={PRIMARY_COLOR} />
+          <Text style={styles.reportId}>
+            Case #{report._id ? report._id.substring(report._id.length - 6).toUpperCase() : '000000'}
+          </Text>
+        </View>
+
+        {/* Clinical Status Chip */}
+        <View
+          style={[
+            styles.statusBadge,
+            {backgroundColor: statusTheme.bg, borderColor: statusTheme.border},
+          ]}>
+          <View
+            style={[styles.statusDot, {backgroundColor: statusTheme.text}]}
+          />
+          <Text style={[styles.statusText, {color: statusTheme.text}]}>
+            {isPending ? 'PENDING TRIAGE' : 'RESOLVED'}
           </Text>
         </View>
       </View>
 
+      {/* Primary Violation Reason Badge */}
+      <View style={styles.reasonBadge}>
+        <Feather name="alert-circle" size={14} color="#DC2626" />
+        <Text style={styles.reasonBadgeText} numberOfLines={1}>
+          {report.reasonId?.reason || 'Policy Violation'}
+        </Text>
+      </View>
+
       {/* Info Rows */}
       <View style={styles.infoContainer}>
-        <InfoRow label="Reported By" value={report.reportedBy.user_name} />
-        <InfoRow label="Convicted User" value={report.convictId.user_name} />
-        <InfoRow label="Reason" value={report.reasonId.reason} />
-        <InfoRow 
-          label="Action Taken" 
-          value={report.action_taken || 'Not Taken Yet'} 
-          highlight={!isPending}
+        <InfoRow
+          icon="user"
+          label="Reported By"
+          value={report.reportedBy?.user_name || 'Anonymous User'}
         />
-        <InfoRow 
-          label="Reported At" 
-          value={moment(report.created_at).format('DD MMM YYYY, hh:mm A')} 
+        <InfoRow
+          icon="alert-triangle"
+          label="Flagged User"
+          value={report.convictId?.user_name || 'Unknown User'}
+          highlight
         />
-        <InfoRow 
-          label="Last Action" 
-          value={moment(report.last_action_date).format('DD MMM YYYY, hh:mm A')} 
+        <InfoRow
+          icon="activity"
+          label="Status Action"
+          value={report.action_taken || 'No action recorded'}
+        />
+        <InfoRow
+          icon="clock"
+          label="Reported On"
+          value={moment(report.created_at).format('DD MMM YYYY, hh:mm A')}
         />
       </View>
+
+      {/* Divider */}
+      <View style={styles.cardDivider} />
 
       {/* Action Buttons */}
       <View style={styles.buttonContainer}>
         <TouchableOpacity
           style={styles.secondaryButton}
-          onPress={() => onViewContent(report)}>
+          onPress={() => onViewContent(report)}
+          activeOpacity={0.8}>
           <Text style={styles.secondaryButtonText}>View Content</Text>
         </TouchableOpacity>
 
         <TouchableOpacity
           style={styles.primaryButton}
-          onPress={() => onTakeActionReport(report)}>
+          onPress={() => onTakeActionReport(report)}
+          activeOpacity={0.85}>
           <Text style={styles.primaryButtonText}>
-            {isPending ? 'Take Action' : 'Further Action'}
+            {isPending ? 'Triage & Take Action' : 'Update Action'}
           </Text>
         </TouchableOpacity>
       </View>
@@ -70,14 +114,23 @@ const ReportCard = ({
   );
 };
 
-const InfoRow = ({ label, value, highlight = false }: { 
-  label: string; 
-  value: string; 
+const InfoRow = ({
+  icon,
+  label,
+  value,
+  highlight = false,
+}: {
+  icon: any;
+  label: string;
+  value: string;
   highlight?: boolean;
 }) => (
   <View style={styles.infoRow}>
-    <Text style={styles.label}>{label}</Text>
-    <Text style={[styles.value, highlight && styles.highlightValue]}>
+    <View style={styles.labelCol}>
+      <Feather name={icon} size={13} color={TEXT_MUTED} style={{marginRight: 6}} />
+      <Text style={styles.label}>{label}</Text>
+    </View>
+    <Text style={[styles.value, highlight && styles.highlightValue]} numberOfLines={1}>
       {value}
     </Text>
   </View>
@@ -86,129 +139,160 @@ const InfoRow = ({ label, value, highlight = false }: {
 export default ReportCard;
 
 const styles = StyleSheet.create({
-  
   card: {
-    backgroundColor: '#FFFFFF',
-    marginHorizontal: wp(4),
-    marginVertical: hp(1.5),
+    backgroundColor: CARD_BG,
+    marginHorizontal: 16,
+    marginVertical: 8,
     borderRadius: 20,
-    padding: hp(2.5),
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 8 },
-    shadowOpacity: 0.1,
-    shadowRadius: 16,
-    elevation: 10,
+    padding: 18,
     borderWidth: 1,
-    borderColor: '#F1F5F9',
+    borderColor: BORDER_COLOR,
+    ...CLINICAL_SHADOW,
+    elevation: 3,
   },
 
   header: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: hp(2.2),
-    paddingBottom: hp(1.8),
-    borderBottomWidth: 1,
-    borderBottomColor: '#F1F5F9',
+    marginBottom: 12,
+  },
+
+  reportIdContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
   },
 
   reportId: {
-    fontSize: 18,
-    fontWeight: '700',
+    fontSize: 15,
+    fontWeight: '800',
     color: TEXT_PRIMARY,
+    letterSpacing: 0.5,
   },
 
   statusBadge: {
-    paddingHorizontal: wp(3.5),
-    paddingVertical: hp(0.6),
-    borderRadius: 20,
-    right: wp(19),
-    top: hp(-2.5),
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    borderRadius: 16,
+    borderWidth: 1,
   },
 
-  pendingBadge: {
-    backgroundColor: '#FEF3C7',
-  },
-  resolvedBadge: {
-    backgroundColor: '#DCFCE7',
+  statusDot: {
+    width: 6,
+    height: 6,
+    borderRadius: 3,
+    marginRight: 6,
   },
 
-  pendingText: {
-    color: '#D97706',
-    fontSize: 13,
+  statusText: {
+    fontSize: 10.5,
     fontWeight: '700',
+    letterSpacing: 0.4,
   },
-  resolvedText: {
-    color: '#15803D',
-    fontSize: 13,
+
+  reasonBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#FEF2F2',
+    paddingHorizontal: 10,
+    paddingVertical: 6,
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: '#FECACA',
+    marginBottom: 14,
+    gap: 6,
+  },
+
+  reasonBadgeText: {
+    color: '#B91C1C',
+    fontSize: 12,
     fontWeight: '700',
+    flex: 1,
   },
 
   infoContainer: {
-    marginBottom: hp(2.5),
+    gap: 10,
+    marginBottom: 14,
   },
 
   infoRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    alignItems: 'flex-start',
-    marginBottom: hp(1.6),
+    alignItems: 'center',
+  },
+
+  labelCol: {
+    flexDirection: 'row',
+    alignItems: 'center',
   },
 
   label: {
-    fontSize: 15,
-    color: TEXT_SECONDARY,
-    fontWeight: '600',
-    width: '38%',
+    fontSize: 13,
+    color: TEXT_MUTED,
+    fontWeight: '500',
   },
 
   value: {
-    fontSize: 15.5,
-    color: '#1F2937',
-    fontWeight: '500',
-    flex: 1,
+    fontSize: 13.5,
+    color: TEXT_SECONDARY,
+    fontWeight: '600',
+    maxWidth: '55%',
     textAlign: 'right',
   },
 
   highlightValue: {
-    color: PRIMARY_COLOR,
-    fontWeight: '600',
+    color: '#DC2626',
+    fontWeight: '700',
+  },
+
+  cardDivider: {
+    height: 1,
+    backgroundColor: '#F1F5F9',
+    marginBottom: 14,
   },
 
   buttonContainer: {
     flexDirection: 'row',
-    gap: wp(3),
+    gap: 10,
   },
 
   primaryButton: {
-    flex: 1,
+    flex: 1.3,
     backgroundColor: PRIMARY_COLOR,
-    paddingVertical: hp(2),
-    borderRadius: 14,
+    paddingVertical: 10,
+    borderRadius: 12,
     alignItems: 'center',
+    justifyContent: 'center',
+    shadowColor: PRIMARY_COLOR,
+    shadowOffset: {width: 0, height: 2},
+    shadowOpacity: 0.2,
+    shadowRadius: 4,
+    elevation: 2,
   },
 
   secondaryButton: {
     flex: 1,
     backgroundColor: '#F1F5F9',
-    paddingVertical: hp(2),
-    borderRadius: 14,
+    paddingVertical: 10,
+    borderRadius: 12,
     alignItems: 'center',
+    justifyContent: 'center',
     borderWidth: 1,
     borderColor: '#E2E8F0',
   },
 
   primaryButtonText: {
-    color: 'white',
-    fontSize: 16,
+    color: '#FFFFFF',
+    fontSize: 13,
     fontWeight: '700',
   },
 
   secondaryButtonText: {
-    color: '#374151',
-    fontSize: 16,
+    color: TEXT_SECONDARY,
+    fontSize: 13,
     fontWeight: '600',
   },
-
-  
 });

@@ -1,1080 +1,28 @@
-// import AntDesign from '@expo/vector-icons/AntDesign';
-// import MaterialIcon from '@expo/vector-icons/MaterialIcons';
-// import {useMutation, useQuery} from '@tanstack/react-query';
-// import React, {useEffect, useRef, useState} from 'react';
-// import {
-//   Alert,
-//   Dimensions,
-//   FlatList,
-//   Image,
-//   ScrollView,
-//   StyleSheet,
-//   TouchableOpacity,
-//   View,
-// } from 'react-native';
-// import {BUTTON_COLOR, ON_PRIMARY_COLOR, PRIMARY_COLOR} from '../helper/Theme';
-// import {
-//   Admin,
-//   ArticleData,
-//   Comment,
-//   CopyrightCheckerResponse,
-//   PlagiarismResponse,
-//   ReviewScreenProp,
-//   ScoreData,
-// } from '../type';
-
-// import AutoHeightWebView from '@brown-bear/react-native-autoheight-webview';
-// import axios from 'axios';
-// import {useDispatch, useSelector} from 'react-redux';
-// import {
-//   CHECK_GRAMMAR,
-//   CHECK_PLAGIARISM,
-//   DISCARD_ARTICLE,
-//   GET_ARTICLE_BY_ID,
-//   GET_ARTICLE_CONTENT,
-//   GET_PROFILE_API,
-//   GET_STORAGE_DATA,
-//   PUBLISH_ARTICLE,
-// } from '../helper/APIUtils';
-// import {hp, wp} from '../helper/Metric';
-
-// import {useSocket} from '../components/SocketContext';
-
-// import {SafeAreaView} from 'react-native-safe-area-context';
-// import Snackbar from 'react-native-snackbar';
-// import {Button, Spinner, Text, TextArea, YStack} from 'tamagui';
-// import CommentCardItem from '../components/CommentCardItem';
-// import CopyrightCheckerModal from '../components/CopyrightCheckerModal';
-// import DiscardReasonModal from '../components/DiscardReasonModal';
-// import Loader from '../components/Loader';
-// import PlagiarismModal from '../components/PlagiarismModal';
-// import ScorecardModal from '../components/ScoreCardModal';
-// import {checkImageCopyright, StatusEnum} from '../helper/Utils';
-// import {setUserHandle} from '../stores/UserSlice';
-
-// const ReviewScreen = ({route}: ReviewScreenProp) => {
-//   const {articleId, destination, recordId} = route.params;
-//   const {user_id, user_token} = useSelector((state: any) => state.user);
-//   const {isConnected} = useSelector((state: any) => state.network);
-//   const [feedback, setFeedback] = useState('');
-//   const [loading, setLoading] = useState(false);
-
-//   const SCREEN_WIDTH = Dimensions.get('window').width;
-//   const TOOLTIP_WIDTH = 140;
-
-//   const [discardModalVisible, setDiscardModalVisible] = useState(false);
-//   const [grammarModalVisible, setGrammarModalVisible] = useState(false);
-//   const [plagModalVisible, setPlagModalVisible] = useState(false);
-//   const [imageToolTip, setImageToolTip] = useState(false);
-//   const [grammarToolTip, setGrammarToolTip] = useState(false);
-//   const [plagrismToolTip, setPlagrismToolTip] = useState(false);
-//   const [discardToolTip, setDiscardToolTip] = useState(false);
-//   const [publishToolTip, setPublishToolTip] = useState(false);
-//   const [iconX, setIconX] = useState(0);
-
-//   const [copyRightResults, setCopyRightResults] = useState<
-//     CopyrightCheckerResponse[]
-//   >([]);
-//   const [copyrightModalVisible, setCopyrightModalVisible] =
-//     useState<boolean>(false);
-//   const [copyrightProgressVisible, setCopyrightProgressVisible] =
-//     useState<boolean>(false);
-
-//   const [scoreData, setScoreData] = useState<ScoreData>({
-//     score: 0,
-//     corrected: false,
-//     correction_percentage: 0,
-//     approved: false,
-//   });
-
-//   const [plagrisedData, setPlagrisedData] = useState<PlagiarismResponse>({
-//     plagiarised_percentage: 0,
-//     plagiarised_text: '',
-//     source_title: '',
-//   });
-
-//   const socket = useSocket();
-//   const dispatch = useDispatch();
-
-//   const [comments, setComments] = useState<Comment[]>([]);
-
-//   const flatListRef = useRef<FlatList<Comment>>(null);
-
-//   const getTooltipLeft = (iconX: number) => {
-//     const half = TOOLTIP_WIDTH / 2;
-
-//     // center align
-//     let left = iconX - half + 18;
-
-//     if (left < 8) left = 8;
-
-//     // right overflow
-//     if (left + TOOLTIP_WIDTH > SCREEN_WIDTH - 8) {
-//       left = SCREEN_WIDTH - TOOLTIP_WIDTH - 8;
-//     }
-
-//     return left;
-//   };
-
-//   const onGrammarModalClose = () => {
-//     setScoreData({
-//       score: 0,
-//       corrected: false,
-//       correction_percentage: 0,
-//       approved: false,
-//     });
-//     setGrammarModalVisible(false);
-//   };
-
-//   const onPlagiarismModalClose = () => {
-//     setPlagrisedData({
-//       plagiarised_percentage: 0,
-//       plagiarised_text: '',
-//       source_title: '',
-//     });
-//     setPlagModalVisible(false);
-//   };
-
-//   const onCopyrightModalClose = () => {
-//     setCopyRightResults([]);
-//     setCopyrightModalVisible(false);
-//     setCopyrightProgressVisible(false);
-//   };
-
-//   const handleCheckCopyright = () => {
-//     Alert.alert(
-//       'Check Image Copyright',
-//       'Image copyright feature is coming soon!',
-//     );
-//     // if (article && article.imageUtils) {
-//     //   Alert.alert(
-//     //     'Image Copyright Check',
-//     //     'Image copyright check might take some time. Would you like to continue?',
-//     //     [
-//     //       {
-//     //         text: 'Cancel',
-//     //         style: 'cancel',
-//     //       },
-//     //       {
-//     //         text: 'OK',
-//     //         onPress: async () => {
-
-//     //           try {
-//     //             setCopyrightProgressVisible(true);
-
-//     //             const data = await checkImageCopyright(article.imageUtils);
-//     //             console.log('DSAE', data);
-//     //             setCopyRightResults(data);
-
-//     //             setCopyrightProgressVisible(false);
-//     //             setCopyrightModalVisible(true);
-//     //           } catch (error) {
-//     //             console.log('Error during copyright check:', error);
-//     //             Snackbar.show({
-//     //               text: 'Network error occurs during copyright check, try again!',
-//     //               duration: Snackbar.LENGTH_SHORT,
-//     //             });
-//     //             setCopyrightProgressVisible(false);
-//     //           }
-//     //         },
-//     //       },
-//     //     ],
-//     //     {cancelable: true},
-//     //   );
-//     // }
-//   };
-
-//   const {data: article} = useQuery({
-//     queryKey: ['get-article-by-id'],
-//     queryFn: async () => {
-//       const response = await axios.get(`${GET_ARTICLE_BY_ID}/${articleId}`, {
-//         //headers: {
-//         //  Authorization: `Bearer ${user_token}`,
-//         //},
-//       });
-
-//       return response.data.article as ArticleData;
-//     },
-//     enabled: !!isConnected && !!user_token,
-//   });
-
-//   const {data: htmlContent} = useQuery({
-//     queryKey: ['get-article-content'],
-//     queryFn: async () => {
-//       const response = await axios.get(`${GET_ARTICLE_CONTENT}/${recordId}`);
-//       //console.log('HTML RES', response.data);
-//       return response.data.htmlContent as string;
-//     },
-//     enabled: !!isConnected && !!user_token,
-//   });
-
-//   const noDataHtml = '<p>No Data found</p>';
-
-//   const {data: user} = useQuery({
-//     queryKey: ['get-my-profile'],
-//     queryFn: async () => {
-//       const response = await axios.get(`${GET_PROFILE_API}`, {
-//         //headers: {
-//         //  Authorization: `Bearer ${user_token}`,
-//         //},
-//       });
-//       return response.data as Admin;
-//     },
-//     enabled: !!isConnected && !!user_token,
-//   });
-
-//   if (user) {
-//     dispatch(setUserHandle(user.user_handle));
-//   }
-
-//   useEffect(() => {
-//     if (
-//       destination !== StatusEnum.UNASSIGNED &&
-//       destination !== StatusEnum.PUBLISHED
-//     ) {
-//       socket.emit('load-review-comments', {articleId: route.params.articleId});
-//     }
-
-//     socket.on('connect', () => {
-//       console.log('connection established');
-//     });
-
-//     socket.on('error', data => {
-//       console.log('connection error', data);
-//     });
-
-//     socket.on('review-comments', data => {
-//       console.log('comment loaded', data);
-
-//       setComments(data);
-//     });
-
-//     // Listen for new comments
-//     socket.on('new-feedback', data => {
-//       console.log('new comment loaded', data);
-//       setFeedback('');
-//       setLoading(false);
-//       setComments(prevComments => {
-//         const newComments = [data, ...prevComments];
-//         // Scroll to the first index after adding the new comment
-//         if (flatListRef.current && newComments.length > 1) {
-//           flatListRef?.current.scrollToIndex({index: 0, animated: true});
-//         }
-
-//         return newComments;
-//       });
-//     });
-
-//     return () => {
-//       socket.off('review-comments');
-//       socket.off('new-feedback');
-//       socket.off('error');
-//     };
-//   }, [socket, route.params.articleId, destination]);
-
-//   const discardArticleMutation = useMutation({
-//     mutationKey: ['discard-article-in-review-state'],
-//     mutationFn: async ({
-//       articleId,
-//       reason,
-//     }: {
-//       articleId: string;
-//       reason: string;
-//     }) => {
-//       const res = await axios.post(DISCARD_ARTICLE, {
-//         articleId: articleId,
-//         discardReason: reason,
-//       });
-
-//       return res.data as any;
-//     },
-
-//     onSuccess: () => {
-//       // onRefresh();
-//       Alert.alert('Article discarded');
-//     },
-//     onError: err => {
-//       console.log('Error', err);
-//       Alert.alert(err.message);
-//     },
-//   });
-
-//   const publishArticleMutation = useMutation({
-//     mutationKey: ['publish-article-in-review-state'],
-//     mutationFn: async ({
-//       articleId,
-//       reviewer_id,
-//     }: {
-//       articleId: string;
-//       reviewer_id: string;
-//     }) => {
-//       const res = await axios.post(PUBLISH_ARTICLE, {
-//         articleId: articleId,
-//         reviewer_id: reviewer_id,
-//       });
-
-//       return res.data as any;
-//     },
-
-//     onSuccess: () => {
-//       // onRefresh();
-//       Alert.alert('Article published');
-//     },
-//     onError: err => {
-//       console.log('Error', err);
-//       Alert.alert(err.message);
-//     },
-//   });
-
-//   const grammarCheckMutation = useMutation({
-//     mutationKey: ['check-grammar-in-review-state'],
-//     mutationFn: async () => {
-//       const res = await axios.post(CHECK_GRAMMAR, {
-//         text: htmlContent,
-//       });
-
-//       return res.data.corrected as ScoreData;
-//     },
-
-//     onSuccess: data => {
-//       // onRefresh();
-//       console.log('ScoreData', data);
-//       setScoreData(data);
-//       setGrammarModalVisible(true);
-//     },
-//     onError: err => {
-//       console.log('Error', err);
-//       Alert.alert(err.message);
-//     },
-//   });
-
-//   const plagiarismCheckMutation = useMutation({
-//     mutationKey: ['check-plagiarism-in-review-state'],
-//     mutationFn: async () => {
-//       const res = await axios.post(CHECK_PLAGIARISM, {
-//         text: htmlContent,
-//       });
-
-//       console.log('data', res.data.data);
-//       return res.data.data as PlagiarismResponse;
-//     },
-
-//     onSuccess: data => {
-//       // onRefresh();
-//       //console.log('ScoreData', data);
-//       setPlagrisedData(data);
-//       setPlagModalVisible(true);
-//     },
-//     onError: err => {
-//       console.log('Error', err);
-//       Alert.alert(err.message);
-//     },
-//   });
-
-//   const bannerImage = article?.imageUtils?.[0]?.startsWith('http')
-//     ? article.imageUtils[0]
-//     : `${GET_STORAGE_DATA}/${article?.imageUtils?.[0] ?? ''}`;
-//   if (
-//     copyrightProgressVisible ||
-//     plagiarismCheckMutation.isPending ||
-//     grammarCheckMutation.isPending ||
-//     discardArticleMutation.isPending ||
-//     publishArticleMutation.isPending
-//   ) {
-//     return <Loader />;
-//   }
-
-//   const activeToolTips = () => {
-//     setImageToolTip(true);
-//     setDiscardToolTip(true);
-//     setPlagrismToolTip(true);
-//     setGrammarToolTip(true);
-//     setPublishToolTip(true);
-//   };
-
-//   const toolTipsOff = () => {
-//     setImageToolTip(false);
-//     setDiscardToolTip(false);
-//     setPlagrismToolTip(false);
-//     setGrammarToolTip(false);
-//     setPublishToolTip(false);
-//   };
-
-//   return (
-//     <SafeAreaView
-//       style={styles.container}
-//       onLayout={e => setIconX(e.nativeEvent.layout.x)}
-//       onTouchStart={activeToolTips}
-//       onTouchEnd={toolTipsOff}>
-//       <ScrollView
-//         style={styles.scrollView}
-//         contentContainerStyle={styles.scrollViewContent}>
-//         <View style={styles.imageContainer}>
-//           {article && article?.imageUtils && article?.imageUtils.length > 0 ? (
-//             <Image
-//               source={{uri: bannerImage}}
-//               style={styles.image}
-//             />
-//           ) : (
-//             <Image
-//               source={require('../../assets/images/article.png')}
-//               style={styles.image}
-//             />
-//           )}
-
-//           {destination !== StatusEnum.PUBLISHED && (
-//             <TouchableOpacity
-//               style={{...styles.topIcon, marginTop: hp(1)}}
-//               onPress={handleCheckCopyright}>
-//               <MaterialIcon name="plagiarism" size={32} color={PRIMARY_COLOR} />
-
-//               {imageToolTip && (
-//                 <View style={[styles.tooltip, {left: getTooltipLeft(iconX)}]}>
-//                   <Text style={styles.tooltipText} color="white">
-//                     copyright
-//                   </Text>
-//                 </View>
-//               )}
-//             </TouchableOpacity>
-//           )}
-
-//           {article?.status !== StatusEnum.DISCARDED &&
-//             destination !== StatusEnum.PUBLISHED && (
-//               <TouchableOpacity
-//                 onPress={() => {
-//                   // Discard Article
-//                   setDiscardModalVisible(true);
-//                 }}
-//                 style={[
-//                   styles.likeButton,
-//                   {
-//                     backgroundColor: 'red',
-//                   },
-//                 ]}>
-//                 <AntDesign name="poweroff" size={23} color={'white'} />
-
-//                 {discardToolTip && (
-//                   <View style={[styles.tooltip, {left: getTooltipLeft(iconX)}]}>
-//                     <Text style={styles.tooltipText} color="white">
-//                       discard
-//                     </Text>
-//                   </View>
-//                 )}
-//               </TouchableOpacity>
-//             )}
-
-//           {article?.status !== StatusEnum.DISCARDED &&
-//             destination !== StatusEnum.PUBLISHED && (
-//               <TouchableOpacity
-//                 onPress={() => {
-//                   // Grammar checker
-
-//                   if (isConnected) {
-//                     grammarCheckMutation.mutate();
-//                   } else {
-//                     Snackbar.show({
-//                       text: 'You are currently offline',
-//                       duration: Snackbar.LENGTH_SHORT,
-//                     });
-//                   }
-//                 }}
-//                 style={[
-//                   styles.playButton,
-//                   {
-//                     backgroundColor: BUTTON_COLOR,
-//                   },
-//                 ]}>
-//                 <AntDesign name="google" size={24} color={'white'} />
-
-//                 {grammarToolTip && (
-//                   <View style={[styles.tooltip, {left: getTooltipLeft(iconX)}]}>
-//                     <Text style={styles.tooltipText} color="white">
-//                       grammar
-//                     </Text>
-//                   </View>
-//                 )}
-//               </TouchableOpacity>
-//             )}
-
-//           {article?.status !== StatusEnum.DISCARDED &&
-//             destination !== StatusEnum.PUBLISHED && (
-//               <TouchableOpacity
-//                 onPress={() => {
-//                   // Palagrism Checker
-//                   if (isConnected) {
-//                     plagiarismCheckMutation.mutate();
-//                   } else {
-//                     Snackbar.show({
-//                       text: 'You are currently offline',
-//                       duration: Snackbar.LENGTH_SHORT,
-//                     });
-//                   }
-//                 }}
-//                 style={[
-//                   styles.plaButton,
-//                   {
-//                     backgroundColor: '#660099',
-//                   },
-//                 ]}>
-//                 {plagrismToolTip && (
-//                   <View style={[styles.tooltip, {left: getTooltipLeft(iconX)}]}>
-//                     <Text style={styles.tooltipText} color="white">
-//                       plagiarism
-//                     </Text>
-//                   </View>
-//                 )}
-//                 <MaterialIcon
-//                   size={24}
-//                   name="published-with-changes"
-//                   color={'white'}
-//                 />
-//               </TouchableOpacity>
-//             )}
-
-//           {article?.status !== StatusEnum.DISCARDED &&
-//             destination !== StatusEnum.PUBLISHED && (
-//               <TouchableOpacity
-//                 onPress={() => {
-//                   // Publish article
-
-//                   if (isConnected) {
-//                     publishArticleMutation.mutate({
-//                       articleId: article ? article._id : '0',
-//                       reviewer_id: user_id,
-//                     });
-//                   } else {
-//                     Snackbar.show({
-//                       text: 'You are currently offline',
-//                       duration: Snackbar.LENGTH_SHORT,
-//                     });
-//                   }
-//                 }}
-//                 style={[
-//                   styles.pubButton,
-//                   {
-//                     backgroundColor: '#478778',
-//                   },
-//                 ]}>
-//                 <MaterialIcon
-//                   size={24}
-//                   name="domain-verification"
-//                   color={'white'}
-//                 />
-//                 {publishToolTip && (
-//                   <View style={[styles.tooltip, {left: getTooltipLeft(iconX)}]}>
-//                     <Text style={styles.tooltipText} color="white">
-//                       publish
-//                     </Text>
-//                   </View>
-//                 )}
-//               </TouchableOpacity>
-//             )}
-//         </View>
-//         <View style={styles.contentContainer}>
-//           {article && article?.tags && (
-//             <Text style={styles.categoryText} color={BUTTON_COLOR}>
-//               {article.tags.map(tag => tag.name).join(' | ')}
-//             </Text>
-//           )}
-
-//           {article && (
-//             <>
-//               <Text style={styles.titleText} color={ON_PRIMARY_COLOR}>
-//                 Title: {article?.title}
-//               </Text>
-//             </>
-//           )}
-
-//           <Text style={styles.authorName} color="$color12">
-//             Author Name: {article?.authorName}
-//           </Text>
-//           <View style={styles.descriptionContainer}>
-//             {/**
-//                * <WebView
-//               ref={webViewRef}
-//               originWhitelist={['*']}
-//               source={{html: htmlContent ?? noDataHtml}}
-//               injectedJavaScript={injectedJS}
-//               onMessage={event => {
-//                 setWebViewHeight(Number(event.nativeEvent.data));
-//               }}
-//               style={{
-//                 height: webviewHeight,
-//                 backgroundColor: 'transparent',
-//               }}
-//               scrollEnabled={false}
-//             />
-//                */}
-
-//             <AutoHeightWebView
-//               style={{
-//                 width: Dimensions.get('window').width - 15,
-//                 marginTop: 35,
-//                 marginBottom: hp(15),
-//               }}
-//               customStyle={`* { font-family: 'Times New Roman'; } p { font-size: 16px; }`}
-//               onSizeUpdated={size => console.log(size.height)}
-//               files={[
-//                 {
-//                   href: 'cssfileaddress',
-//                   type: 'text/css',
-//                   rel: 'stylesheet',
-//                 },
-//               ]}
-//               originWhitelist={['*']}
-//               source={{html: htmlContent ?? noDataHtml}}
-//               scalesPageToFit={true}
-//               viewportContent={'width=device-width, user-scalable=no'}
-//             />
-//           </View>
-//         </View>
-
-//         {destination !== StatusEnum.DISCARDED &&
-//         destination !== StatusEnum.UNASSIGNED &&
-//         destination !== StatusEnum.PUBLISHED &&
-//         article?.reviewer_id !== null ? (
-//           <YStack
-//             padding={wp(4)}
-//             marginTop={hp(1.2)}
-//             borderRadius={10}
-//             gap="$3">
-//             <TextArea
-//               placeholder="Submit your feedback"
-//               value={feedback}
-//               onChangeText={(text) => setFeedback(text.nativeEvent.text)}
-//               multiline
-//               height={hp(19)}
-//               fontSize={wp(4.8)}
-//               paddingVertical={10}
-//               paddingHorizontal={12}
-//               borderRadius={8}
-//               borderWidth={1.5}
-//               color="#000"
-//               borderColor={PRIMARY_COLOR}
-//               backgroundColor="#fff"
-//               textAlignVertical="top"
-//             />
-
-//             {feedback.length > 0 && (
-//               <YStack alignItems="flex-end" marginTop={hp(0.5)}>
-//                 {loading ? (
-//                   <Spinner size="large" color={PRIMARY_COLOR} />
-//                 ) : (
-//                   <Button
-//                     size="$4"
-//                     width="45%"
-//                     height={44}
-//                     backgroundColor={PRIMARY_COLOR}
-//                     color="#fff"
-//                     borderRadius={8}
-//                     onPress={() => {
-//                       setLoading(true);
-
-//                       socket.emit('add-review-comment', {
-//                         articleId: article?._id,
-//                         reviewer_id: article?.reviewer_id,
-//                         feedback: feedback,
-//                         isReview: true,
-//                         isNote: false,
-//                       });
-
-//                       setFeedback('');
-//                     }}>
-//                     <Text color="#ffffff" fontSize={17}>
-//                       Post
-//                     </Text>
-//                   </Button>
-//                 )}
-//               </YStack>
-//             )}
-//           </YStack>
-//         ) : (
-//           <>
-//             {article && article.status === StatusEnum.UNASSIGNED.toString() ? (
-//               <YStack
-//                 alignItems="center"
-//                 justifyContent="center"
-//                 padding="$4"
-//                 borderRadius="$4"
-//                 backgroundColor="$gray200"
-//                 borderWidth={1}
-//                 borderColor="$gray500"
-//                 margin="$3">
-//                 <Text
-//                   fontSize="$4"
-//                   fontWeight="600"
-//                   color="$gray700"
-//                   textAlign="center">
-//                   Select this article to start the conversation
-//                 </Text>
-
-//                 <Text
-//                   marginTop="$2"
-//                   fontSize="$3.5"
-//                   color="$gray500"
-//                   textAlign="center"
-//                   lineHeight="$4">
-//                   Review grammar aur plagiarism across our platform, aur verify
-//                   image copyright compliance.
-//                 </Text>
-//               </YStack>
-//             ) : null}
-//           </>
-//         )}
-
-//         {comments && destination !== StatusEnum.PUBLISHED && (
-//           <View style={{padding: wp(4), marginTop: hp(4.5)}}>
-//             {comments?.map((item, index) => (
-//               <CommentCardItem key={index} item={item} />
-//             ))}
-//           </View>
-//         )}
-//         <DiscardReasonModal
-//           visible={discardModalVisible}
-//           callback={(reason: string) => {
-//             //onclick(item, 1, reason);
-//             if (isConnected) {
-//               discardArticleMutation.mutate({
-//                 articleId: article ? article._id : '0',
-//                 reason: reason,
-//               });
-//             } else {
-//               Snackbar.show({
-//                 text: 'You are currently offline',
-//                 duration: Snackbar.LENGTH_SHORT,
-//               });
-//             }
-//             setDiscardModalVisible(false);
-//           }}
-//           dismiss={() => {
-//             setDiscardModalVisible(false);
-//           }}
-//         />
-
-//         <ScorecardModal
-//           isVisible={grammarModalVisible}
-//           onClose={onGrammarModalClose}
-//           data={scoreData}
-//         />
-
-//         <PlagiarismModal
-//           isVisible={plagModalVisible}
-//           onClose={onPlagiarismModalClose}
-//           data={plagrisedData}
-//         />
-
-//         <CopyrightCheckerModal
-//           isVisible={copyrightModalVisible}
-//           onClose={onCopyrightModalClose}
-//           data={copyRightResults}
-//         />
-//       </ScrollView>
-//     </SafeAreaView>
-//   );
-// };
-// export default ReviewScreen;
-
-// const styles = StyleSheet.create({
-//   container: {
-//     flex: 1,
-//     position: 'relative',
-//     backgroundColor: '#ffffff',
-//   },
-//   scrollView: {
-//     flex: 0,
-//     backgroundColor: '#ffffff',
-//     position: 'relative',
-//   },
-//   scrollViewContent: {
-//     marginBottom: 10,
-//     flexGrow: 0,
-//   },
-//   imageContainer: {
-//     position: 'relative',
-//     //backgroundColor: 'red'
-//   },
-//   image: {
-//     height: 190,
-//     width: '100%',
-//     objectFit: 'cover',
-//   },
-
-//   likeButton: {
-//     padding: 14,
-//     position: 'absolute',
-//     bottom: -25,
-//     marginHorizontal: 57,
-//     right: 160,
-//     borderRadius: 50,
-//   },
-
-//   playButton: {
-//     padding: 14,
-//     position: 'absolute',
-//     bottom: -25,
-//     right: 110,
-//     marginHorizontal: 35,
-//     borderRadius: 50,
-//   },
-
-//   plaButton: {
-//     padding: 14,
-//     position: 'absolute',
-//     bottom: -25,
-//     right: 60,
-//     marginHorizontal: 19,
-//     borderRadius: 50,
-//   },
-
-//   pubButton: {
-//     padding: 14,
-//     position: 'absolute',
-//     bottom: -25,
-//     right: 10,
-//     marginHorizontal: 5,
-//     borderRadius: 50,
-//   },
-//   contentContainer: {
-//     marginVertical: hp(6),
-//     paddingHorizontal: 16,
-//   },
-//   categoryText: {
-//     fontWeight: '600',
-//     fontSize: 12,
-//     color: BUTTON_COLOR,
-//     textTransform: 'uppercase',
-//     marginVertical: hp(1),
-//   },
-//   viewText: {
-//     fontWeight: '500',
-//     fontSize: 14,
-//     color: '#6C6C6D',
-//   },
-//   titleText: {
-//     fontSize: 25,
-//     fontWeight: 'bold',
-//     marginTop: 5,
-//     color: PRIMARY_COLOR,
-//     marginVertical: hp(1),
-//   },
-//   avatarsContainer: {
-//     position: 'relative',
-//     flex: 1,
-//     height: 70,
-//     marginTop: 10,
-//   },
-
-//   profileImage: {
-//     height: 70,
-//     width: 70,
-//     borderRadius: 100,
-//     objectFit: 'cover',
-//     resizeMode: 'contain',
-//   },
-//   avatar: {
-//     height: 70,
-//     width: 70,
-//     borderRadius: 100,
-//     position: 'absolute',
-//     borderWidth: 1,
-//     borderColor: 'white',
-//     backgroundColor: '#D9D9D9',
-//   },
-//   avatarOverlap: {
-//     left: 15,
-//   },
-//   avatarDoubleOverlap: {
-//     left: 30,
-//   },
-//   avatarTripleOverlap: {
-//     left: 45,
-//     alignItems: 'center',
-//     justifyContent: 'center',
-//     backgroundColor: PRIMARY_COLOR,
-//   },
-//   moreText: {
-//     fontSize: hp(4),
-//     fontWeight: '700',
-//     color: 'white',
-//   },
-//   descriptionContainer: {
-//     flex: 1,
-//     marginTop: 10,
-//   },
-
-//   webView: {
-//     flex: 1,
-//     width: '100%',
-//     margin: 0,
-//     padding: 0,
-//   },
-//   descriptionText: {
-//     fontWeight: '400',
-//     color: '#6C6C6D',
-//     fontSize: 15,
-//     textAlign: 'justify',
-//   },
-//   footer: {
-//     backgroundColor: '#EDE9E9',
-//     position: 'relative',
-//     bottom: 0,
-//     zIndex: 10,
-//     borderTopEndRadius: 30,
-//     borderTopStartRadius: 30,
-//     flexDirection: 'row',
-//     alignItems: 'center',
-//     justifyContent: 'space-between',
-//     paddingTop: 20,
-//     paddingHorizontal: 20,
-//   },
-//   authorContainer: {
-//     flexDirection: 'row',
-//     alignItems: 'center',
-//     gap: 10,
-//   },
-//   authorImage: {
-//     height: 50,
-//     width: 50,
-//     borderRadius: 25,
-//     backgroundColor: PRIMARY_COLOR,
-//     justifyContent: 'center',
-//     alignItems: 'center',
-//   },
-//   authorName: {
-//     fontWeight: '600',
-//     fontSize: 15,
-//     color: 'black',
-//   },
-//   authorFollowers: {
-//     fontWeight: '400',
-//     fontSize: 13,
-//   },
-
-//   authorText: {
-//     fontWeight: '500',
-//     fontSize: 23,
-//   },
-//   followButton: {
-//     backgroundColor: PRIMARY_COLOR,
-//     paddingHorizontal: 15,
-//     borderRadius: 20,
-//     paddingVertical: 10,
-//   },
-//   followButtonText: {
-//     color: 'white',
-//     fontSize: 14,
-//     fontWeight: '600',
-//   },
-
-//   commentsList: {
-//     flex: 1,
-//     marginBottom: 20,
-//   },
-
-//   textInput: {
-//     height: 100,
-//     borderColor: '#ccc',
-//     borderWidth: 1,
-//     borderRadius: 8,
-//     padding: 10,
-//     textAlignVertical: 'top',
-//     backgroundColor: '#fff',
-//     marginTop: 10,
-//   },
-//   submitButton: {
-//     backgroundColor: PRIMARY_COLOR,
-//     padding: 15,
-//     marginTop: 20,
-//     //borderRadius: 8,
-//     alignItems: 'center',
-//   },
-//   submitButtonText: {
-//     fontSize: 18,
-//     color: '#fff',
-//     fontWeight: 'bold',
-//   },
-//   editIconContainer: {
-//     position: 'absolute',
-//     top: 16,
-//     right: 10,
-//     backgroundColor: 'rgba(0, 0, 0, 0.5)',
-//     borderRadius: 20,
-//     padding: 5,
-//   },
-//   inputContainer: {
-//     height: 300,
-//     overflow: 'hidden',
-//     //backgroundColor: 'red',
-//     //padding: hp(1),
-//     borderColor: '#000',
-//     borderWidth: 0.5,
-//     // padding: wp(6),
-//     marginHorizontal: wp(4),
-//   },
-//   editor: {
-//     backgroundColor: 'blue',
-//     borderColor: 'black',
-//     marginHorizontal: 4,
-//   },
-//   rich: {
-//     //minHeight: 700,
-//     flex: 1,
-//     backgroundColor: ON_PRIMARY_COLOR,
-//   },
-//   richBar: {
-//     height: 45,
-//     backgroundColor: PRIMARY_COLOR,
-//     marginTop: 0,
-//     marginBottom: hp(0.8),
-//   },
-
-//   topIcon: {
-//     position: 'absolute',
-//     top: 10,
-//     right: 10,
-
-//     paddingHorizontal: 8,
-//     paddingVertical: 6,
-//     borderRadius: 50,
-//     resizeMode: 'contain',
-//     zIndex: 5,
-//     backgroundColor: ON_PRIMARY_COLOR,
-//   },
-
-//   tooltip: {
-//     position: 'absolute',
-//     top: 45,
-//     backgroundColor: '#000',
-//     paddingHorizontal: 4,
-//     paddingVertical: 4,
-//     borderRadius: 6,
-//     minWidth: 58,
-//   },
-//   tooltipText: {
-//     color: '#fff',
-//     fontSize: 9,
-//     textAlign: 'center',
-//   },
-// });
-
-import AntDesign from '@expo/vector-icons/AntDesign';
-import {useMutation, useQuery} from '@tanstack/react-query';
 import React, {useEffect, useRef, useState} from 'react';
 import {
   Alert,
-  FlatList,
   Image,
   KeyboardAvoidingView,
   Platform,
   ScrollView,
+  StyleSheet,
   TouchableOpacity,
+  View,
   useColorScheme,
 } from 'react-native';
-import {Comment, ReviewScreenProp} from '../type';
-
-import AutoHeightWebView from '@brown-bear/react-native-autoheight-webview';
+import {useMutation, useQuery} from '@tanstack/react-query';
 import axios from 'axios';
 import {useDispatch, useSelector} from 'react-redux';
+import {SafeAreaView} from 'react-native-safe-area-context';
+import Snackbar from 'react-native-snackbar';
+import {Button, Text, TextArea, XStack, YStack} from 'tamagui';
+import AutoHeightWebView from '@brown-bear/react-native-autoheight-webview';
+import {AntDesign, Feather, MaterialIcons, Ionicons} from '@expo/vector-icons';
+
+import {
+  Comment,
+  ReviewScreenProp,
+} from '../type';
 import {
   CHECK_GRAMMAR,
   CHECK_PLAGIARISM,
@@ -1085,49 +33,31 @@ import {
   GET_STORAGE_DATA,
   PUBLISH_ARTICLE,
 } from '../helper/APIUtils';
-
 import {useSocket} from '../components/SocketContext';
-
-import {SafeAreaView} from 'react-native-safe-area-context';
-import {Button, Spinner, Text, TextArea, XStack, YStack} from 'tamagui';
 import CommentCardItem from '../components/CommentCardItem';
 import CopyrightCheckerModal from '../components/CopyrightCheckerModal';
 import DiscardReasonModal from '../components/DiscardReasonModal';
 import Loader from '../components/Loader';
 import PlagiarismModal from '../components/PlagiarismModal';
 import ScorecardModal from '../components/ScoreCardModal';
-import {checkImageCopyright, StatusEnum} from '../helper/Utils';
+import {StatusEnum} from '../helper/Utils';
 import {setUserHandle} from '../stores/UserSlice';
-import MaterialIcons from '@expo/vector-icons/MaterialIcons';
-import Snackbar from 'react-native-snackbar';
-
-const COLORS = {
-  light: {
-    background: '#F8FAFC',
-    surface: '#FFFFFF',
-    text: '#0F172A',
-    secondaryText: '#64748B',
-    primary: '#2563EB',
-    success: '#10B981',
-    danger: '#EF4444',
-    border: '#E2E8F0',
-  },
-  dark: {
-    background: '#0F172A',
-    surface: '#1E2937',
-    text: '#F1F5F9',
-    secondaryText: '#94A3B8',
-    primary: '#3B82F6',
-    success: '#34D399',
-    danger: '#F87171',
-    border: '#E2E8F0',
-  },
-};
+import {
+  PRIMARY_COLOR,
+  PRIMARY_DARK,
+  STATUS_COLORS,
+  BORDER_COLOR,
+  CARD_BG,
+  SCREEN_BG,
+  TEXT_PRIMARY,
+  TEXT_SECONDARY,
+  TEXT_MUTED,
+  CLINICAL_SHADOW,
+} from '../helper/Theme';
 
 const ReviewScreen = ({route, navigation}: ReviewScreenProp) => {
   const {articleId, destination, recordId} = route.params;
   const isDarkMode = useColorScheme() === 'dark';
-  const colors = isDarkMode ? COLORS.dark : COLORS.light;
 
   const {user_id, user_token} = useSelector((state: any) => state.user);
   const {isConnected} = useSelector((state: any) => state.network);
@@ -1135,6 +65,7 @@ const ReviewScreen = ({route, navigation}: ReviewScreenProp) => {
   const [feedback, setFeedback] = useState('');
   const [loading, setLoading] = useState(false);
   const dispatch = useDispatch();
+
   const [discardModalVisible, setDiscardModalVisible] = useState(false);
   const [grammarModalVisible, setGrammarModalVisible] = useState(false);
   const [plagModalVisible, setPlagModalVisible] = useState(false);
@@ -1145,7 +76,6 @@ const ReviewScreen = ({route, navigation}: ReviewScreenProp) => {
   const [copyRightResults, setCopyRightResults] = useState<any[]>([]);
   const socket = useSocket();
 
-  const flatListRef = useRef<FlatList<Comment>>(null);
   const [comments, setComments] = useState<any[]>([]);
 
   const {data: article} = useQuery({
@@ -1185,34 +115,14 @@ const ReviewScreen = ({route, navigation}: ReviewScreenProp) => {
       socket.emit('load-review-comments', {articleId: route.params.articleId});
     }
 
-    socket.on('connect', () => {
-      console.log('connection established');
-    });
-
-    socket.on('error', data => {
-      console.log('connection error', data);
-    });
-
-    socket.on('review-comments', data => {
-      console.log('comment loaded', data);
-
+    socket.on('review-comments', (data: any) => {
       setComments(data);
     });
 
-    // Listen for new comments
-    socket.on('new-feedback', data => {
-      console.log('new comment loaded', data);
+    socket.on('new-feedback', (data: any) => {
       setFeedback('');
       setLoading(false);
-      setComments(prevComments => {
-        const newComments = [data, ...prevComments];
-        // Scroll to the first index after adding the new comment
-        if (flatListRef.current && newComments.length > 1) {
-          flatListRef?.current.scrollToIndex({index: 0, animated: true});
-        }
-
-        return newComments;
-      });
+      setComments(prevComments => [data, ...prevComments]);
     });
 
     return () => {
@@ -1226,11 +136,13 @@ const ReviewScreen = ({route, navigation}: ReviewScreenProp) => {
     mutationFn: async () => {
       await axios.post(PUBLISH_ARTICLE, {articleId, reviewer_id: user_id});
     },
-    onSuccess: () => Alert.alert('Success', 'Article Published'),
-    onError: err => {
-      console.log('Error', err);
+    onSuccess: () => {
+      Alert.alert('Success', 'Article approved and published to platform!');
+      navigation.goBack();
+    },
+    onError: (err: any) => {
       Snackbar.show({
-        text: err.message,
+        text: err.message || 'Failed to publish article',
         duration: Snackbar.LENGTH_SHORT,
       });
     },
@@ -1240,11 +152,13 @@ const ReviewScreen = ({route, navigation}: ReviewScreenProp) => {
     mutationFn: async (reason: string) => {
       await axios.post(DISCARD_ARTICLE, {articleId, discardReason: reason});
     },
-    onSuccess: () => Alert.alert('Success', 'Article Discarded'),
-    onError: err => {
-      console.log('Error', err);
+    onSuccess: () => {
+      Alert.alert('Notice', 'Article discarded successfully');
+      navigation.goBack();
+    },
+    onError: (err: any) => {
       Snackbar.show({
-        text: err.message,
+        text: err.message || 'Failed to discard article',
         duration: Snackbar.LENGTH_SHORT,
       });
     },
@@ -1256,10 +170,9 @@ const ReviewScreen = ({route, navigation}: ReviewScreenProp) => {
       setScoreData(res.data.corrected);
       setGrammarModalVisible(true);
     },
-    onError: err => {
-      console.log('Error', err);
+    onError: (err: any) => {
       Snackbar.show({
-        text: err.message,
+        text: err.message || 'Grammar check failed',
         duration: Snackbar.LENGTH_SHORT,
       });
     },
@@ -1271,10 +184,9 @@ const ReviewScreen = ({route, navigation}: ReviewScreenProp) => {
       setPlagrisedData(res.data.data);
       setPlagModalVisible(true);
     },
-    onError: err => {
-      console.log('Error', err);
+    onError: (err: any) => {
       Snackbar.show({
-        text: err.message,
+        text: err.message || 'Plagiarism check failed',
         duration: Snackbar.LENGTH_SHORT,
       });
     },
@@ -1283,6 +195,22 @@ const ReviewScreen = ({route, navigation}: ReviewScreenProp) => {
   const bannerImage = article?.imageUtils?.[0]?.startsWith('http')
     ? article.imageUtils[0]
     : `${GET_STORAGE_DATA}/${article?.imageUtils?.[0]}`;
+
+  // Status Theme
+  const getStatusTheme = () => {
+    switch (article?.status) {
+      case StatusEnum.PUBLISHED:
+        return STATUS_COLORS.approved;
+      case StatusEnum.IN_PROGRESS:
+        return STATUS_COLORS.in_progress;
+      case StatusEnum.DISCARDED:
+        return STATUS_COLORS.discarded;
+      case StatusEnum.UNASSIGNED:
+      default:
+        return STATUS_COLORS.pending;
+    }
+  };
+  const statusTheme = getStatusTheme();
 
   if (
     plagiarismMutation.isPending ||
@@ -1296,126 +224,194 @@ const ReviewScreen = ({route, navigation}: ReviewScreenProp) => {
   return (
     <KeyboardAvoidingView
       behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-      style={{flex: 1, backgroundColor: colors.background}}>
-      <SafeAreaView style={{flex: 1}}>
+      style={styles.screen}>
+      <SafeAreaView style={{flex: 1}} edges={['bottom']}>
         <ScrollView showsVerticalScrollIndicator={false}>
-          <YStack paddingBottom="$10">
-            {/* Hero Image */}
-            <YStack position="relative">
-              <Image
-                source={{
-                  uri:
-                    bannerImage ||
-                    'https://images.pexels.com/photos/771742/pexels-photo-771742.jpeg',
-                }}
-                style={{width: '100%', height: 240, resizeMode: 'cover'}}
+          {/* Banner Hero */}
+          <View style={styles.heroContainer}>
+            <Image
+              source={{
+                uri:
+                  bannerImage ||
+                  'https://images.pexels.com/photos/771742/pexels-photo-771742.jpeg',
+              }}
+              style={styles.heroImage}
+            />
+
+            {/* Back Button Floating */}
+            <TouchableOpacity
+              style={styles.floatingBackButton}
+              onPress={() => navigation.goBack()}
+              activeOpacity={0.8}>
+              <Feather name="arrow-left" size={22} color="#FFFFFF" />
+            </TouchableOpacity>
+
+            {/* Clinical Status Chip */}
+            <View
+              style={[
+                styles.floatingStatusBadge,
+                {
+                  backgroundColor: statusTheme.bg,
+                  borderColor: statusTheme.border,
+                },
+              ]}>
+              <View
+                style={[
+                  styles.statusDot,
+                  {backgroundColor: statusTheme.text},
+                ]}
               />
-
-              {/* Floating Action Tools */}
-              {article?.status !== StatusEnum.PUBLISHED && (
-                <XStack
-                  position="absolute"
-                  bottom={-25}
-                  left={20}
-                  right={20}
-                  justifyContent="space-between"
-                  zIndex={10}>
-                  <TouchableOpacity
-                    style={styles.toolButton}
-                    onPress={() => plagiarismMutation.mutate()}>
-                    <MaterialIcons
-                      name="plagiarism"
-                      size={26}
-                      color={colors.primary}
-                    />
-                  </TouchableOpacity>
-
-                  <TouchableOpacity
-                    style={styles.toolButton}
-                    onPress={() => grammarMutation.mutate()}>
-                    <AntDesign name="google" size={26} color={colors.primary} />
-                  </TouchableOpacity>
-
-                  <TouchableOpacity
-                    style={styles.toolButton}
-                    onPress={() => setDiscardModalVisible(true)}>
-                    <AntDesign
-                      name="poweroff"
-                      size={26}
-                      color={colors.danger}
-                    />
-                  </TouchableOpacity>
-
-                  {article?.status !== StatusEnum.DISCARDED &&
-                    article?.status !== StatusEnum.UNASSIGNED && (
-                      <TouchableOpacity
-                        style={[
-                          styles.toolButton,
-                          {backgroundColor: '#10B981'},
-                        ]}
-                        onPress={() => publishMutation.mutate()}>
-                        <MaterialIcons
-                          name="domain-verification"
-                          size={26}
-                          color="white"
-                        />
-                      </TouchableOpacity>
-                    )}
-                </XStack>
-              )}
-            </YStack>
-
-            {/* Content */}
-            <YStack padding="$5" gap="$4" marginTop="$8">
-              {article?.tags && (
-                <Text fontSize={13} color={colors.primary} fontWeight="600">
-                  {article.tags.map((t: any) => t.name).join(' • ')}
-                </Text>
-              )}
-
               <Text
-                fontSize={26}
-                fontWeight="700"
-                color={colors.text}
-                lineHeight={32}>
-                {article?.title}
+                style={[
+                  styles.statusBadgeText,
+                  {color: statusTheme.text},
+                ]}>
+                {article?.status ? article.status.toUpperCase() : 'PENDING'}
               </Text>
+            </View>
 
-              <Text fontSize={16} color={colors.secondaryText}>
-                By {article?.authorName}
-              </Text>
+            {/* Clinical Moderation Action Toolbar */}
+            {article?.status !== StatusEnum.PUBLISHED && (
+              <View style={styles.floatingToolbar}>
+                {/* Plagiarism Tool */}
+                <TouchableOpacity
+                  style={styles.toolItem}
+                  onPress={() => plagiarismMutation.mutate()}
+                  activeOpacity={0.8}>
+                  <MaterialIcons
+                    name="document-scanner"
+                    size={22}
+                    color={PRIMARY_COLOR}
+                  />
+                  <Text style={styles.toolItemText}>Plagiarism</Text>
+                </TouchableOpacity>
 
-              {/* Article Content */}
-              <AutoHeightWebView
-                source={{html: htmlContent || '<p>No content available</p>'}}
-                style={{width: '100%', marginVertical: 20}}
-                customStyle="body { font-family: system-ui; font-size: 16px; line-height: 1.7; }"
-              />
-            </YStack>
+                {/* AI Quality / Grammar Tool */}
+                <TouchableOpacity
+                  style={styles.toolItem}
+                  onPress={() => grammarMutation.mutate()}
+                  activeOpacity={0.8}>
+                  <Ionicons
+                    name="sparkles"
+                    size={20}
+                    color={PRIMARY_COLOR}
+                  />
+                  <Text style={styles.toolItemText}>AI Checker</Text>
+                </TouchableOpacity>
 
-            {/* Feedback Input */}
+                {/* Discard Tool */}
+                <TouchableOpacity
+                  style={styles.toolItem}
+                  onPress={() => setDiscardModalVisible(true)}
+                  activeOpacity={0.8}>
+                  <AntDesign
+                    name="closecircleo"
+                    size={20}
+                    color="#DC2626"
+                  />
+                  <Text style={[styles.toolItemText, {color: '#DC2626'}]}>Discard</Text>
+                </TouchableOpacity>
+
+                {/* Approve & Publish Tool */}
+                {article?.status !== StatusEnum.DISCARDED &&
+                  article?.status !== StatusEnum.UNASSIGNED && (
+                    <TouchableOpacity
+                      style={styles.toolItemPublish}
+                      onPress={() => publishMutation.mutate()}
+                      activeOpacity={0.85}>
+                      <MaterialIcons
+                        name="check-circle"
+                        size={22}
+                        color="#FFFFFF"
+                      />
+                      <Text style={styles.toolPublishText}>Publish</Text>
+                    </TouchableOpacity>
+                  )}
+              </View>
+            )}
+          </View>
+
+          {/* Article Header & Body */}
+          <View style={styles.articleBodyContainer}>
+            {/* Category Tags */}
+            {article?.tags && article.tags.length > 0 && (
+              <View style={styles.tagsRow}>
+                {article.tags.map((t: any, i: number) => (
+                  <View key={i} style={styles.tagChip}>
+                    <Text style={styles.tagChipText}>{t.name}</Text>
+                  </View>
+                ))}
+              </View>
+            )}
+
+            {/* Title */}
+            <Text style={styles.articleTitle}>
+              {article?.title}
+            </Text>
+
+            {/* Author Bar */}
+            <View style={styles.authorBar}>
+              <View style={styles.authorAvatar}>
+                <Text style={styles.authorAvatarText}>
+                  {article?.authorName ? article.authorName.charAt(0).toUpperCase() : 'A'}
+                </Text>
+              </View>
+              <View>
+                <Text style={styles.authorName}>
+                  {article?.authorName || 'Medical Contributor'}
+                </Text>
+                <Text style={styles.authorRole}>Author • Verified Submitter</Text>
+              </View>
+            </View>
+
+            <View style={styles.sectionDivider} />
+
+            {/* Article Content Rendered */}
+            <Text style={styles.sectionHeading}>Article Content</Text>
+            <AutoHeightWebView
+              source={{html: htmlContent || '<p>No content available</p>'}}
+              style={{width: '100%', marginVertical: 12}}
+              customStyle={`
+                body {
+                  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+                  font-size: 16px;
+                  line-height: 1.75;
+                  color: ${TEXT_PRIMARY};
+                  padding: 0px 4px;
+                }
+                h1, h2, h3 { color: ${PRIMARY_DARK}; font-weight: 700; margin-top: 24px; }
+                p { margin-bottom: 16px; }
+                img { max-width: 100%; border-radius: 12px; margin: 16px 0; }
+              `}
+            />
+
+            <View style={styles.sectionDivider} />
+
+            {/* Feedback & Review Notes Section */}
             {destination !== StatusEnum.PUBLISHED && (
-              <YStack padding="$5" gap="$3">
+              <View style={styles.feedbackContainer}>
+                <Text style={styles.sectionHeading}>Moderator Feedback & Notes</Text>
                 <TextArea
                   value={feedback}
                   onChangeText={setFeedback}
-                  placeholder="Write your feedback here..."
-                  height={140}
-                  borderWidth={1.5}
-                  backgroundColor={colors.surface}
-                  borderColor={colors.border}
-                  focusStyle={{borderColor: colors.primary}}
-                  color={colors.text}
-                  //placeholderTextColor={colors.secondaryText}
+                  placeholder="Leave review comments, corrections, or revision notes for the author..."
+                  height={130}
+                  borderWidth={1}
+                  borderRadius={12}
+                  backgroundColor={CARD_BG}
+                  borderColor={BORDER_COLOR}
+                  focusStyle={{borderColor: PRIMARY_COLOR}}
+                  color={TEXT_PRIMARY}
+                  padding={12}
+                  fontSize={14}
                 />
 
                 <Button
-                  backgroundColor={colors.primary}
-                  height={54}
+                  backgroundColor={PRIMARY_COLOR}
+                  height={48}
                   borderRadius={12}
                   onPress={() => {
                     setLoading(true);
-
                     socket.emit('add-review-comment', {
                       articleId: article?._id,
                       reviewer_id: article?.reviewer_id,
@@ -1423,35 +419,42 @@ const ReviewScreen = ({route, navigation}: ReviewScreenProp) => {
                       isReview: true,
                       isNote: false,
                     });
-
                     setFeedback('');
                   }}
-                  disabled={!feedback.trim()}>
-                  <Text color="white" fontWeight="700" fontSize={17}>
-                    Post Feedback
+                  disabled={!feedback.trim()}
+                  opacity={!feedback.trim() ? 0.6 : 1}
+                  marginTop={10}>
+                  <Text color="#FFFFFF" fontWeight="700" fontSize={15}>
+                    Send Feedback
                   </Text>
                 </Button>
-              </YStack>
+              </View>
             )}
 
-            {/* Comments Section */}
-            <YStack padding="$5" gap="$4">
-              <Text fontSize={18} fontWeight="700" color={colors.text}>
-                Comments
+            {/* Discussion Thread */}
+            <View style={styles.commentsSection}>
+              <Text style={styles.sectionHeading}>
+                Review Discussion ({comments.length})
               </Text>
-              {comments.map((comment, index) => (
-                <CommentCardItem
-                  key={index.toLocaleString()}
-                  item={comment}
-                  isSelected={false}
-                  handleMentionClick={() => {}}
-                />
-              ))}
-            </YStack>
-          </YStack>
+              {comments.length === 0 ? (
+                <Text style={styles.emptyCommentsText}>
+                  No review feedback logged yet.
+                </Text>
+              ) : (
+                comments.map((comment, index) => (
+                  <CommentCardItem
+                    key={index.toLocaleString()}
+                    item={comment}
+                    isSelected={false}
+                    handleMentionClick={() => {}}
+                  />
+                ))
+              )}
+            </View>
+          </View>
         </ScrollView>
 
-        {/* Modals */}
+        {/* Clinical Modals */}
         <DiscardReasonModal
           visible={discardModalVisible}
           callback={reason => {
@@ -1480,17 +483,210 @@ const ReviewScreen = ({route, navigation}: ReviewScreenProp) => {
   );
 };
 
-const styles = {
-  toolButton: {
-    backgroundColor: 'white',
-    padding: 14,
-    borderRadius: 50,
-    shadowColor: '#000',
-    shadowOffset: {width: 0, height: 4},
-    shadowOpacity: 0.15,
-    shadowRadius: 12,
-    elevation: 8,
-  },
-};
-
 export default ReviewScreen;
+
+const styles = StyleSheet.create({
+  screen: {
+    flex: 1,
+    backgroundColor: SCREEN_BG,
+  },
+
+  heroContainer: {
+    position: 'relative',
+    width: '100%',
+    height: 250,
+    backgroundColor: '#0F172A',
+  },
+
+  heroImage: {
+    width: '100%',
+    height: '100%',
+    opacity: 0.9,
+  },
+
+  floatingBackButton: {
+    position: 'absolute',
+    top: 48,
+    left: 16,
+    width: 38,
+    height: 38,
+    borderRadius: 19,
+    backgroundColor: 'rgba(15, 23, 42, 0.65)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    zIndex: 10,
+  },
+
+  floatingStatusBadge: {
+    position: 'absolute',
+    top: 48,
+    right: 16,
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 20,
+    borderWidth: 1,
+    zIndex: 10,
+  },
+
+  statusDot: {
+    width: 6,
+    height: 6,
+    borderRadius: 3,
+    marginRight: 6,
+  },
+
+  statusBadgeText: {
+    fontSize: 11,
+    fontWeight: '700',
+    letterSpacing: 0.4,
+  },
+
+  floatingToolbar: {
+    position: 'absolute',
+    bottom: -22,
+    left: 16,
+    right: 16,
+    backgroundColor: CARD_BG,
+    borderRadius: 16,
+    paddingVertical: 8,
+    paddingHorizontal: 12,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-around',
+    borderWidth: 1,
+    borderColor: BORDER_COLOR,
+    ...CLINICAL_SHADOW,
+    elevation: 6,
+    zIndex: 20,
+  },
+
+  toolItem: {
+    flexDirection: 'column',
+    alignItems: 'center',
+    paddingVertical: 4,
+    paddingHorizontal: 8,
+  },
+
+  toolItemText: {
+    fontSize: 11,
+    fontWeight: '600',
+    color: TEXT_SECONDARY,
+    marginTop: 2,
+  },
+
+  toolItemPublish: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#059669',
+    paddingVertical: 7,
+    paddingHorizontal: 14,
+    borderRadius: 20,
+    gap: 4,
+  },
+
+  toolPublishText: {
+    color: '#FFFFFF',
+    fontSize: 12,
+    fontWeight: '700',
+  },
+
+  articleBodyContainer: {
+    paddingHorizontal: 18,
+    paddingTop: 36,
+    paddingBottom: 40,
+  },
+
+  tagsRow: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 6,
+    marginBottom: 10,
+  },
+
+  tagChip: {
+    backgroundColor: '#F0F9FF',
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    borderRadius: 6,
+    borderWidth: 1,
+    borderColor: '#BAE6FD',
+  },
+
+  tagChipText: {
+    color: '#0369A1',
+    fontSize: 12,
+    fontWeight: '600',
+  },
+
+  articleTitle: {
+    fontSize: 22,
+    lineHeight: 29,
+    fontWeight: '800',
+    color: TEXT_PRIMARY,
+    marginBottom: 14,
+  },
+
+  authorBar: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 16,
+  },
+
+  authorAvatar: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    backgroundColor: '#E0F2FE',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginRight: 10,
+  },
+
+  authorAvatarText: {
+    color: PRIMARY_DARK,
+    fontSize: 15,
+    fontWeight: '700',
+  },
+
+  authorName: {
+    fontSize: 14,
+    fontWeight: '700',
+    color: TEXT_PRIMARY,
+  },
+
+  authorRole: {
+    fontSize: 12,
+    color: TEXT_MUTED,
+  },
+
+  sectionDivider: {
+    height: 1,
+    backgroundColor: BORDER_COLOR,
+    marginVertical: 18,
+  },
+
+  sectionHeading: {
+    fontSize: 16,
+    fontWeight: '700',
+    color: TEXT_PRIMARY,
+    marginBottom: 12,
+  },
+
+  feedbackContainer: {
+    marginTop: 8,
+    marginBottom: 16,
+  },
+
+  commentsSection: {
+    marginTop: 8,
+  },
+
+  emptyCommentsText: {
+    fontSize: 13,
+    color: TEXT_MUTED,
+    fontStyle: 'italic',
+    marginTop: 4,
+  },
+});

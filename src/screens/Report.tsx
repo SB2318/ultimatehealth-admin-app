@@ -7,7 +7,14 @@ import {
   TouchableOpacity,
   useColorScheme,
 } from 'react-native';
-import {BUTTON_COLOR, ON_PRIMARY_COLOR, PRIMARY_COLOR} from '../helper/Theme';
+import {
+  BUTTON_COLOR,
+  ON_PRIMARY_COLOR,
+  PRIMARY_COLOR,
+  BORDER_COLOR,
+  DARK_THEME,
+  SCREEN_BG,
+} from '../helper/Theme';
 import React, {useRef, useState} from 'react';
 import {Tabs, MaterialTabBar} from 'react-native-collapsible-tab-view';
 import {useSelector} from 'react-redux';
@@ -295,23 +302,24 @@ export default function ReportScreen({navigation}) {
       <MaterialTabBar
         {...props}
         indicatorStyle={{
-          backgroundColor: isDarkMode ? '#4ACDFF' : '#2563EB',
-          height: 3.5,
-          borderRadius: 3,
+          backgroundColor: isDarkMode ? DARK_THEME.primary : PRIMARY_COLOR,
+          height: 3,
+          borderRadius: 2,
         }}
         style={{
-          backgroundColor: isDarkMode ? '#1E2937' : '#FFFFFF',
+          backgroundColor: isDarkMode ? DARK_THEME.surfaceBg : '#FFFFFF',
           borderBottomWidth: 1,
-          borderBottomColor: isDarkMode ? '#334155' : '#E2E8F0',
+          borderBottomColor: isDarkMode ? DARK_THEME.borderColor : BORDER_COLOR,
           elevation: 0,
           shadowOpacity: 0,
         }}
-        activeColor={isDarkMode ? '#4ACDFF' : '#2563EB'}
-        inactiveColor={isDarkMode ? '#94A3B8' : '#64748B'}
+        activeColor={isDarkMode ? DARK_THEME.primary : PRIMARY_COLOR}
+        inactiveColor={isDarkMode ? DARK_THEME.textMuted : '#64748B'}
         labelStyle={{
-          fontSize: 15,
-          fontWeight: '600',
+          fontSize: 14,
+          fontWeight: '700',
           textTransform: 'capitalize',
+          letterSpacing: 0.2,
         }}
         contentContainerStyle={{
           width: '100%',

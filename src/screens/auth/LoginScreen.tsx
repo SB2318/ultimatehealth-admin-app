@@ -20,7 +20,7 @@ import Icon from '@expo/vector-icons/Ionicons';
 import {useDispatch, useSelector} from 'react-redux';
 import {useFirebaseMessaging} from '../../../FirebaseContext';
 import EmailInputModal from '../../components/EmailInputModal';
-import {LOGIN_API, RESEND_VERIFICATION, SEND_OTP} from '../../helper/APIUtils';
+import {LOGIN_API, SEND_OTP} from '../../helper/APIUtils';
 import {fp, hp, wp} from '../../helper/Metric';
 import {KEYS, storeItem} from '../../helper/Utils';
 import {setUserHandle, setUserId, setUserToken} from '../../stores/UserSlice';
@@ -186,55 +186,6 @@ export default function LoginScreen({navigation}: LoginScreenProp) {
     },
   });
 
-  const requestVerification = useMutation({
-    mutationKey: ['resend-verification-mail'],
-    mutationFn: async () => {
-      const res = await axios.post(RESEND_VERIFICATION, {
-        email: email,
-        isAdmin: true,
-      });
-
-      return res.data.message as string;
-    },
-
-    onSuccess: () => {
-      /** Check Status */
-      Alert.alert('Verification Email Sent');
-      setEmail('');
-      setPassword('');
-    },
-    onError: (error: AxiosError) => {
-      console.log('Email Verification error', error);
-
-      if (error.response) {
-        const statusCode = error.response.status;
-        switch (statusCode) {
-          case 400:
-            Alert.alert('Error', 'User not found or already verified');
-            break;
-          case 429:
-            Alert.alert(
-              'Error',
-              'Verification email already sent. Please try again after 1 hour.',
-            );
-            break;
-          case 500:
-            Alert.alert(
-              'Error',
-              'Internal server error. Please try again later.',
-            );
-            break;
-          default:
-            Alert.alert(
-              'Error',
-              'Something went wrong. Please try again later.',
-            );
-        }
-      } else {
-        console.log('Email Verification error', error);
-      }
-    },
-  });
 
   const sendOtpMutation = useMutation({
     mutationKey: ['forgot-password-otp'],
@@ -382,29 +333,6 @@ export default function LoginScreen({navigation}: LoginScreenProp) {
           </TouchableOpacity>
 
 
-          {/* Request Verification (secondary) */}
-          <TouchableOpacity
-            style={styles.secondaryButton}
-            onPress={() => {
-              if (!email) {
-                Alert.alert('Enter your email first');
-                return;
-              }
-
-              if (!isConnected) {
-                Snackbar.show({
-                  text: 'You are currently offline',
-                  duration: Snackbar.LENGTH_SHORT,
-                });
-                return;
-              }
-
-              requestVerification.mutate();
-            }}>
-            <Text style={styles.secondaryButtonText}>
-              Resend Verification Email
-            </Text>
-          </TouchableOpacity>
         </View>
       </ScrollView>
 
@@ -520,12 +448,4 @@ const styles = StyleSheet.create({
   buttonDisabled: {opacity: 0.7},
 
 
-  secondaryButton: {
-    alignItems: 'center',
-    paddingVertical: hp(1.5),
-  },
-  secondaryButtonText: {
-    color: COLORS.secondaryText,
-    fontSize: fp(3.8),
-  },
 });

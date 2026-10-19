@@ -1,9 +1,11 @@
 import React from 'react';
 import {
   Pressable,
-  Dimensions,
   StyleSheet,
   TouchableOpacity,
+  View,
+  Text,
+  Image,
 } from 'react-native';
 import Animated, {
   useAnimatedStyle,
@@ -11,19 +13,23 @@ import Animated, {
   withTiming,
   withSpring,
 } from 'react-native-reanimated';
-import {AntDesign, Entypo, Ionicons} from '@expo/vector-icons';
+import {AntDesign, Entypo, Ionicons, Feather} from '@expo/vector-icons';
 import ArticleFloatingMenu from './ArticleFloatingMenu';
 import {fp, hp, wp} from '../helper/Metric';
 import {PodcastData} from '../type';
 import {
-  BUTTON_COLOR,
   PRIMARY_COLOR,
+  PRIMARY_DARK,
+  STATUS_COLORS,
+  BORDER_COLOR,
+  CARD_BG,
   TEXT_PRIMARY,
   TEXT_SECONDARY,
+  TEXT_MUTED,
+  CLINICAL_SHADOW,
 } from '../helper/Theme';
 import {msToTime, StatusEnum} from '../helper/Utils';
 import {GET_STORAGE_DATA} from '../helper/APIUtils';
-import {Text, Image, View} from 'tamagui';
 
 interface PodcastProps {
   item: PodcastData;
@@ -38,43 +44,41 @@ const PodcastCard = ({
   isSelected,
   setSelectedCardId,
 }: PodcastProps) => {
-  const scale = useSharedValue(1);
   const width = useSharedValue(0);
   const yValue = useSharedValue(60);
 
-  const STATUS_COLORS: Record<string, string> = {
-    unassigned: '#6B7280',
-    'in-progress': '#3B82F6',
-    'review-pending': '#F59E0B',
-    published: '#10B981',
-    discarded: '#EF4444',
-    'awaiting-user': '#8B5CF6',
+  const getStatusTheme = () => {
+    const s = item.status?.toLowerCase() || '';
+    if (s.includes('published')) return STATUS_COLORS.approved;
+    if (s.includes('in-progress') || s.includes('progress')) return STATUS_COLORS.in_progress;
+    if (s.includes('discard')) return STATUS_COLORS.discarded;
+    return STATUS_COLORS.pending;
   };
 
-  const statusColor = STATUS_COLORS[item.status?.toLowerCase()] || '#6B7280';
+  const statusTheme = getStatusTheme();
 
   const imageUri = item.cover_image
     ? item.cover_image.startsWith('https')
       ? item.cover_image
       : `${GET_STORAGE_DATA}/${item.cover_image}`
-    : 'https://t3.ftcdn.net/jpg/05/10/75/30/360_F_510753092_f4AOmCJAczuGgRLCmHxmowga2tC9VYQP.jpg';
+    : 'https://images.pexels.com/photos/3783471/pexels-photo-3783471.jpeg';
 
-  const hostName = item.user_id?.user_name || 'Unknown Host';
+  const hostName = item.user_id?.user_name || 'Medical Contributor';
 
   const menuActions =
     item.status === 'review-pending'
       ? [
           {
-            name: 'Pick Podcast',
+            name: 'Self-Assign Podcast',
             action: () => {
               handleClick(item, 0, '');
               toggleMenu();
             },
             icon: 'hand-point-right',
-            color: '#10B981',
+            color: PRIMARY_COLOR,
           },
           {
-            name: 'View Details',
+            name: 'Listen & Review',
             action: () => {
               handleClick(item, 3, '');
               toggleMenu();
@@ -83,18 +87,18 @@ const PodcastCard = ({
             color: PRIMARY_COLOR,
           },
           {
-            name: 'Discard Podcast',
+            name: 'Discard Episode',
             action: () => {
               handleClick(item, 1, '');
               toggleMenu();
             },
             icon: 'times-circle',
-            color: '#EF4444',
+            color: '#DC2626',
           },
         ]
       : [
           {
-            name: 'View Details',
+            name: 'Listen & Review',
             action: () => {
               handleClick(item, 3, '');
               toggleMenu();
@@ -103,13 +107,13 @@ const PodcastCard = ({
             color: PRIMARY_COLOR,
           },
           {
-            name: 'Discard Podcast',
+            name: 'Discard Episode',
             action: () => {
               handleClick(item, 1, '');
               toggleMenu();
             },
             icon: 'ban',
-            color: '#EF4444',
+            color: '#DC2626',
           },
           {
             name: 'Unassign Yourself',
@@ -118,13 +122,12 @@ const PodcastCard = ({
               toggleMenu();
             },
             icon: 'minus-circle',
-            color: '#10B981',
+            color: '#059669',
           },
         ];
 
   const toggleMenu = () => {
     const isOpening = width.value === 0;
-
     if (isOpening) {
       width.value = withSpring(270, {damping: 20, stiffness: 180});
       yValue.value = withSpring(0, {damping: 22});
@@ -150,35 +153,64 @@ const PodcastCard = ({
       }}
       style={({pressed}) => [{opacity: pressed ? 0.96 : 1}]}>
       <View style={styles.cardContainer}>
-        {/* Image Section */}
+        {/* Cover Image & Overlay */}
         <View style={styles.imageContainer}>
-          <Image source={{uri: imageUri}} style={styles.image} />
+          <Image source={{uri: imageUri}} style={styles.image} resizeMode="cover" />
 
-          {/* Play Overlay */}
+          {/* Clinical Status Chip on Image */}
+          <View
+            style={[
+              styles.floatingStatusBadge,
+              {
+                backgroundColor: statusTheme.bg,
+                borderColor: statusTheme.border,
+              },
+            ]}>
+            <View
+              style={[styles.statusDot, {backgroundColor: statusTheme.text}]}
+            />
+            <Text style={[styles.statusBadgeText, {color: statusTheme.text}]}>
+              {item.status?.replace(/-/g, ' ').toUpperCase() || 'QUEUED'}
+            </Text>
+          </View>
+
+          {/* Centered Clinical Play Pill */}
           <View style={styles.playOverlay}>
             <View style={styles.playButton}>
-              <Ionicons name="play" size={34} color={PRIMARY_COLOR} />
+              <Ionicons name="play" size={26} color="#FFFFFF" style={{marginLeft: 3}} />
             </View>
           </View>
 
-          {/* Three Dots Menu */}
+          {/* Three Dots Overflow */}
           {item.status !== StatusEnum.PUBLISHED && (
             <TouchableOpacity
               style={styles.menuIconContainer}
               onPress={toggleMenu}
-              hitSlop={12}>
-              <Entypo name="dots-three-vertical" size={20} color="#1F2937" />
+              hitSlop={{top: 8, bottom: 8, left: 8, right: 8}}>
+              <Entypo name="dots-three-vertical" size={16} color="#FFFFFF" />
             </TouchableOpacity>
           )}
+
+          {/* Audio Duration Badge */}
+          {item.duration ? (
+            <View style={styles.durationBadge}>
+              <Feather name="headphones" size={12} color="#FFFFFF" style={{marginRight: 4}} />
+              <Text style={styles.durationText}>{msToTime(item.duration)}</Text>
+            </View>
+          ) : null}
         </View>
 
         {/* Content Section */}
         <View style={styles.textContainer}>
           {/* Tags */}
-          {item.tags?.length > 0 && (
-            <Text style={styles.tags}>
-              {item.tags.map(tag => `#${tag.name}`).join(' • ')}
-            </Text>
+          {item.tags && item.tags.length > 0 && (
+            <View style={styles.tagsRow}>
+              {item.tags.slice(0, 3).map((tag, idx) => (
+                <View key={idx} style={styles.tagChip}>
+                  <Text style={styles.tagChipText}>{tag.name}</Text>
+                </View>
+              ))}
+            </View>
           )}
 
           {/* Title */}
@@ -186,43 +218,43 @@ const PodcastCard = ({
             {item.title}
           </Text>
 
-          {/* Host */}
-          <View style={styles.hostContainer}>
-            <Ionicons
-              name="person-circle-outline"
-              size={18}
-              color={PRIMARY_COLOR}
-            />
-            <Text style={styles.hostText}>{hostName}</Text>
-          </View>
-
-          {/* Stats */}
-          <View style={styles.statsContainer}>
-            {item.status === StatusEnum.PUBLISHED && (
-              <View style={styles.statItem}>
-                <Ionicons name="eye-outline" size={16} color="#6B7280" />
-                <Text style={styles.statText}>
-                  {item?.viewUsers?.length || 0} views
-                </Text>
-              </View>
-            )}
-            <View style={styles.statItem}>
-              <Ionicons name="time-outline" size={16} color="#6B7280" />
-              <Text style={styles.statText}>{msToTime(item.duration)}</Text>
+          {/* Host & Meta */}
+          <View style={styles.hostRow}>
+            <View style={styles.hostAvatar}>
+              <Text style={styles.hostAvatarText}>
+                {hostName.charAt(0).toUpperCase()}
+              </Text>
             </View>
+            <Text style={styles.hostText} numberOfLines={1}>
+              {hostName}
+            </Text>
+            {item.status === StatusEnum.PUBLISHED && (
+              <>
+                <Text style={styles.dotSeparator}>•</Text>
+                <Feather name="eye" size={12} color={TEXT_MUTED} />
+                <Text style={styles.statsText}>
+                  {item?.viewUsers?.length || 0} listens
+                </Text>
+              </>
+            )}
           </View>
 
-          {/* Status + View Button */}
+          {/* Divider */}
+          <View style={styles.cardDivider} />
+
+          {/* Bottom Action Row */}
           <View style={styles.bottomRow}>
-            <Text style={[styles.statusText, {color: statusColor}]}>
-              {item.status?.replace(/-/g, ' ').toUpperCase() || 'PENDING'}
-            </Text>
+            <View style={styles.audioHint}>
+              <Feather name="mic" size={14} color={PRIMARY_COLOR} />
+              <Text style={styles.audioHintText}>Medical Podcast</Text>
+            </View>
 
             <TouchableOpacity
-              style={styles.viewButton}
-              onPress={() => handleClick(item, 3, '')}>
-              <Text style={styles.viewText}>View</Text>
-              <AntDesign name="arrow-right" size={16} color={PRIMARY_COLOR} />
+              style={styles.reviewButton}
+              onPress={() => handleClick(item, 3, '')}
+              activeOpacity={0.85}>
+              <Text style={styles.reviewButtonText}>Review Episode</Text>
+              <AntDesign name="arrow-right" size={14} color="#FFFFFF" style={{marginLeft: 6}} />
             </TouchableOpacity>
           </View>
         </View>
@@ -247,153 +279,229 @@ export default PodcastCard;
 
 const styles = StyleSheet.create({
   cardContainer: {
-    width: '94%',
-    alignSelf: 'center',
-    backgroundColor: '#FFFFFF',
+    backgroundColor: CARD_BG,
     borderRadius: 20,
+    marginVertical: 10,
     overflow: 'hidden',
-    marginVertical: hp(1.8),
-    shadowColor: '#000',
-    shadowOffset: {width: 0, height: 8},
-    shadowOpacity: 0.1,
-    shadowRadius: 16,
-    elevation: 10,
     borderWidth: 1,
-    borderColor: '#F1F5F9',
+    borderColor: BORDER_COLOR,
+    ...CLINICAL_SHADOW,
+    elevation: 3,
   },
 
   imageContainer: {
-    height: hp(23),
     position: 'relative',
+    width: '100%',
+    height: hp(20),
+    backgroundColor: '#0F172A',
   },
 
   image: {
     width: '100%',
     height: '100%',
-    resizeMode: 'cover',
+    opacity: 0.9,
+  },
+
+  floatingStatusBadge: {
+    position: 'absolute',
+    top: 12,
+    left: 12,
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 10,
+    paddingVertical: 5,
+    borderRadius: 16,
+    borderWidth: 1,
+    zIndex: 5,
+  },
+
+  statusDot: {
+    width: 6,
+    height: 6,
+    borderRadius: 3,
+    marginRight: 6,
+  },
+
+  statusBadgeText: {
+    fontSize: 11,
+    fontWeight: '700',
+    letterSpacing: 0.3,
   },
 
   playOverlay: {
     ...StyleSheet.absoluteFillObject,
-    backgroundColor: 'rgba(0,0,0,0.25)',
     justifyContent: 'center',
     alignItems: 'center',
   },
 
   playButton: {
-    width: 58,
-    height: 58,
-    borderRadius: 29,
-    backgroundColor: 'rgba(255,255,255,0.95)',
+    width: 52,
+    height: 52,
+    borderRadius: 26,
+    backgroundColor: PRIMARY_COLOR,
     justifyContent: 'center',
     alignItems: 'center',
-    shadowColor: '#000',
+    shadowColor: '#000000',
     shadowOffset: {width: 0, height: 4},
     shadowOpacity: 0.3,
-    shadowRadius: 8,
+    shadowRadius: 6,
+    elevation: 6,
   },
 
   menuIconContainer: {
     position: 'absolute',
-    top: 14,
-    right: 14,
-    backgroundColor: 'white',
-    padding: 9,
-    borderRadius: 22,
-    shadowColor: '#000',
-    shadowOffset: {width: 0, height: 2},
-    shadowOpacity: 0.1,
-    shadowRadius: 6,
-    elevation: 5,
+    top: 12,
+    right: 12,
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    backgroundColor: 'rgba(15, 23, 42, 0.65)',
+    justifyContent: 'center',
+    alignItems: 'center',
     zIndex: 10,
   },
 
-  textContainer: {
-    paddingHorizontal: wp(5),
-    paddingVertical: hp(2.2),
+  durationBadge: {
+    position: 'absolute',
+    bottom: 10,
+    right: 12,
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: 'rgba(15, 23, 42, 0.75)',
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 8,
   },
 
-  tags: {
-    fontSize: fp(3.4),
-    color: BUTTON_COLOR,
+  durationText: {
+    color: '#FFFFFF',
+    fontSize: 11,
     fontWeight: '600',
-    marginBottom: hp(0.8),
+  },
+
+  textContainer: {
+    padding: 16,
+  },
+
+  tagsRow: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 6,
+    marginBottom: 8,
+  },
+
+  tagChip: {
+    backgroundColor: '#F0F9FF',
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+    borderRadius: 6,
+    borderWidth: 1,
+    borderColor: '#BAE6FD',
+  },
+
+  tagChipText: {
+    color: '#0369A1',
+    fontSize: 11,
+    fontWeight: '600',
   },
 
   title: {
-    fontSize: fp(5),
+    fontSize: 16,
+    lineHeight: 22,
     fontWeight: '700',
     color: TEXT_PRIMARY,
-    lineHeight: 24,
-    marginBottom: hp(1.2),
+    marginBottom: 8,
   },
 
-  hostContainer: {
+  hostRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 6,
-    marginBottom: hp(1.4),
+    marginBottom: 12,
+  },
+
+  hostAvatar: {
+    width: 22,
+    height: 22,
+    borderRadius: 11,
+    backgroundColor: '#E0F2FE',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginRight: 6,
+  },
+
+  hostAvatarText: {
+    color: PRIMARY_DARK,
+    fontSize: 11,
+    fontWeight: '700',
   },
 
   hostText: {
-    fontSize: fp(3.7),
+    fontSize: 12,
+    fontWeight: '600',
     color: TEXT_SECONDARY,
-    fontWeight: '500',
+    maxWidth: wp(45),
   },
 
-  statsContainer: {
-    flexDirection: 'row',
-    gap: wp(5),
-    marginBottom: hp(1.8),
+  dotSeparator: {
+    marginHorizontal: 6,
+    color: TEXT_MUTED,
+    fontSize: 12,
   },
 
-  statItem: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 5,
+  statsText: {
+    fontSize: 11,
+    color: TEXT_MUTED,
+    marginLeft: 4,
   },
 
-  statText: {
-    fontSize: fp(3.4),
-    color: '#6B7280',
-    fontWeight: '500',
+  cardDivider: {
+    height: 1,
+    backgroundColor: '#F1F5F9',
+    marginBottom: 12,
   },
 
   bottomRow: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
     alignItems: 'center',
-    paddingTop: hp(1.5),
-    borderTopWidth: 1,
-    borderTopColor: '#F3F4F6',
+    justifyContent: 'space-between',
   },
 
-  statusText: {
-    fontSize: fp(3.6),
-    fontWeight: '700',
-    letterSpacing: 0.6,
-  },
-
-  viewButton: {
+  audioHint: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#EFF6FF',
-    paddingHorizontal: wp(4),
-    paddingVertical: hp(1),
-    borderRadius: 12,
     gap: 4,
   },
 
-  viewText: {
-    fontSize: fp(3.8),
-    fontWeight: '700',
+  audioHintText: {
+    fontSize: 12,
+    fontWeight: '600',
     color: PRIMARY_COLOR,
+  },
+
+  reviewButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: PRIMARY_COLOR,
+    paddingVertical: 8,
+    paddingHorizontal: 16,
+    borderRadius: 20,
+    shadowColor: PRIMARY_COLOR,
+    shadowOffset: {width: 0, height: 2},
+    shadowOpacity: 0.2,
+    shadowRadius: 4,
+    elevation: 2,
+  },
+
+  reviewButtonText: {
+    color: '#FFFFFF',
+    fontSize: 12,
+    fontWeight: '700',
   },
 
   floatingMenu: {
     position: 'absolute',
-    top: hp(6),
-    right: wp(4),
-    zIndex: 1000,
+    top: 10,
+    right: 12,
+    zIndex: 25,
   },
 });

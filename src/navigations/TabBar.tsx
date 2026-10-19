@@ -8,6 +8,11 @@ import {useQuery} from '@tanstack/react-query';
 import axios from 'axios';
 import {PROD_URL} from '../helper/APIUtils';
 import {hp} from '../helper/Metric';
+import {
+  PRIMARY_COLOR,
+  DARK_THEME,
+  CLINICAL_SHADOW,
+} from '../helper/Theme';
 
 const TabBar = ({state, descriptors, navigation}: any) => {
   const isDarkMode = useColorScheme() === 'dark';
@@ -42,37 +47,38 @@ const TabBar = ({state, descriptors, navigation}: any) => {
           }
         };
 
+        const activeColor = isDarkMode ? DARK_THEME.primary : PRIMARY_COLOR;
+        const inactiveColor = isDarkMode ? DARK_THEME.textMuted : '#64748B';
+
         return (
           <Pressable key={index} onPress={onPress} style={styles.tabItem}>
-            <View style={[styles.iconContainer, isFocused && styles.iconContainerActive]}>
+            <View
+              style={[
+                styles.iconContainer,
+                isFocused && (isDarkMode ? styles.iconContainerActiveDark : styles.iconContainerActive),
+              ]}>
               {label === 'Article' && (
                 <Ionicons
-                  name={isFocused ? "home" : "home-outline"}
-                  size={28}
-                  color={isFocused 
-                    ? (isDarkMode ? '#4ACDFF' : '#2563EB') 
-                    : (isDarkMode ? '#94A3B8' : '#555')}
+                  name={isFocused ? 'document-text' : 'document-text-outline'}
+                  size={24}
+                  color={isFocused ? activeColor : inactiveColor}
                 />
               )}
 
               {label === 'Podcast' && (
                 <FontAwesome
                   name="podcast"
-                  size={28}
-                  color={isFocused 
-                    ? (isDarkMode ? '#4ACDFF' : '#2563EB') 
-                    : (isDarkMode ? '#94A3B8' : '#555')}
+                  size={24}
+                  color={isFocused ? activeColor : inactiveColor}
                 />
               )}
 
               {label === 'Notification' && (
                 <View>
                   <Ionicons
-                    name={isFocused ? "notifications" : "notifications-outline"}
-                    size={28}
-                    color={isFocused 
-                      ? (isDarkMode ? '#4ACDFF' : '#2563EB') 
-                      : (isDarkMode ? '#94A3B8' : '#555')}
+                    name={isFocused ? 'notifications' : 'notifications-outline'}
+                    size={24}
+                    color={isFocused ? activeColor : inactiveColor}
                   />
                   {unreadCount > 0 && (
                     <View style={styles.badge}>
@@ -86,27 +92,30 @@ const TabBar = ({state, descriptors, navigation}: any) => {
 
               {label === 'Report' && (
                 <MaterialIcons
-                  name="report"
-                  size={28}
-                  color={isFocused 
-                    ? (isDarkMode ? '#4ACDFF' : '#2563EB') 
-                    : (isDarkMode ? '#94A3B8' : '#555')}
+                  name={isFocused ? 'shield' : 'shield-outlined'}
+                  size={24}
+                  color={isFocused ? activeColor : inactiveColor}
                 />
               )}
 
               {label === 'Profile' && (
                 <MaterialIcons
-                  name={isFocused ? "person" : "person-outline"}
-                  size={28}
-                  color={isFocused 
-                    ? (isDarkMode ? '#4ACDFF' : '#2563EB') 
-                    : (isDarkMode ? '#94A3B8' : '#555')}
+                  name={isFocused ? 'person' : 'person-outline'}
+                  size={24}
+                  color={isFocused ? activeColor : inactiveColor}
                 />
               )}
             </View>
 
-            {/* Active Indicator */}
-            {isFocused && <View style={styles.activeIndicator} />}
+            {/* Micro pill label or active indicator */}
+            <Text
+              style={[
+                styles.label,
+                {color: isFocused ? activeColor : inactiveColor},
+                isFocused && styles.labelActive,
+              ]}>
+              {label}
+            </Text>
           </Pressable>
         );
       })}
@@ -120,70 +129,77 @@ const styles = StyleSheet.create({
   mainContainer: {
     flexDirection: 'row',
     position: 'absolute',
-    bottom: hp(4),
-    left: 0,
-    right: 0,
+    bottom: hp(2.5),
+    left: 16,
+    right: 16,
     backgroundColor: '#FFFFFF',
-    height: hp(9.5),
-    borderTopLeftRadius: 28,
-    borderTopRightRadius: 28,
-    shadowColor: '#000',
-    shadowOffset: {width: 0, height: -8},
-    shadowOpacity: 0.12,
-    shadowRadius: 20,
-    elevation: 15,
+    height: hp(8.2),
+    borderRadius: 24,
+    borderWidth: 1,
+    borderColor: '#E2E8F0',
+    ...CLINICAL_SHADOW,
+    elevation: 8,
     zIndex: 100,
   },
 
   mainContainerDark: {
-    backgroundColor: '#1C2533',
+    backgroundColor: '#131B2E',
+    borderColor: '#263352',
+    shadowColor: '#000000',
   },
 
   tabItem: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    paddingTop: hp(1),
+    paddingVertical: 4,
   },
 
   iconContainer: {
-    width: 52,
-    height: 52,
+    width: 44,
+    height: 34,
     justifyContent: 'center',
     alignItems: 'center',
-    borderRadius: 26,
+    borderRadius: 12,
   },
 
   iconContainerActive: {
-    backgroundColor: '#EFF6FF',
+    backgroundColor: '#ECFEFF', // Subtle clinical cyan wash
   },
 
-  activeIndicator: {
-    position: 'absolute',
-    bottom: hp(1.6),
-    width: 7,
-    height: 7,
-    borderRadius: 4,
-    backgroundColor: '#2563EB',
+  iconContainerActiveDark: {
+    backgroundColor: '#0C2B4E',
+  },
+
+  label: {
+    fontSize: 10,
+    fontWeight: '500',
+    marginTop: 2,
+    letterSpacing: 0.2,
+  },
+
+  labelActive: {
+    fontWeight: '700',
   },
 
   badge: {
     position: 'absolute',
-    top: 4,
-    right: 4,
-    backgroundColor: '#EF4444',
-    minWidth: 18,
-    height: 18,
-    borderRadius: 9,
+    top: -2,
+    right: -6,
+    backgroundColor: '#DC2626',
+    minWidth: 16,
+    height: 16,
+    borderRadius: 8,
     justifyContent: 'center',
     alignItems: 'center',
     borderWidth: 1.5,
     borderColor: '#FFFFFF',
+    paddingHorizontal: 3,
   },
 
   badgeText: {
-    color: 'white',
-    fontSize: 11,
+    color: '#FFFFFF',
+    fontSize: 9,
     fontWeight: '700',
   },
 });

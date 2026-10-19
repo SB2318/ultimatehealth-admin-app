@@ -14,23 +14,33 @@ import {GET_PROFILE_API} from '../helper/APIUtils';
 import {setUserHandle} from '../stores/UserSlice';
 import {ProfileScreenProps, Admin} from '../type';
 import axios from 'axios';
+import {
+  PRIMARY_COLOR,
+  PRIMARY_DARK,
+  BORDER_COLOR,
+  CARD_BG,
+  SCREEN_BG,
+  TEXT_PRIMARY,
+  TEXT_SECONDARY,
+  DARK_THEME,
+} from '../helper/Theme';
 
 const COLORS = {
   light: {
-    background: '#F8FAFC',
-    surface: '#FFFFFF',
-    text: '#0F172A',
-    secondaryText: '#64748B',
-    primary: '#2563EB',
-    border: '#E2E8F0',
+    background: SCREEN_BG,
+    surface: CARD_BG,
+    text: TEXT_PRIMARY,
+    secondaryText: TEXT_SECONDARY,
+    primary: PRIMARY_COLOR,
+    border: BORDER_COLOR,
   },
   dark: {
-    background: '#0F172A',
-    surface: '#1E2937',
-    text: '#F1F5F9',
-    secondaryText: '#94A3B8',
-    primary: '#3B82F6',
-    border: '#334155',
+    background: DARK_THEME.screenBg,
+    surface: DARK_THEME.cardBg,
+    text: DARK_THEME.textPrimary,
+    secondaryText: DARK_THEME.textSecondary,
+    primary: DARK_THEME.primary,
+    border: DARK_THEME.borderColor,
   },
 };
 

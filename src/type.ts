@@ -7,7 +7,6 @@ import {Dispatch, RefObject, SetStateAction} from 'react';
 export type RootStackParamList = {
   SplashScreen: undefined;
   LoginScreen: undefined;
-  SignUpScreen: undefined;
   NewPasswordScreen: undefined;
   OtpScreen: {
     email: string;
@@ -267,11 +266,6 @@ export type LogoutScreenProp = StackScreenProps<
   RootStackParamList,
   'LogoutScreen'
 >;
-export type SignUpScreenProp = StackScreenProps<
-  RootStackParamList,
-  'SignUpScreen'
->;
-
 export type PodcastDetailScreenProp = StackScreenProps<
   RootStackParamList,
   'PodcastDetail'

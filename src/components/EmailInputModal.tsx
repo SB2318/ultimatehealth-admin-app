@@ -38,15 +38,11 @@ export default function EmailInputModal({
   visible,
   callback,
   backButtonClick,
-  isRequestVerification,
-  onRequestVerification,
   onDismiss,
 }: {
   visible: boolean;
   callback: (email: string) => void;
   backButtonClick: () => void;
-  isRequestVerification: boolean;
-  onRequestVerification: () => void;
   onDismiss: () => void;
 }) {
   const isDarkMode = useColorScheme() === 'dark';
@@ -87,13 +83,11 @@ export default function EmailInputModal({
           <View style={[styles.modalCard, {backgroundColor: colors.background}]}>
             {/* Title */}
             <Text style={[styles.title, {color: colors.text}]}>
-              {isRequestVerification ? 'Email Verification' : 'Forgot Password'}
+              Forgot Password
             </Text>
 
             <Text style={[styles.subtitle, {color: colors.secondaryText}]}>
-              {isRequestVerification
-                ? 'Enter your registered email to receive verification link'
-                : 'Enter your email and we’ll send you a reset OTP'}
+              Enter your email and we’ll send you a reset OTP
             </Text>
 
             {/* Input */}
@@ -127,9 +121,9 @@ export default function EmailInputModal({
             {/* Primary Action Button */}
             <TouchableOpacity
               style={[styles.primaryButton, {backgroundColor: colors.primary}]}
-              onPress={isRequestVerification ? onRequestVerification : handleSubmit}>
+              onPress={handleSubmit}>
               <Text style={styles.primaryButtonText}>
-                {isRequestVerification ? 'Send Verification Link' : 'Send OTP'}
+                Send OTP
               </Text>
             </TouchableOpacity>
 

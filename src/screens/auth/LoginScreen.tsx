@@ -381,15 +381,6 @@ export default function LoginScreen({navigation}: LoginScreenProp) {
             </Text>
           </TouchableOpacity>
 
-          {/* Sign Up */}
-          <TouchableOpacity
-            style={styles.signUpContainer}
-            onPress={() => navigation.navigate('SignUpScreen')}>
-            <Text style={styles.signUpText}>
-              Don&apos;t have an account?{' '}
-              <Text style={styles.signUpHighlight}>Sign up</Text>
-            </Text>
-          </TouchableOpacity>
 
           {/* Request Verification (secondary) */}
           <TouchableOpacity
@@ -435,8 +426,6 @@ export default function LoginScreen({navigation}: LoginScreenProp) {
         visible={emailInputVisible}
         backButtonClick={handleEmailInputBack}
         onDismiss={() => setEmailInputVisible(false)}
-        isRequestVerification={false}
-        onRequestVerification={() => {}}
       />
     </KeyboardAvoidingView>
   );
@@ -530,9 +519,6 @@ const styles = StyleSheet.create({
   },
   buttonDisabled: {opacity: 0.7},
 
-  signUpContainer: {alignItems: 'center', marginBottom: hp(3)},
-  signUpText: {fontSize: fp(4), color: COLORS.secondaryText},
-  signUpHighlight: {color: COLORS.primary, fontWeight: '600'},
 
   secondaryButton: {
     alignItems: 'center',

@@ -1,5 +1,5 @@
-import React, {useRef, useState} from 'react';
-import {TextInput, StyleSheet, Alert} from 'react-native';
+import React, {useRef, useState, useEffect} from 'react';
+import {TextInput, StyleSheet, Alert, AppState} from 'react-native';
 import {PRIMARY_COLOR} from '../../helper/Theme';
 import {hp} from '../../helper/Metric';
 
@@ -23,10 +23,45 @@ import {OtpScreenProp} from '@/src/type';
 import Snackbar from 'react-native-snackbar';
 
 export default function OtpScreen({navigation, route}: OtpScreenProp) {
+  const OTP_EXPIRY_SECONDS = 300; // 5 minutes expiry
   const [otp, setOtp] = useState(['', '', '', '', '', '']);
+  const [timer, setTimer] = useState<number>(OTP_EXPIRY_SECONDS);
+  const expiryTimeRef = useRef<number>(Date.now() + OTP_EXPIRY_SECONDS * 1000);
   const {email} = route.params;
   const inputs = useRef<(TextInput | null)[]>([]);
   const {isConnected} = useSelector((state: any) => state.network);
+
+  const formatTime = (seconds: number) => {
+    const mins = Math.floor(seconds / 60);
+    const secs = seconds % 60;
+    const formattedMins = mins < 10 ? `0${mins}` : `${mins}`;
+    const formattedSecs = secs < 10 ? `0${secs}` : `${secs}`;
+    return `${formattedMins}:${formattedSecs}`;
+  };
+
+  useEffect(() => {
+    const updateRemaining = () => {
+      const remaining = Math.max(
+        0,
+        Math.ceil((expiryTimeRef.current - Date.now()) / 1000),
+      );
+      setTimer(remaining);
+    };
+
+    updateRemaining();
+    const interval = setInterval(updateRemaining, 1000);
+
+    const subscription = AppState.addEventListener('change', state => {
+      if (state === 'active') {
+        updateRemaining();
+      }
+    });
+
+    return () => {
+      clearInterval(interval);
+      subscription.remove();
+    };
+  }, []);
 
   const handleChange = (text: string, index: number) => {
     setErrorMessages(undefined);
@@ -77,6 +112,10 @@ export default function OtpScreen({navigation, route}: OtpScreenProp) {
 
   const handleSubmit = () => {
     //navigation.navigate('NewPasswordScreen');
+    if (timer === 0) {
+      setErrorMessages(['OTP has expired. Please tap Resend to get a new code.']);
+      return;
+    }
     const fullCode = otp!.join('');
     if (!fullCode || fullCode.length < 6) {
       setErrorMessages(['Please provide complete 6-digit OTP']);
@@ -96,6 +135,18 @@ export default function OtpScreen({navigation, route}: OtpScreenProp) {
     }
   };
 
+  const handleResend = () => {
+    if (timer > 0) return;
+    if (!isConnected) {
+      Snackbar.show({
+        text: 'You are currently offline',
+        duration: Snackbar.LENGTH_SHORT,
+      });
+      return;
+    }
+    sendOtpMutation.mutate();
+  };
+
   const sendOtpMutation = useMutation({
     mutationKey: ['forgot-password-otp'],
     mutationFn: async () => {
@@ -109,6 +160,9 @@ export default function OtpScreen({navigation, route}: OtpScreenProp) {
       Alert.alert('OTP has sent to your mail');
       setOtp(Array(6).fill(''));
       setErrorMessages(undefined);
+      expiryTimeRef.current = Date.now() + OTP_EXPIRY_SECONDS * 1000;
+      setTimer(OTP_EXPIRY_SECONDS);
+      inputs.current[0]?.focus();
     },
     onError: error => {
       if (axios.isAxiosError(error)) {
@@ -248,24 +302,33 @@ export default function OtpScreen({navigation, route}: OtpScreenProp) {
             </Button>
 
             <YStack marginTop="$5" ai="center">
-              <Paragraph color="$gray10" fontSize={15}>
-                Didn’t receive the code?{' '}
-                <Text
-                  onPress={() => {
-                    if (!isConnected) {
-                      Snackbar.show({
-                        text: 'You are currently offline',
-                        duration: Snackbar.LENGTH_SHORT,
-                      });
-                      return;
-                    }
-                    sendOtpMutation.mutate();
-                  }}
-                  color="$blue10"
-                  fontWeight="600">
-                  Resend
-                </Text>
-              </Paragraph>
+              {timer > 0 ? (
+                <Paragraph color="$gray10" fontSize={15}>
+                  Didn’t receive the code?{' '}
+                  <Text color="$gray9" fontWeight="600">
+                    Resend in{' '}
+                    <Text color="$blue10" fontWeight="700">
+                      {formatTime(timer)}
+                    </Text>
+                  </Text>
+                </Paragraph>
+              ) : (
+                <YStack ai="center" space="$1">
+                  <Paragraph color="$gray10" fontSize={15}>
+                    Didn’t receive the code?{' '}
+                    <Text
+                      onPress={handleResend}
+                      color="$blue10"
+                      fontWeight="700"
+                      pressStyle={{opacity: 0.7}}>
+                      Resend
+                    </Text>
+                  </Paragraph>
+                  <Paragraph color="$red10" fontSize={13} fontWeight="500">
+                    OTP has expired. Please click Resend to get a new code.
+                  </Paragraph>
+                </YStack>
+              )}
             </YStack>
           </Card>
         </YStack>

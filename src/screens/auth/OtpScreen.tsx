@@ -23,7 +23,7 @@ import {OtpScreenProp} from '@/src/type';
 import Snackbar from 'react-native-snackbar';
 
 export default function OtpScreen({navigation, route}: OtpScreenProp) {
-  const [otp, setOtp] = useState(['', '', '', '']);
+  const [otp, setOtp] = useState(['', '', '', '', '', '']);
   const {email} = route.params;
   const inputs = useRef<(TextInput | null)[]>([]);
   const {isConnected} = useSelector((state: any) => state.network);
@@ -31,11 +31,38 @@ export default function OtpScreen({navigation, route}: OtpScreenProp) {
   const handleChange = (text: string, index: number) => {
     setErrorMessages(undefined);
 
+    const cleaned = text.replace(/[^0-9]/g, '');
+
+    if (cleaned.length > 1) {
+      if (cleaned.length === 2 && otp[index]) {
+        const newDigit = cleaned.replace(otp[index], '') || cleaned.slice(-1);
+        const newOtp = [...otp];
+        newOtp[index] = newDigit;
+        setOtp(newOtp);
+        if (index < otp.length - 1) {
+          inputs.current[index + 1]?.focus();
+        }
+        return;
+      }
+
+      const digits = cleaned.slice(0, 6).split('');
+      const newOtp = [...otp];
+      digits.forEach((digit, idx) => {
+        if (index + idx < 6) {
+          newOtp[index + idx] = digit;
+        }
+      });
+      setOtp(newOtp);
+      const nextIndex = Math.min(index + digits.length, 5);
+      inputs.current[nextIndex]?.focus();
+      return;
+    }
+
     const newOtp = [...otp];
-    newOtp[index] = text;
+    newOtp[index] = cleaned;
     setOtp(newOtp);
 
-    if (text && index < otp.length - 1) {
+    if (cleaned && index < otp.length - 1) {
       inputs.current[index + 1]?.focus();
     }
   };
@@ -51,8 +78,8 @@ export default function OtpScreen({navigation, route}: OtpScreenProp) {
   const handleSubmit = () => {
     //navigation.navigate('NewPasswordScreen');
     const fullCode = otp!.join('');
-    if (!fullCode || fullCode.length === 0) {
-      setErrorMessages(['Please provide otp inputs']);
+    if (!fullCode || fullCode.length < 6) {
+      setErrorMessages(['Please provide complete 6-digit OTP']);
       return;
     } else {
       if (!isConnected) {
@@ -80,7 +107,7 @@ export default function OtpScreen({navigation, route}: OtpScreenProp) {
 
     onSuccess: () => {
       Alert.alert('OTP has sent to your mail');
-      setOtp(Array(4).fill(''));
+      setOtp(Array(6).fill(''));
       setErrorMessages(undefined);
     },
     onError: error => {
@@ -89,7 +116,7 @@ export default function OtpScreen({navigation, route}: OtpScreenProp) {
           if (error.response.status === 400) {
             Alert.alert('Error', 'User with this email does not exist.');
           } else if (error.response.status === 500) {
-            Alert.alert('Error', 'Error sending email.');
+            Alert.alert('Error', 'Error sending email.', error);
           } else {
             Alert.alert('Error', 'Something went wrong.');
           }
@@ -140,8 +167,10 @@ export default function OtpScreen({navigation, route}: OtpScreenProp) {
           <Card
             elevate
             bordered
-            p="$9"
-            width="90%"
+            px="$3"
+            py="$6"
+            width="95%"
+            maxWidth={420}
             bg="white"
             br="$6"
             shadowColor="#00000020">
@@ -155,12 +184,12 @@ export default function OtpScreen({navigation, route}: OtpScreenProp) {
                 fontSize={15}
                 fontWeight={'600'}
                 lineHeight={22}>
-                Enter the 4-digit verification code we’ve sent to your
+                Enter the 6-digit verification code we’ve sent to your
                 registered email address.
               </Paragraph>
             </YStack>
 
-            <XStack space="$3" jc="center" mt="$6">
+            <XStack space="$2" jc="center" mt="$6">
               {otp.map((digit, index) => (
                 <Input
                   key={index}
@@ -169,16 +198,17 @@ export default function OtpScreen({navigation, route}: OtpScreenProp) {
                   onChangeText={text => handleChange(text, index)}
                   onKeyPress={e => handleKeyPress(e, index)}
                   keyboardType="numeric"
-                  maxLength={1}
+                  maxLength={6}
                   textAlign="center"
-                  fontSize={24}
+                  fontSize={20}
                   borderWidth={1.5}
                   borderColor={digit ? '$blue9' : '$gray5'}
                   focusStyle={{borderColor: '$blue10', shadowColor: '$blue6'}}
                   bw={1.5}
                   br="$5"
-                  width={54}
-                  height={54}
+                  width={44}
+                  height={50}
+                  p={0}
                   bg="$gray1"
                 />
               ))}

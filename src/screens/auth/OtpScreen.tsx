@@ -1,35 +1,89 @@
 import React, {useRef, useState, useEffect} from 'react';
-import {TextInput, StyleSheet, Alert, AppState} from 'react-native';
-import {PRIMARY_COLOR} from '../../helper/Theme';
-import {hp} from '../../helper/Metric';
-
+import {
+  View,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  StyleSheet,
+  Alert,
+  AppState,
+  KeyboardAvoidingView,
+  ScrollView,
+  Platform,
+  useColorScheme,
+  useWindowDimensions,
+  ActivityIndicator,
+  NativeSyntheticEvent,
+  TextInputKeyPressEventData,
+} from 'react-native';
+import {SafeAreaView} from 'react-native-safe-area-context';
+import Icon from '@expo/vector-icons/Ionicons';
 import {useMutation} from '@tanstack/react-query';
 import axios, {AxiosError} from 'axios';
 import {CHECK_OTP, SEND_OTP} from '../../helper/APIUtils';
-import Loader from '../../components/Loader';
-import {
-  Card,
-  Paragraph,
-  Theme,
-  YStack,
-  Text,
-  Button,
-  XStack,
-  Input,
-} from 'tamagui';
-import {SafeAreaView} from 'react-native-safe-area-context';
 import {useSelector} from 'react-redux';
-import {OtpScreenProp} from '@/src/type';
+import {OtpScreenProp} from '../../type';
 import Snackbar from 'react-native-snackbar';
+
+const COLORS = {
+  light: {
+    background: '#F8FAFC',
+    card: '#FFFFFF',
+    text: '#0F172A',
+    secondaryText: '#64748B',
+    border: '#E2E8F0',
+    borderFocused: '#2563EB',
+    borderFilled: '#93C5FD',
+    primary: '#2563EB',
+    primaryDisabled: '#93C5FD',
+    surface: '#F1F5F9',
+    errorBg: '#FEF2F2',
+    errorBorder: '#FECACA',
+    errorText: '#DC2626',
+    successText: '#16A34A',
+  },
+  dark: {
+    background: '#0F172A',
+    card: '#1E293B',
+    text: '#F8FAFC',
+    secondaryText: '#94A3B8',
+    border: '#334155',
+    borderFocused: '#3B82F6',
+    borderFilled: '#1D4ED8',
+    primary: '#2563EB',
+    primaryDisabled: '#1E3A8A',
+    surface: '#0F172A',
+    errorBg: '#450A0A',
+    errorBorder: '#7F1D1D',
+    errorText: '#F87171',
+    successText: '#4ADE80',
+  },
+};
 
 export default function OtpScreen({navigation, route}: OtpScreenProp) {
   const OTP_EXPIRY_SECONDS = 300; // 5 minutes expiry
-  const [otp, setOtp] = useState(['', '', '', '', '', '']);
-  const [timer, setTimer] = useState<number>(OTP_EXPIRY_SECONDS);
-  const expiryTimeRef = useRef<number>(Date.now() + OTP_EXPIRY_SECONDS * 1000);
   const {email} = route.params;
+  const isDarkMode = useColorScheme() === 'dark';
+  const colors = isDarkMode ? COLORS.dark : COLORS.light;
+  const {width: screenWidth} = useWindowDimensions();
+
+  const [otp, setOtp] = useState<string[]>(['', '', '', '', '', '']);
+  const [focusedIndex, setFocusedIndex] = useState<number>(0);
+  const [timer, setTimer] = useState<number>(OTP_EXPIRY_SECONDS);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
+
+  const expiryTimeRef = useRef<number>(Date.now() + OTP_EXPIRY_SECONDS * 1000);
   const inputs = useRef<(TextInput | null)[]>([]);
   const {isConnected} = useSelector((state: any) => state.network);
+
+  // Responsive OTP box size calculation
+  const cardHorizontalPadding = 32; // 16 * 2
+  const screenHorizontalPadding = 32; // 16 * 2
+  const maxCardWidth = 420;
+  const effectiveWidth = Math.min(screenWidth, maxCardWidth) - cardHorizontalPadding - screenHorizontalPadding;
+  const gap = 8;
+  const boxWidth = Math.max(38, Math.min(48, Math.floor((effectiveWidth - gap * 5) / 6)));
+  const boxHeight = Math.round(boxWidth * 1.15);
 
   const formatTime = (seconds: number) => {
     const mins = Math.floor(seconds / 60);
@@ -64,22 +118,18 @@ export default function OtpScreen({navigation, route}: OtpScreenProp) {
   }, []);
 
   const handleChange = (text: string, index: number) => {
-    setErrorMessages(undefined);
-
+    setErrorMessage(null);
     const cleaned = text.replace(/[^0-9]/g, '');
 
-    if (cleaned.length > 1) {
-      if (cleaned.length === 2 && otp[index]) {
-        const newDigit = cleaned.replace(otp[index], '') || cleaned.slice(-1);
-        const newOtp = [...otp];
-        newOtp[index] = newDigit;
-        setOtp(newOtp);
-        if (index < otp.length - 1) {
-          inputs.current[index + 1]?.focus();
-        }
-        return;
-      }
+    if (!cleaned) {
+      const newOtp = [...otp];
+      newOtp[index] = '';
+      setOtp(newOtp);
+      return;
+    }
 
+    // Pasted multiple digits (e.g. from SMS/email auto-fill)
+    if (cleaned.length > 1) {
       const digits = cleaned.slice(0, 6).split('');
       const newOtp = [...otp];
       digits.forEach((digit, idx) => {
@@ -88,55 +138,47 @@ export default function OtpScreen({navigation, route}: OtpScreenProp) {
         }
       });
       setOtp(newOtp);
-      const nextIndex = Math.min(index + digits.length, 5);
-      inputs.current[nextIndex]?.focus();
+      const nextFocus = Math.min(index + digits.length, 5);
+      inputs.current[nextFocus]?.focus();
       return;
     }
 
+    // Single digit entered
     const newOtp = [...otp];
     newOtp[index] = cleaned;
     setOtp(newOtp);
 
-    if (cleaned && index < otp.length - 1) {
+    if (index < 5) {
       inputs.current[index + 1]?.focus();
     }
   };
 
-  const handleKeyPress = (e: any, index: number) => {
-    if (e.nativeEvent.key === 'Backspace' && !otp[index] && index > 0) {
-      inputs.current[index - 1]?.focus();
-    }
-  };
-
-  const [errorMessages, setErrorMessages] = useState<string[]>();
-
-  const handleSubmit = () => {
-    //navigation.navigate('NewPasswordScreen');
-    if (timer === 0) {
-      setErrorMessages(['OTP has expired. Please tap Resend to get a new code.']);
-      return;
-    }
-    const fullCode = otp!.join('');
-    if (!fullCode || fullCode.length < 6) {
-      setErrorMessages(['Please provide complete 6-digit OTP']);
-      return;
-    } else {
-      if (!isConnected) {
-        Snackbar.show({
-          text: 'You are currently offline',
-          duration: Snackbar.LENGTH_SHORT,
-        });
-        return;
+  const handleKeyPress = (
+    e: NativeSyntheticEvent<TextInputKeyPressEventData>,
+    index: number,
+  ) => {
+    if (e.nativeEvent.key === 'Backspace') {
+      if (!otp[index] && index > 0) {
+        const newOtp = [...otp];
+        newOtp[index - 1] = '';
+        setOtp(newOtp);
+        inputs.current[index - 1]?.focus();
       }
-      setErrorMessages(undefined);
-      verifyOtpMutation.mutate({
-        otp: fullCode,
-      });
     }
   };
 
-  const handleResend = () => {
-    if (timer > 0) return;
+  const handleVerify = () => {
+    if (timer === 0) {
+      setErrorMessage('Verification code has expired. Please request a new code.');
+      return;
+    }
+
+    const fullCode = otp.join('');
+    if (fullCode.length < 6) {
+      setErrorMessage('Please enter all 6 digits of the verification code.');
+      return;
+    }
+
     if (!isConnected) {
       Snackbar.show({
         text: 'You are currently offline',
@@ -144,296 +186,452 @@ export default function OtpScreen({navigation, route}: OtpScreenProp) {
       });
       return;
     }
+
+    setErrorMessage(null);
+    verifyOtpMutation.mutate({otp: fullCode});
+  };
+
+  const handleResend = () => {
+    if (timer > 0 || sendOtpMutation.isPending) return;
+
+    if (!isConnected) {
+      Snackbar.show({
+        text: 'You are currently offline',
+        duration: Snackbar.LENGTH_SHORT,
+      });
+      return;
+    }
+
     sendOtpMutation.mutate();
   };
 
   const sendOtpMutation = useMutation({
     mutationKey: ['forgot-password-otp'],
     mutationFn: async () => {
-      const res = await axios.post(SEND_OTP, {
-        email: email,
-      });
-      return res.data.otp as string;
+      const res = await axios.post(SEND_OTP, {email});
+      return res.data;
     },
-
     onSuccess: () => {
-      Alert.alert('OTP has sent to your mail');
-      setOtp(Array(6).fill(''));
-      setErrorMessages(undefined);
+      Alert.alert('Code Resent', 'A new verification code has been sent to your email.');
+      setOtp(['', '', '', '', '', '']);
+      setErrorMessage(null);
       expiryTimeRef.current = Date.now() + OTP_EXPIRY_SECONDS * 1000;
       setTimer(OTP_EXPIRY_SECONDS);
       inputs.current[0]?.focus();
     },
     onError: error => {
-      if (axios.isAxiosError(error)) {
-        if (error.response) {
-          if (error.response.status === 400) {
-            Alert.alert('Error', 'User with this email does not exist.');
-          } else if (error.response.status === 500) {
-            Alert.alert('Error', 'Error sending email.', error);
-          } else {
-            Alert.alert('Error', 'Something went wrong.');
-          }
-        } else {
-          Alert.alert('Error', 'Network error.');
-        }
+      if (axios.isAxiosError(error) && error.response) {
+        const message =
+          error.response.data?.message ||
+          error.response.data?.error ||
+          'Failed to resend code. Please try again.';
+        setErrorMessage(message);
       } else {
-        Alert.alert('Error', 'Network error.');
+        setErrorMessage('Network error. Please try again.');
       }
     },
   });
 
   const verifyOtpMutation = useMutation({
     mutationKey: ['verify-otp'],
-    mutationFn: async ({otp}: {otp: string}) => {
+    mutationFn: async ({otp: enteredOtp}: {otp: string}) => {
       const res = await axios.post(CHECK_OTP, {
-        email: email,
-        otp: otp,
+        email,
+        otp: enteredOtp,
       });
-      return res.data.message as string;
+      const resetToken = res.data?.data?.resetToken || res.data?.resetToken;
+      return {
+        message: res.data?.message as string,
+        resetToken: resetToken as string,
+      };
     },
-
-    onSuccess: () => {
+    onSuccess: data => {
+      if (!data.resetToken) {
+        Alert.alert('Error', 'Password reset token not received.');
+        return;
+      }
       navigation.navigate('NewPasswordScreen', {
-        email: email,
+        email,
+        resetToken: data.resetToken,
       });
     },
-    onError: (error: AxiosError) => {
-      console.log('OTP ERROR', error);
-      setErrorMessages(['Invalid or expired otp']);
-      Alert.alert('Invalid or expired otp');
+    onError: (error: AxiosError<any>) => {
+      const message =
+        error.response?.data?.message ||
+        error.response?.data?.error ||
+        'Invalid or expired verification code';
+      setErrorMessage(message);
     },
   });
 
-  if (sendOtpMutation.isPending || verifyOtpMutation.isPending) {
-    return <Loader />;
-  }
+  const isCodeComplete = otp.every(digit => digit.length === 1);
+  const isSubmitting = verifyOtpMutation.isPending || sendOtpMutation.isPending;
+
   return (
-    <Theme name="light">
-      <SafeAreaView
-        style={{
-          flex: 1,
-          backgroundColor: 'white',
-          justifyContent: 'center',
-          alignItems: 'center',
-        }}>
-        <YStack f={1} jc="center" ai="center" bg="white" p="$6" space="$5">
-          <Card
-            elevate
-            bordered
-            px="$3"
-            py="$6"
-            width="95%"
-            maxWidth={420}
-            bg="white"
-            br="$6"
-            shadowColor="#00000020">
-            <YStack ai="center" space="$3">
-              <Text fontSize={29} fontWeight="700" color="$color12">
-                OTP Verification
+    <SafeAreaView style={[styles.safeArea, {backgroundColor: colors.background}]}>
+      {/* Top Header with Back Navigation */}
+      <View style={styles.topHeader}>
+        <TouchableOpacity
+          style={[styles.backButton, {backgroundColor: colors.card, borderColor: colors.border}]}
+          onPress={() => navigation.goBack()}
+          hitSlop={{top: 10, bottom: 10, left: 10, right: 10}}
+          accessibilityLabel="Back to previous screen">
+          <Icon name="arrow-back" size={20} color={colors.text} />
+        </TouchableOpacity>
+        <Text style={[styles.headerTitle, {color: colors.text}]}>Verification</Text>
+        <View style={styles.headerRightPlaceholder} />
+      </View>
+
+      <KeyboardAvoidingView
+        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+        style={styles.keyboardContainer}>
+        <ScrollView
+          contentContainerStyle={styles.scrollContent}
+          keyboardShouldPersistTaps="handled"
+          showsVerticalScrollIndicator={false}>
+          <View style={[styles.card, {backgroundColor: colors.card, borderColor: colors.border}]}>
+            {/* Header Icon */}
+            <View
+              style={[
+                styles.iconCircle,
+                {backgroundColor: isDarkMode ? '#1E3A8A40' : '#EFF6FF'},
+              ]}>
+              <Icon name="shield-checkmark-outline" size={36} color={colors.primary} />
+            </View>
+
+            <Text style={[styles.title, {color: colors.text}]}>
+              Enter Verification Code
+            </Text>
+
+            <Text style={[styles.subtitle, {color: colors.secondaryText}]}>
+              We sent a 6-digit verification code to
+            </Text>
+
+            {/* Email Badge with Change Option */}
+            <View style={[styles.emailBadge, {backgroundColor: colors.surface, borderColor: colors.border}]}>
+              <Icon name="mail" size={15} color={colors.primary} />
+              <Text
+                style={[styles.emailText, {color: colors.text}]}
+                numberOfLines={1}
+                ellipsizeMode="middle">
+                {email}
               </Text>
-              <Paragraph
-                textAlign="center"
-                color="$gray11"
-                fontSize={15}
-                fontWeight={'600'}
-                lineHeight={22}>
-                Enter the 6-digit verification code we’ve sent to your
-                registered email address.
-              </Paragraph>
-            </YStack>
+              <TouchableOpacity
+                onPress={() => navigation.goBack()}
+                hitSlop={{top: 8, bottom: 8, left: 8, right: 8}}>
+                <Text style={[styles.changeText, {color: colors.primary}]}>Change</Text>
+              </TouchableOpacity>
+            </View>
 
-            <XStack space="$2" jc="center" mt="$6">
-              {otp.map((digit, index) => (
-                <Input
-                  key={index}
-                  ref={ref => (inputs.current[index] = ref)}
-                  value={digit}
-                  onChangeText={text => handleChange(text, index)}
-                  onKeyPress={e => handleKeyPress(e, index)}
-                  keyboardType="numeric"
-                  maxLength={6}
-                  textAlign="center"
-                  fontSize={20}
-                  borderWidth={1.5}
-                  borderColor={digit ? '$blue9' : '$gray5'}
-                  focusStyle={{borderColor: '$blue10', shadowColor: '$blue6'}}
-                  bw={1.5}
-                  br="$5"
-                  width={44}
-                  height={50}
-                  p={0}
-                  bg="$gray1"
-                />
-              ))}
-            </XStack>
+            {/* OTP Input Boxes Row */}
+            <View style={styles.otpRow}>
+              {otp.map((digit, index) => {
+                const isFocused = focusedIndex === index;
+                const isFilled = digit.length > 0;
+                return (
+                  <TextInput
+                    key={index}
+                    ref={ref => {
+                      inputs.current[index] = ref;
+                    }}
+                    value={digit}
+                    onChangeText={text => handleChange(text, index)}
+                    onKeyPress={e => handleKeyPress(e, index)}
+                    onFocus={() => setFocusedIndex(index)}
+                    keyboardType="number-pad"
+                    maxLength={index === 0 ? 6 : 1}
+                    selectTextOnFocus
+                    textAlign="center"
+                    textContentType="oneTimeCode"
+                    autoComplete={Platform.OS === 'android' ? 'sms-otp' : 'one-time-code'}
+                    style={[
+                      styles.otpBox,
+                      {
+                        width: boxWidth,
+                        height: boxHeight,
+                        backgroundColor: colors.surface,
+                        borderColor: isFocused
+                          ? colors.borderFocused
+                          : isFilled
+                          ? colors.borderFilled
+                          : colors.border,
+                        color: colors.text,
+                      },
+                      isFocused && styles.otpBoxFocused,
+                    ]}
+                  />
+                );
+              })}
+            </View>
 
-            {errorMessages && (
-              <Paragraph
-                mt="$3"
-                mb="$1"
-                color="$red10"
-                fontSize={14}
-                fontWeight="600"
-                textAlign="center">
-                {errorMessages}
-              </Paragraph>
+            {/* Error Message Banner */}
+            {errorMessage && (
+              <View
+                style={[
+                  styles.errorBanner,
+                  {
+                    backgroundColor: colors.errorBg,
+                    borderColor: colors.errorBorder,
+                  },
+                ]}>
+                <Icon name="alert-circle" size={18} color={colors.errorText} />
+                <Text style={[styles.errorBannerText, {color: colors.errorText}]}>
+                  {errorMessage}
+                </Text>
+              </View>
             )}
 
-            <Button
-              backgroundColor="$blue10"
-              hoverStyle={{bg: '$blue9'}}
-              pressStyle={{bg: '$blue8'}}
-              borderRadius={12}
-              //width="100%"
-              paddingHorizontal={'$10'}
-              alignItems="center"
-              alignSelf="center"
-              height={50}
-              marginTop={14}
-              onPress={handleSubmit}>
-              <Text
-                fontSize={17}
-                fontWeight="600"
-                color="white"
-                alignSelf="center">
-                Continue
-              </Text>
-            </Button>
+            {/* Continue Button */}
+            <TouchableOpacity
+              style={[
+                styles.submitButton,
+                {backgroundColor: colors.primary},
+                (!isCodeComplete || isSubmitting) && styles.submitButtonDisabled,
+              ]}
+              onPress={handleVerify}
+              disabled={!isCodeComplete || isSubmitting}
+              activeOpacity={0.85}>
+              {verifyOtpMutation.isPending ? (
+                <View style={styles.loadingRow}>
+                  <ActivityIndicator size="small" color="#FFFFFF" />
+                  <Text style={styles.submitButtonText}>Verifying...</Text>
+                </View>
+              ) : (
+                <Text style={styles.submitButtonText}>Continue</Text>
+              )}
+            </TouchableOpacity>
 
-            <YStack marginTop="$5" ai="center">
+            {/* Resend Section */}
+            <View style={styles.resendSection}>
               {timer > 0 ? (
-                <Paragraph color="$gray10" fontSize={15}>
-                  Didn’t receive the code?{' '}
-                  <Text color="$gray9" fontWeight="600">
-                    Resend in{' '}
-                    <Text color="$blue10" fontWeight="700">
+                <View style={styles.timerRow}>
+                  <Icon name="time-outline" size={16} color={colors.secondaryText} />
+                  <Text style={[styles.timerText, {color: colors.secondaryText}]}>
+                    Resend code in{' '}
+                    <Text style={[styles.timerHighlight, {color: colors.primary}]}>
                       {formatTime(timer)}
                     </Text>
                   </Text>
-                </Paragraph>
+                </View>
               ) : (
-                <YStack ai="center" space="$1">
-                  <Paragraph color="$gray10" fontSize={15}>
-                    Didn’t receive the code?{' '}
-                    <Text
-                      onPress={handleResend}
-                      color="$blue10"
-                      fontWeight="700"
-                      pressStyle={{opacity: 0.7}}>
-                      Resend
-                    </Text>
-                  </Paragraph>
-                  <Paragraph color="$red10" fontSize={13} fontWeight="500">
-                    OTP has expired. Please click Resend to get a new code.
-                  </Paragraph>
-                </YStack>
+                <View style={styles.resendActionRow}>
+                  <Text style={[styles.resendPrompt, {color: colors.secondaryText}]}>
+                    Didn't receive the code?
+                  </Text>
+                  <TouchableOpacity
+                    onPress={handleResend}
+                    disabled={sendOtpMutation.isPending}
+                    hitSlop={{top: 8, bottom: 8, left: 8, right: 8}}>
+                    {sendOtpMutation.isPending ? (
+                      <ActivityIndicator size="small" color={colors.primary} />
+                    ) : (
+                      <Text style={[styles.resendLink, {color: colors.primary}]}>
+                        Resend Code
+                      </Text>
+                    )}
+                  </TouchableOpacity>
+                </View>
               )}
-            </YStack>
-          </Card>
-        </YStack>
-      </SafeAreaView>
-    </Theme>
+            </View>
+          </View>
+        </ScrollView>
+      </KeyboardAvoidingView>
+    </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
+  safeArea: {
     flex: 1,
-    backgroundColor: PRIMARY_COLOR,
   },
-
-  innerContainer: {
+  topHeader: {
+    flexDirection: 'row',
     alignItems: 'center',
-    borderColor: 'white',
-    paddingTop: hp(14),
-    marginTop: hp(10),
-    borderTopLeftRadius: 18,
-    borderTopRightRadius: 18,
-    //borderRadius: 30,
-    backgroundColor: 'white',
-    paddingHorizontal: 10,
-    paddingVertical: 20,
-    height: '100%',
-    width: '100%',
+    justifyContent: 'space-between',
+    paddingHorizontal: 16,
+    paddingVertical: 12,
   },
-  logo: {
-    marginBottom: 10,
-    backgroundColor: 'white',
-    alignSelf: 'center',
+  backButton: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    borderWidth: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    elevation: 2,
+    shadowColor: '#000',
+    shadowOffset: {width: 0, height: 1},
+    shadowOpacity: 0.08,
+    shadowRadius: 2,
   },
-  error: {
-    color: 'red',
-    marginBottom: 10,
-    fontWeight: 'bold',
-    marginHorizontal: 20,
+  headerTitle: {
     fontSize: 18,
-    width: '80%',
+    fontWeight: '700',
   },
-  otpContainer: {
-    width: '100%',
-    marginBottom: 10,
+  headerRightPlaceholder: {
+    width: 40,
+  },
+  keyboardContainer: {
+    flex: 1,
+  },
+  scrollContent: {
+    flexGrow: 1,
+    paddingHorizontal: 16,
+    paddingBottom: 32,
+    justifyContent: 'center',
     alignItems: 'center',
+  },
+  card: {
+    width: '100%',
+    maxWidth: 420,
+    borderRadius: 24,
+    borderWidth: 1,
+    paddingHorizontal: 20,
+    paddingVertical: 28,
+    alignItems: 'center',
+    shadowColor: '#000',
+    shadowOffset: {width: 0, height: 8},
+    shadowOpacity: 0.06,
+    shadowRadius: 16,
+    elevation: 4,
+  },
+  iconCircle: {
+    width: 68,
+    height: 68,
+    borderRadius: 34,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: 16,
   },
   title: {
-    fontSize: 18,
-    fontWeight: '400',
+    fontSize: 22,
+    fontWeight: '700',
     textAlign: 'center',
-    marginBottom: 20,
-    color: PRIMARY_COLOR,
-    width: '90%',
+    marginBottom: 8,
+    letterSpacing: -0.3,
   },
-
-  inPutContainer: {
-    flex: 0,
-    height: 50,
-    width: '85%',
+  subtitle: {
+    fontSize: 14.5,
+    textAlign: 'center',
+    marginBottom: 12,
+  },
+  emailBadge: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
-    borderColor: PRIMARY_COLOR,
+    alignItems: 'center',
     borderWidth: 1,
-    alignSelf: 'center',
-    borderRadius: 8,
-    marginTop: 20,
-    marginHorizontal: 7,
+    borderRadius: 12,
+    paddingVertical: 8,
+    paddingHorizontal: 12,
+    gap: 8,
+    marginBottom: 24,
+    maxWidth: '100%',
   },
-
-  input: {
-    height: 50,
-
-    width: '80%',
-    fontSize: 18,
-    borderRadius: 7,
-    borderColor: 'white',
-    marginBottom: 6,
-    paddingHorizontal: 4,
-    textAlign: 'left',
+  emailText: {
+    fontSize: 13.5,
+    fontWeight: '600',
+    maxWidth: 200,
+  },
+  changeText: {
+    fontSize: 13,
+    fontWeight: '700',
+    textDecorationLine: 'underline',
+  },
+  otpRow: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+    alignItems: 'center',
+    gap: 8,
+    marginBottom: 20,
+    width: '100%',
+  },
+  otpBox: {
+    borderWidth: 1.5,
+    borderRadius: 12,
+    fontSize: 22,
+    fontWeight: '700',
+    textAlign: 'center',
+    padding: 0,
+  },
+  otpBoxFocused: {
+    borderWidth: 2,
+    elevation: 2,
+    shadowColor: '#2563EB',
+    shadowOffset: {width: 0, height: 2},
+    shadowOpacity: 0.15,
+    shadowRadius: 4,
+  },
+  errorBanner: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    borderWidth: 1,
+    borderRadius: 12,
+    paddingVertical: 10,
+    paddingHorizontal: 14,
+    marginBottom: 20,
+    width: '100%',
+  },
+  errorBannerText: {
+    fontSize: 13,
+    fontWeight: '600',
+    flex: 1,
+  },
+  submitButton: {
+    width: '100%',
+    height: 52,
+    borderRadius: 14,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginTop: 4,
+    shadowColor: '#2563EB',
+    shadowOffset: {width: 0, height: 4},
+    shadowOpacity: 0.25,
+    shadowRadius: 8,
+    elevation: 4,
+  },
+  submitButtonDisabled: {
+    opacity: 0.55,
+    shadowOpacity: 0,
+    elevation: 0,
+  },
+  submitButtonText: {
+    color: '#FFFFFF',
+    fontSize: 16.5,
+    fontWeight: '700',
+    letterSpacing: 0.2,
+  },
+  loadingRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
+  resendSection: {
+    marginTop: 22,
+    alignItems: 'center',
+  },
+  timerRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+  },
+  timerText: {
+    fontSize: 14,
     fontWeight: '500',
   },
-  inputError: {
-    borderColor: 'red',
+  timerHighlight: {
+    fontWeight: '700',
   },
-  resendContainer: {
-    marginBottom: 20,
-    marginLeft: 'auto',
-    marginRight: '7%',
-  },
-  resendText: {
-    color: PRIMARY_COLOR,
-    fontWeight: '400',
-    fontSize: 14,
-  },
-  button: {
-    backgroundColor: PRIMARY_COLOR,
-    padding: 14,
-    marginVertical: 10,
-    borderRadius: 18,
+  resendActionRow: {
+    flexDirection: 'row',
     alignItems: 'center',
-    width: '70%',
+    gap: 6,
   },
-  buttonText: {
-    color: 'white',
-    fontWeight: 'bold',
-    fontSize: 18,
+  resendPrompt: {
+    fontSize: 14,
+    fontWeight: '500',
+  },
+  resendLink: {
+    fontSize: 14,
+    fontWeight: '700',
   },
 });

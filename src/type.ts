@@ -7,7 +7,10 @@ import {Dispatch, RefObject, SetStateAction} from 'react';
 export type RootStackParamList = {
   SplashScreen: undefined;
   LoginScreen: undefined;
-  NewPasswordScreen: undefined;
+  NewPasswordScreen: {
+    email?: string;
+    resetToken: string;
+  };
   OtpScreen: {
     email: string;
   };

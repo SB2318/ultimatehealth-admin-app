@@ -26,7 +26,7 @@ import {KEYS, storeItem} from '../../helper/Utils';
 import {setUserHandle, setUserId, setUserToken} from '../../stores/UserSlice';
 import {Admin, AuthData, LoginScreenProp} from '../../type';
 import Snackbar from 'react-native-snackbar';
-import { PRIMARY_COLOR } from '@/src/helper/Theme';
+import { PRIMARY_COLOR } from '../../helper/Theme';
 
 const COLORS = {
   primary: '#2563EB',
@@ -193,27 +193,22 @@ export default function LoginScreen({navigation}: LoginScreenProp) {
       const res = await axios.post(SEND_OTP, {
         email: email,
       });
-      return res.data.otp as string;
+      return res.data;
     },
 
     onSuccess: () => {
-      Alert.alert('OTP has sent to your mail');
+      Alert.alert('Success', 'OTP has been sent to your email.');
       navigateToOtpScreen();
     },
     onError: error => {
       setEmailInputVisible(false);
       if (axios.isAxiosError(error)) {
         if (error.response) {
-          if (error.response.status === 400) {
-            Alert.alert(
-              'Error',
-              'User with this email does not exist.' + error.message,
-            );
-          } else if (error.response.status === 500) {
-            Alert.alert('Error', 'Error sending email.' + error.message);
-          } else {
-            Alert.alert('Error', 'Something went wrong.' + error.message);
-          }
+          const message =
+            error.response.data?.message ||
+            error.response.data?.error ||
+            'Something went wrong.';
+          Alert.alert('Error', message);
         } else {
           Alert.alert('Error', 'Network error.');
         }
@@ -351,6 +346,7 @@ export default function LoginScreen({navigation}: LoginScreenProp) {
             email: email,
           });
         }}
+        isLoading={sendOtpMutation.isPending}
         visible={emailInputVisible}
         backButtonClick={handleEmailInputBack}
         onDismiss={() => setEmailInputVisible(false)}

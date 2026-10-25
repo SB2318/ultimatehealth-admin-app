@@ -15,6 +15,7 @@ import {
   Reason,
   NotificationD,
   NotificationType,
+  GlossaryTerm,
 } from '../type';
 
 export const DEMO_TAGS: Category[] = [
@@ -476,4 +477,73 @@ export function getFallbackNotifications(realNotifications?: NotificationD[]): N
     return realNotifications;
   }
   return DEMO_NOTIFICATIONS;
+}
+
+export const DEMO_GLOSSARY_TERMS: GlossaryTerm[] = [
+  {
+    _id: 'term_1',
+    term: 'Arterial Hypertension',
+    definition: 'A chronic medical condition characterized by persistent elevation of systemic arterial blood pressure exceeding 130/80 mmHg.',
+    slug: 'arterial-hypertension',
+    category: 'Cardiology',
+    phonetic: '/ɑːrˈtɪəriəl ˌhaɪpərˈtɛnʃən/',
+    status: 'unassigned',
+    created_at: new Date(Date.now() - 86400000 * 10).toISOString(),
+  },
+  {
+    _id: 'term_2',
+    term: 'Amyloid Beta (Aβ)',
+    definition: 'Peptides of 36–43 amino acids crucially implicated in Alzheimer disease as the main component of amyloid plaques found in patient brains.',
+    slug: 'amyloid-beta',
+    category: 'Neurology',
+    phonetic: '/ˈæmɪlɔɪd ˈbeɪtə/',
+    status: 'in-progress',
+    created_at: new Date(Date.now() - 86400000 * 8).toISOString(),
+  },
+  {
+    _id: 'term_3',
+    term: 'Glucagon-Like Peptide-1 (GLP-1)',
+    definition: 'An incretin peptide hormone secreted from enteroendocrine L-cells that enhances insulin secretion in a glucose-dependent manner.',
+    slug: 'glp-1',
+    category: 'Endocrinology',
+    phonetic: '/ˈɡluːkəɡɒn laɪk ˈpɛptaɪd wʌn/',
+    status: 'unassigned',
+    created_at: new Date(Date.now() - 86400000 * 5).toISOString(),
+  },
+  {
+    _id: 'term_4',
+    term: 'Atopic Eczema',
+    definition: 'A chronic, pruritic inflammatory skin disease characterized by epidermal barrier dysfunction and immune hypersensitivity.',
+    slug: 'atopic-eczema',
+    category: 'Dermatology',
+    phonetic: '/eɪˈtɒpɪk ˈɛksɪmə/',
+    status: 'in-progress',
+    created_at: new Date(Date.now() - 86400000 * 2).toISOString(),
+  },
+  {
+    _id: 'term_5_pub',
+    term: 'Acute Myocardial Infarction',
+    definition: 'Commonly known as a heart attack; occurs when blood flow decreases or stops to a part of the heart, causing damage to the heart muscle.',
+    slug: 'acute-myocardial-infarction',
+    category: 'Cardiology',
+    phonetic: '/əˈkjuːt ˌmaɪəʊˈkɑːdiəl ɪnˈfɑːkʃən/',
+    status: 'published',
+    created_at: new Date(Date.now() - 86400000 * 20).toISOString(),
+  },
+];
+
+export function getFallbackGlossaryTerms(realTerms?: GlossaryTerm[]): GlossaryTerm[] {
+  const terms = Array.isArray(realTerms) && realTerms.length > 0 ? realTerms : DEMO_GLOSSARY_TERMS;
+  // Published glossary ko maat dikhao, sirf under review and unassign
+  return terms.filter(t => t.status !== 'published');
+}
+
+export function getFallbackUnassignedGlossary(realTerms?: GlossaryTerm[]): GlossaryTerm[] {
+  const terms = Array.isArray(realTerms) && realTerms.length > 0 ? realTerms : DEMO_GLOSSARY_TERMS;
+  return terms.filter(t => t.status === 'unassigned');
+}
+
+export function getFallbackInProgressGlossary(realTerms?: GlossaryTerm[]): GlossaryTerm[] {
+  const terms = Array.isArray(realTerms) && realTerms.length > 0 ? realTerms : DEMO_GLOSSARY_TERMS;
+  return terms.filter(t => t.status === 'in-progress' || t.status === 'review-pending' || t.status === 'awaiting-user');
 }

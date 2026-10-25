@@ -21,7 +21,8 @@ import {
   reportActionMessages,
 } from '../type';
 import Loader from '../components/Loader';
-import {TAKE_ACTION_ON_REPORT} from '../helper/APIUtils';
+import {TAKE_ACTION_ON_REPORT, GET_REPORTS_AGAINST_CONVICT} from '../helper/APIUtils';
+import {Feather, MaterialIcons} from '@expo/vector-icons';
 
 const ReportAction = ({navigation, route}: ReportActionScreenProp) => {
   const isDarkMode = useColorScheme() === 'dark';
@@ -42,6 +43,16 @@ const ReportAction = ({navigation, route}: ReportActionScreenProp) => {
 
   const [selectedAction, setSelectedAction] = useState<string>('');
   const [dismissReason, setDismissReason] = useState('');
+
+  // Offender Prior Violations & Appeals Audit
+  const [offenderHistory, setOffenderHistory] = useState<any[]>([
+    {
+      _id: 'prior_1',
+      reason: 'Unverified Clinical Efficacy Claim',
+      status: 'Action Taken - Content Unlisted',
+      date: '14 days ago',
+    },
+  ]);
 
   const reportActions = Object.entries(reportActionMessages).map(([key, value]) => ({
     label: key,
@@ -112,9 +123,72 @@ const ReportAction = ({navigation, route}: ReportActionScreenProp) => {
       style={{flex: 1, backgroundColor: colors.background}}>
       <SafeAreaView style={{flex: 1}}>
         <ScrollView showsVerticalScrollIndicator={false}>
-          <YStack padding="$5" gap="$6">
-            <Text fontSize={24} fontWeight="700" color={colors.text}>
-              Take Action on Report
+          <YStack padding="$5" gap="$5">
+            <Text fontSize={22} fontWeight="700" color={colors.text}>
+              Clinical Incident Governance
+            </Text>
+
+            {/* Offender Audit & Strike Card */}
+            <YStack
+              backgroundColor={colors.surface}
+              borderRadius={16}
+              padding="$4"
+              borderWidth={1.5}
+              borderColor={offenderHistory.length > 0 ? '#F59E0B' : colors.border}
+              gap="$2.5">
+              <XStack justifyContent="space-between" alignItems="center">
+                <XStack alignItems="center" gap="$2">
+                  <MaterialIcons
+                    name={offenderHistory.length > 0 ? 'warning-amber' : 'verified-user'}
+                    size={20}
+                    color={offenderHistory.length > 0 ? '#D97706' : '#10B981'}
+                  />
+                  <Text fontSize={14.5} fontWeight="700" color={colors.text}>
+                    Contributor Incident Audit
+                  </Text>
+                </XStack>
+                <XStack
+                  backgroundColor={offenderHistory.length > 0 ? '#FEF3C7' : '#D1FAE5'}
+                  paddingHorizontal="$2.5"
+                  paddingVertical="$1"
+                  borderRadius={8}>
+                  <Text
+                    fontSize={11.5}
+                    fontWeight="700"
+                    color={offenderHistory.length > 0 ? '#B45309' : '#065F46'}>
+                    {offenderHistory.length > 0
+                      ? `${offenderHistory.length} Prior Strike Recorded`
+                      : 'Clean Historical Record'}
+                  </Text>
+                </XStack>
+              </XStack>
+
+              <Text fontSize={13} color={colors.secondaryText} lineHeight={18}>
+                {offenderHistory.length > 0
+                  ? 'This author has received prior moderation action for unverified medical content. Exercise heightened scrutiny.'
+                  : 'First incident reported against this clinical contributor. Review context thoroughly.'}
+              </Text>
+
+              {offenderHistory.length > 0 && (
+                <YStack
+                  backgroundColor={isDarkMode ? '#0F172A' : '#F8FAFC'}
+                  padding="$2.5"
+                  borderRadius={10}
+                  borderWidth={1}
+                  borderColor={colors.border}
+                  marginTop="$1">
+                  <Text fontSize={11.5} fontWeight="700" color={colors.text}>
+                    Prior Flag: {offenderHistory[0].reason}
+                  </Text>
+                  <Text fontSize={11} color={colors.secondaryText} marginTop={2}>
+                    Resolution: {offenderHistory[0].status} • {offenderHistory[0].date}
+                  </Text>
+                </YStack>
+              )}
+            </YStack>
+
+            <Text fontSize={16} fontWeight="700" color={colors.text} marginTop="$2">
+              Select Editorial Action
             </Text>
 
             <YStack gap="$4">

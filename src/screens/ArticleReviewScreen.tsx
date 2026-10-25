@@ -402,19 +402,30 @@ const ReviewScreen = ({route, navigation}: ReviewScreenProp) => {
             </Text>
 
             {/* Author Bar */}
-            <View style={styles.authorBar}>
+            <TouchableOpacity
+              style={styles.authorBar}
+              activeOpacity={0.8}
+              onPress={() =>
+                navigation.navigate('AuthorProfileScreen', {
+                  authorId: currentArticle?.authorId,
+                  authorName: currentArticle?.authorName,
+                })
+              }>
               <View style={styles.authorAvatar}>
                 <Text style={styles.authorAvatarText}>
                   {currentArticle?.authorName ? currentArticle.authorName.charAt(0).toUpperCase() : 'A'}
                 </Text>
               </View>
-              <View>
-                <Text style={styles.authorName}>
-                  {currentArticle?.authorName || 'Medical Contributor'}
-                </Text>
-                <Text style={styles.authorRole}>Author • Verified Submitter</Text>
+              <View style={{flex: 1}}>
+                <View style={{flexDirection: 'row', alignItems: 'center', gap: 6}}>
+                  <Text style={styles.authorName}>
+                    {currentArticle?.authorName || 'Medical Contributor'}
+                  </Text>
+                  <Feather name="external-link" size={13} color="#0284C7" />
+                </View>
+                <Text style={styles.authorRole}>Author • Verified Submitter (Tap to inspect)</Text>
               </View>
-            </View>
+            </TouchableOpacity>
 
             <View style={styles.sectionDivider} />
 

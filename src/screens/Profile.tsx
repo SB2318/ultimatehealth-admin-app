@@ -1,4 +1,4 @@
-import React, {useCallback, useEffect} from 'react';
+import React, {useCallback, useEffect, useState} from 'react';
 import {Alert, useColorScheme, View} from 'react-native';
 import {SafeAreaView} from 'react-native-safe-area-context';
 import {Tabs, MaterialTabBar} from 'react-native-collapsible-tab-view';
@@ -7,7 +7,6 @@ import {useDispatch, useSelector} from 'react-redux';
 import {useFocusEffect} from '@react-navigation/native';
 
 import ProfileHeader from '../components/ProfileHeader';
-
 import ActivityOverview from '../components/ActivityOverview';
 import Loader from '../components/Loader';
 

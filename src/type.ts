@@ -55,7 +55,32 @@ export type RootStackParamList = {
     mentionedUsers: User[];
   };
   Notification: undefined;
+  AuthorProfileScreen: {
+    authorId?: string;
+    authorName?: string;
+    email?: string;
+  };
 };
+
+export type GlossaryTerm = {
+  _id: string;
+  term: string;
+  definition: string;
+  slug?: string;
+  category?: string;
+  phonetic?: string;
+  status?: string; // 'unassigned' | 'in-progress' | 'review-pending' | 'published'
+  shortDescription?: string;
+  authorId?: any;
+  reviewerId?: any;
+  created_at?: string;
+  createdAt?: string;
+};
+
+export type AuthorProfileScreenProps = StackScreenProps<
+  RootStackParamList,
+  'AuthorProfileScreen'
+>;
 
 export type Admin = {
   //Profile_image: string | undefined;

@@ -269,6 +269,54 @@ const PodcastDetail = ({navigation, route}: PodcastDetailScreenProp) => {
               </Text>
             </YStack>
 
+            {/* Series & Episode Governance Card */}
+            <YStack
+              backgroundColor={COLORS.surface}
+              borderRadius={16}
+              padding="$4"
+              borderWidth={1}
+              borderColor="#334155"
+              gap="$2.5">
+              <XStack justifyContent="space-between" alignItems="center">
+                <XStack alignItems="center" gap="$2">
+                  <Icon name="radio" size={18} color={COLORS.primary} />
+                  <Text fontSize={13.5} fontWeight="700" color={COLORS.text}>
+                    Series Governance & Lineage
+                  </Text>
+                </XStack>
+                <XStack
+                  backgroundColor="#082F49"
+                  paddingHorizontal="$2.5"
+                  paddingVertical="$1"
+                  borderRadius={8}>
+                  <Text fontSize={11.5} fontWeight="700" color={COLORS.primary}>
+                    Season 1 • Ep 4
+                  </Text>
+                </XStack>
+              </XStack>
+
+              <Text fontSize={12.5} color={COLORS.secondaryText} lineHeight={18}>
+                Part of the Clinical Audio Knowledge Archive. All medical audio broadcasts undergo automated waveform speech-to-text verification and clinical claim moderation.
+              </Text>
+
+              {podcast?.user_id && (
+                <XStack
+                  justifyContent="space-between"
+                  alignItems="center"
+                  borderTopWidth={1}
+                  borderTopColor="#334155"
+                  paddingTop="$2"
+                  marginTop="$1">
+                  <Text fontSize={12} color={COLORS.secondaryText}>
+                    Speaker: <Text fontWeight="700" color={COLORS.text}>{typeof podcast.user_id === 'object' ? (podcast.user_id as any).user_name : 'Medical Expert'}</Text>
+                  </Text>
+                  <Text fontSize={11.5} color={COLORS.primary} fontWeight="600">
+                    44.1 kHz • AAC Audio
+                  </Text>
+                </XStack>
+              )}
+            </YStack>
+
             {/* Audio Player */}
             <YStack gap="$5" paddingHorizontal="$2">
               <Slider

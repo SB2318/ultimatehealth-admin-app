@@ -23,6 +23,7 @@ import PodcastDetail from '../screens/PodcastDetails';
 import { FontAwesome6 } from '@expo/vector-icons';
 import PodcastDiscussion from '../screens/PodcastDiscussion';
 import Notification from '../screens/Notification';
+import AuthorProfileScreen from '../screens/AuthorProfileScreen';
 
 const Stack = createStackNavigator<RootStackParamList>();
 
@@ -82,22 +83,26 @@ const StackNavigation = () => {
         name="PodcastDiscussion"
         component={PodcastDiscussion}
         options={({navigation}) => ({
-            headerShown: true,
-          headerTitle: 'Check Discussion',
-          headerTintColor: 'white',
+          headerShown: true,
+          headerTitle: 'Podcast Discussion',
+          headerTintColor: '#0F172A',
           headerTransparent: false,
           headerStyle: {
-            backgroundColor: '#000A60',
+            backgroundColor: '#FFFFFF',
+          },
+          headerTitleStyle: {
+            fontSize: 16,
+            fontWeight: '700',
+            color: '#0F172A',
           },
           headerBackTitleVisible: false,
           headerLeft: () => (
             <TouchableOpacity
-              style={{...styles.headerLeftButtonCommentScreen, backgroundColor:'none' }}
+              style={styles.profileScreenHeaderLeftButton}
               onPress={() => {
-                //queryClient.invalidateQueries({queryKey: ['get-user-socials']});
                 navigation.goBack();
               }}>
-              <FontAwesome6 size={25} name="arrow-left" color={'white'} />
+              <FontAwesome6 size={20} name="arrow-left" color={'#0F172A'} />
             </TouchableOpacity>
           ),
         })}
@@ -191,12 +196,17 @@ const StackNavigation = () => {
         component={ReportAction}
         options={({navigation}) => ({
           headerShown: true,
-          title: 'Take action',
-          headerTitleAlign:"center",
-          headerTintColor:'white',
+          title: 'Take Action',
+          headerTitleAlign: "center",
+          headerTintColor: '#0F172A',
           headerBackTitleVisible: false,
           headerStyle: {
-            backgroundColor: '#000A60',
+            backgroundColor: '#FFFFFF',
+          },
+          headerTitleStyle: {
+            fontSize: 16,
+            fontWeight: '700',
+            color: '#0F172A',
           },
           headerShadowVisible: false,
           headerLeft: () => (
@@ -205,10 +215,18 @@ const StackNavigation = () => {
               onPress={() => {
                 navigation.goBack();
               }}>
-              <FontAwesome size={25} name="arrow-left" color={'white'} />
+              <FontAwesome size={20} name="arrow-left" color={'#0F172A'} />
             </TouchableOpacity>
           ),
         })}
+      />
+
+      <Stack.Screen
+        name="AuthorProfileScreen"
+        component={AuthorProfileScreen}
+        options={{
+          headerShown: false,
+        }}
       />
 
      <Stack.Screen

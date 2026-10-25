@@ -34,10 +34,13 @@ import {
   DELETE_PB_RECORD,
   GET_YEARLY_CONTRIBUTION,
   GET_STORAGE_DATA,
+  GLOSSARY_API,
 } from '../../helper/APIUtils';
 import {fp, hp, wp} from '../../helper/Metric';
 import {getApiErrorMessage} from '../../helper/Utils';
 import {DARK_THEME, PRIMARY_COLOR} from '../../helper/Theme';
+import {GlossaryTerm} from '../../type';
+import {getFallbackGlossaryTerms} from '../../helper/DemoData';
 
 const THEME = {
   light: {
@@ -76,7 +79,7 @@ const THEME = {
   },
 };
 
-type ActiveSection = 'applicants' | 'admins' | 'specializations' | 'languages' | 'reasons' | 'storage' | 'analytics';
+type ActiveSection = 'applicants' | 'admins' | 'specializations' | 'languages' | 'reasons' | 'storage' | 'analytics' | 'glossary';
 type ApplicantStatusFilter = 'All' | 'Pending' | 'Under Review' | 'Approved' | 'Rejected';
 
 // Fallback preview candidates if backend database queue has 0 records
@@ -144,6 +147,35 @@ export default function SuperAdminDashboard({navigation}: any) {
 
   // Local state for interactive applicant updates in demo/live
   const [localApplicantOverrides, setLocalApplicantOverrides] = useState<Record<string, string>>({});
+
+  // Medical Glossary State
+  const [glossarySearch, setGlossarySearch] = useState('');
+  const [glossaryModalVisible, setGlossaryModalVisible] = useState(false);
+  const [editingGlossaryId, setEditingGlossaryId] = useState<string | null>(null);
+  const [glossaryTerm, setGlossaryTerm] = useState('');
+  const [glossaryDefinition, setGlossaryDefinition] = useState('');
+  const [glossaryCategory, setGlossaryCategory] = useState('');
+  const [glossaryPhonetic, setGlossaryPhonetic] = useState('');
+  const [localGlossaryTerms, setLocalGlossaryTerms] = useState<GlossaryTerm[] | null>(null);
+
+  const {
+    data: rawGlossary = [],
+    isLoading: isGlossaryLoading,
+    refetch: refetchGlossary,
+  } = useQuery({
+    queryKey: ['superadmin-glossary'],
+    queryFn: async () => {
+      try {
+        const res = await axios.get(GLOSSARY_API);
+        return (res.data?.terms || res.data?.data || res.data || []) as GlossaryTerm[];
+      } catch (e) {
+        return getFallbackGlossaryTerms();
+      }
+    },
+    enabled: isConnected,
+  });
+
+  const glossaryTerms = localGlossaryTerms || getFallbackGlossaryTerms(rawGlossary);
 
   // 1. Fetch All Applicants Queue
   const {
@@ -402,6 +434,99 @@ export default function SuperAdminDashboard({navigation}: any) {
     (app: any) => (app.status || 'Pending').toLowerCase() === 'pending'
   ).length;
 
+  const handleOpenAddGlossary = () => {
+    setEditingGlossaryId(null);
+    setGlossaryTerm('');
+    setGlossaryDefinition('');
+    setGlossaryCategory('');
+    setGlossaryPhonetic('');
+    setGlossaryModalVisible(true);
+  };
+
+  const handleOpenEditGlossary = (t: GlossaryTerm) => {
+    setEditingGlossaryId(t._id);
+    setGlossaryTerm(t.term);
+    setGlossaryDefinition(t.definition);
+    setGlossaryCategory(t.category || '');
+    setGlossaryPhonetic(t.phonetic || '');
+    setGlossaryModalVisible(true);
+  };
+
+  const handleSaveGlossary = async () => {
+    if (!glossaryTerm.trim() || !glossaryDefinition.trim()) {
+      Alert.alert('Required Fields', 'Please enter term title and definition.');
+      return;
+    }
+
+    if (editingGlossaryId) {
+      try {
+        if (isConnected) {
+          await axios.put(`${GLOSSARY_API}/${editingGlossaryId}`, {
+            term: glossaryTerm.trim(),
+            definition: glossaryDefinition.trim(),
+            category: glossaryCategory.trim() || 'General Medicine',
+            phonetic: glossaryPhonetic.trim(),
+          });
+        }
+      } catch (err) {}
+      setLocalGlossaryTerms(prev =>
+        (prev || glossaryTerms).map(t =>
+          t._id === editingGlossaryId
+            ? {
+                ...t,
+                term: glossaryTerm.trim(),
+                definition: glossaryDefinition.trim(),
+                category: glossaryCategory.trim() || 'General Medicine',
+                phonetic: glossaryPhonetic.trim(),
+              }
+            : t
+        )
+      );
+      Snackbar.show({text: 'Glossary term updated successfully', duration: Snackbar.LENGTH_SHORT});
+    } else {
+      const newTerm: GlossaryTerm = {
+        _id: 'term_' + Date.now(),
+        term: glossaryTerm.trim(),
+        definition: glossaryDefinition.trim(),
+        category: glossaryCategory.trim() || 'General Medicine',
+        phonetic: glossaryPhonetic.trim(),
+        created_at: new Date().toISOString(),
+      };
+      try {
+        if (isConnected) {
+          await axios.post(GLOSSARY_API, {
+            term: glossaryTerm.trim(),
+            definition: glossaryDefinition.trim(),
+            category: glossaryCategory.trim() || 'General Medicine',
+            phonetic: glossaryPhonetic.trim(),
+          });
+        }
+      } catch (err) {}
+      setLocalGlossaryTerms(prev => [newTerm, ...(prev || glossaryTerms)]);
+      Snackbar.show({text: 'Glossary term added successfully', duration: Snackbar.LENGTH_SHORT});
+    }
+    setGlossaryModalVisible(false);
+  };
+
+  const handleDeleteGlossary = (termId: string) => {
+    Alert.alert('Delete Term', 'Are you sure you want to delete this medical glossary term?', [
+      {text: 'Cancel', style: 'cancel'},
+      {
+        text: 'Delete',
+        style: 'destructive',
+        onPress: async () => {
+          try {
+            if (isConnected) {
+              await axios.delete(`${GLOSSARY_API}/${termId}`);
+            }
+          } catch (err) {}
+          setLocalGlossaryTerms(prev => (prev || glossaryTerms).filter(t => t._id !== termId));
+          Snackbar.show({text: 'Glossary term deleted', duration: Snackbar.LENGTH_SHORT});
+        },
+      },
+    ]);
+  };
+
   return (
     <SafeAreaView style={[styles.container, {backgroundColor: colors.bg}]}>
       <StatusBar barStyle={isDarkMode ? 'light-content' : 'dark-content'} />
@@ -550,6 +675,7 @@ export default function SuperAdminDashboard({navigation}: any) {
         <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.tabScroll}>
           {[
             {id: 'applicants', label: `Applicants (${applicants.length})`, iconType: 'ion', icon: 'people'},
+            {id: 'glossary', label: `Glossary (${glossaryTerms.length})`, iconType: 'mc', icon: 'book-open-page-variant'},
             {id: 'specializations', label: `Specializations (${specializations.length})`, iconType: 'mc', icon: 'stethoscope'},
             {id: 'languages', label: `Languages (${languages.length})`, iconType: 'ion', icon: 'language'},
             {id: 'reasons', label: `Abuse Reasons (${reasons.length})`, iconType: 'ion', icon: 'alert-circle'},
@@ -1176,6 +1302,98 @@ export default function SuperAdminDashboard({navigation}: any) {
           </View>
         )}
 
+        {/* =========================================================================
+            SECTION 8: MEDICAL GLOSSARY MANAGEMENT
+           ========================================================================= */}
+        {activeSection === 'glossary' && (
+          <View style={styles.sectionContainer}>
+            <View style={styles.sectionHeaderRow}>
+              <View>
+                <Text style={[styles.sectionTitle, {color: colors.text}]}>Medical Glossary</Text>
+                <Text style={[styles.sectionSub, {color: colors.textMuted}]}>
+                  {glossaryTerms.length} verified clinical terms & definitions
+                </Text>
+              </View>
+              <TouchableOpacity
+                onPress={handleOpenAddGlossary}
+                style={[styles.actionButton, {backgroundColor: colors.primary}]}
+                activeOpacity={0.8}>
+                <Ionicons name="add" size={16} color="#FFFFFF" />
+                <Text style={styles.actionButtonText}>Add Term</Text>
+              </TouchableOpacity>
+            </View>
+
+            {/* Search Input */}
+            <View style={[styles.searchBar, {backgroundColor: colors.card, borderColor: colors.border}]}>
+              <Ionicons name="search" size={18} color={colors.textMuted} style={{marginRight: 8}} />
+              <TextInput
+                style={[styles.searchInput, {color: colors.text}]}
+                placeholder="Search medical terms or categories..."
+                placeholderTextColor={colors.textMuted}
+                value={glossarySearch}
+                onChangeText={setGlossarySearch}
+              />
+              {glossarySearch.length > 0 && (
+                <TouchableOpacity onPress={() => setGlossarySearch('')}>
+                  <Ionicons name="close-circle" size={18} color={colors.textMuted} />
+                </TouchableOpacity>
+              )}
+            </View>
+
+            {/* Terms List */}
+            {glossaryTerms
+              .filter(
+                t =>
+                  t.term.toLowerCase().includes(glossarySearch.toLowerCase()) ||
+                  (t.category && t.category.toLowerCase().includes(glossarySearch.toLowerCase())) ||
+                  t.definition.toLowerCase().includes(glossarySearch.toLowerCase())
+              )
+              .map(t => (
+                <View
+                  key={t._id}
+                  style={[
+                    styles.termCard,
+                    {backgroundColor: colors.card, borderColor: colors.border},
+                  ]}>
+                  <View style={{flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start'}}>
+                    <View style={{flex: 1, marginRight: 8}}>
+                      <View style={{flexDirection: 'row', alignItems: 'center', flexWrap: 'wrap', gap: 6}}>
+                        <Text style={[styles.termTitle, {color: colors.text}]}>{t.term}</Text>
+                        {t.phonetic ? (
+                          <View style={[styles.phoneticBadge, {backgroundColor: colors.cardAlt}]}>
+                            <Text style={[styles.phoneticText, {color: colors.textMuted}]}>{t.phonetic}</Text>
+                          </View>
+                        ) : null}
+                      </View>
+                      {t.category ? (
+                        <View style={[styles.categoryBadge, {backgroundColor: colors.infoBg}]}>
+                          <Text style={[styles.categoryBadgeText, {color: colors.info}]}>{t.category}</Text>
+                        </View>
+                      ) : null}
+                    </View>
+
+                    <View style={{flexDirection: 'row', gap: 6}}>
+                      <TouchableOpacity
+                        onPress={() => handleOpenEditGlossary(t)}
+                        style={[styles.smallIconBtn, {backgroundColor: colors.cardAlt}]}>
+                        <Ionicons name="create-outline" size={16} color={colors.primary} />
+                      </TouchableOpacity>
+                      <TouchableOpacity
+                        onPress={() => handleDeleteGlossary(t._id)}
+                        style={[styles.smallIconBtn, {backgroundColor: colors.dangerBg}]}>
+                        <Ionicons name="trash-outline" size={16} color={colors.danger} />
+                      </TouchableOpacity>
+                    </View>
+                  </View>
+
+                  <Text style={[styles.termDefinition, {color: colors.textMuted}]}>
+                    {t.definition}
+                  </Text>
+                </View>
+              ))}
+          </View>
+        )}
+
       </ScrollView>
 
       {/* APPLICANT INSPECTION & REVIEW MODAL */}
@@ -1344,6 +1562,66 @@ export default function SuperAdminDashboard({navigation}: any) {
                   </Text>
                 </TouchableOpacity>
               )}
+            </ScrollView>
+          </View>
+        </View>
+      </Modal>
+      {/* GLOSSARY ADD/EDIT MODAL */}
+      <Modal visible={glossaryModalVisible} transparent animationType="slide">
+        <View style={styles.modalOverlay}>
+          <View style={[styles.modalBox, {backgroundColor: colors.card, maxHeight: '85%'}]}>
+            <View style={{flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 14}}>
+              <Text style={[styles.modalHeader, {color: colors.text}]}>
+                {editingGlossaryId ? 'Edit Medical Term' : 'Add Medical Term'}
+              </Text>
+              <TouchableOpacity onPress={() => setGlossaryModalVisible(false)}>
+                <Ionicons name="close" size={24} color={colors.text} />
+              </TouchableOpacity>
+            </View>
+
+            <ScrollView showsVerticalScrollIndicator={false}>
+              <Text style={[styles.detailLabel, {color: colors.textMuted}]}>Term Title *</Text>
+              <TextInput
+                style={[styles.modalInput, {backgroundColor: colors.cardAlt, color: colors.text, borderColor: colors.border, marginBottom: 12}]}
+                placeholder="e.g. Arterial Hypertension"
+                placeholderTextColor={colors.textMuted}
+                value={glossaryTerm}
+                onChangeText={setGlossaryTerm}
+              />
+
+              <Text style={[styles.detailLabel, {color: colors.textMuted}]}>Phonetic Pronunciation</Text>
+              <TextInput
+                style={[styles.modalInput, {backgroundColor: colors.cardAlt, color: colors.text, borderColor: colors.border, marginBottom: 12}]}
+                placeholder="e.g. /ɑːrˈtɪəriəl ˌhaɪpərˈtɛnʃən/"
+                placeholderTextColor={colors.textMuted}
+                value={glossaryPhonetic}
+                onChangeText={setGlossaryPhonetic}
+              />
+
+              <Text style={[styles.detailLabel, {color: colors.textMuted}]}>Medical Category</Text>
+              <TextInput
+                style={[styles.modalInput, {backgroundColor: colors.cardAlt, color: colors.text, borderColor: colors.border, marginBottom: 12}]}
+                placeholder="e.g. Cardiology, Neurology, Endocrinology"
+                placeholderTextColor={colors.textMuted}
+                value={glossaryCategory}
+                onChangeText={setGlossaryCategory}
+              />
+
+              <Text style={[styles.detailLabel, {color: colors.textMuted}]}>Clinical Definition *</Text>
+              <TextInput
+                style={[styles.modalInput, {backgroundColor: colors.cardAlt, color: colors.text, borderColor: colors.border, minHeight: 90, textAlignVertical: 'top', marginBottom: 16}]}
+                placeholder="Evidence-based medical definition..."
+                placeholderTextColor={colors.textMuted}
+                value={glossaryDefinition}
+                onChangeText={setGlossaryDefinition}
+                multiline
+              />
+
+              <TouchableOpacity
+                onPress={handleSaveGlossary}
+                style={[styles.provisionBtn, {backgroundColor: colors.primary, marginTop: 4}]}>
+                <Text style={styles.provisionBtnText}>{editingGlossaryId ? 'Update Term' : 'Save Term'}</Text>
+              </TouchableOpacity>
             </ScrollView>
           </View>
         </View>
@@ -1797,5 +2075,63 @@ const styles = StyleSheet.create({
     color: '#FFFFFF',
     fontWeight: '800',
     fontSize: fp(3.8),
+  },
+
+  // Glossary
+  searchBar: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    borderWidth: 1,
+    borderRadius: 12,
+    paddingHorizontal: 12,
+    height: 44,
+    marginBottom: 12,
+  },
+  searchInput: {
+    flex: 1,
+    fontSize: 14,
+    paddingVertical: 0,
+  },
+  termCard: {
+    padding: wp(4),
+    borderRadius: 14,
+    borderWidth: 1,
+    marginBottom: hp(1.2),
+  },
+  termTitle: {
+    fontSize: fp(4),
+    fontWeight: '700',
+  },
+  phoneticBadge: {
+    paddingHorizontal: 8,
+    paddingVertical: 2,
+    borderRadius: 6,
+  },
+  phoneticText: {
+    fontSize: 11,
+    fontStyle: 'italic',
+  },
+  categoryBadge: {
+    alignSelf: 'flex-start',
+    paddingHorizontal: 8,
+    paddingVertical: 2,
+    borderRadius: 6,
+    marginTop: 4,
+  },
+  categoryBadgeText: {
+    fontSize: 11,
+    fontWeight: '700',
+  },
+  smallIconBtn: {
+    width: 32,
+    height: 32,
+    borderRadius: 8,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  termDefinition: {
+    fontSize: 13.5,
+    lineHeight: 20,
+    marginTop: 8,
   },
 });

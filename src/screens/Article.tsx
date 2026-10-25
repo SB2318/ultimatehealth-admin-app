@@ -6,6 +6,9 @@ import {
   Alert,
   TouchableOpacity,
   useColorScheme,
+  Modal,
+  TextInput,
+  ScrollView,
 } from 'react-native';
 import {
   BUTTON_COLOR,
@@ -15,12 +18,12 @@ import {
   DARK_THEME,
   SCREEN_BG,
 } from '../helper/Theme';
-import React, {useEffect, useRef, useCallback, useState} from 'react';
+import React, {useEffect, useRef, useCallback, useState, useMemo} from 'react';
 import {Tabs, MaterialTabBar} from 'react-native-collapsible-tab-view';
 import {useDispatch, useSelector} from 'react-redux';
 import axios from 'axios';
 import {useMutation, useQuery} from '@tanstack/react-query';
-import {ArticleData, ArticleProps, Category, CategoryType} from '../type';
+import {ArticleData, ArticleProps, Category, CategoryType, GlossaryTerm} from '../type';
 import {
   ARTICLE_TAGS_API,
   DISCARD_ARTICLE,
@@ -30,6 +33,12 @@ import {
   PICK_ARTICLE,
   PROD_URL,
   UNASSIGN_ARTICLE,
+  GLOSSARY_API,
+  GLOSSARY_REVIEW_QUEUE,
+  GLOSSARY_IN_PROGRESS,
+  PICK_GLOSSARY_API,
+  APPROVE_GLOSSARY_API,
+  REJECT_GLOSSARY_API,
 } from '../helper/APIUtils';
 import {useFocusEffect} from '@react-navigation/native';
 import {SafeAreaView, useSafeAreaInsets} from 'react-native-safe-area-context';
@@ -38,6 +47,7 @@ import {hp, wp} from '../helper/Metric';
 import Loader from '../components/Loader';
 import Snackbar from 'react-native-snackbar';
 import {BottomSheetModal} from '@gorhom/bottom-sheet';
+import {Ionicons} from '@expo/vector-icons';
 import {
   setFilteredAvailableArticles,
   setFilteredProgressArticles,
@@ -52,6 +62,11 @@ import TagItemCard from '../components/TagItemCard';
 import AddTagModal from '../components/AddTagModal';
 import EmptyState from '../components/EmptyState';
 import DiscardReasonModal from '../components/DiscardReasonModal';
+import {
+  getFallbackGlossaryTerms,
+  getFallbackUnassignedGlossary,
+  getFallbackInProgressGlossary,
+} from '../helper/DemoData';
 
 export default function HomeScreen({navigation, route}: ArticleProps) {
   const {user_id, user_token, isSuperAdmin} = useSelector((state: any) => state.user);
@@ -97,6 +112,250 @@ export default function HomeScreen({navigation, route}: ArticleProps) {
 
   const [progressPage, setProgressPage] = useState(1);
   const [totalProgressPage, setTotalProgressPage] = useState(0);
+
+  // Glossary Management State for all Moderators (Unassigned & Under Review)
+  const [glossaryTab, setGlossaryTab] = useState<'unassigned' | 'under-review'>('unassigned');
+  const [glossarySearch, setGlossarySearch] = useState('');
+  const [glossaryModalVisible, setGlossaryModalVisible] = useState(false);
+  const [editingGlossaryId, setEditingGlossaryId] = useState<string | null>(null);
+  const [glossaryTerm, setGlossaryTerm] = useState('');
+  const [glossaryDefinition, setGlossaryDefinition] = useState('');
+  const [glossaryCategory, setGlossaryCategory] = useState('');
+  const [glossaryPhonetic, setGlossaryPhonetic] = useState('');
+  const [localUnassignedTerms, setLocalUnassignedTerms] = useState<GlossaryTerm[] | null>(null);
+  const [localInProgressTerms, setLocalInProgressTerms] = useState<GlossaryTerm[] | null>(null);
+  const [glossaryRefreshing, setGlossaryRefreshing] = useState(false);
+
+  // 1. Unassigned Terms Queue (GET /glossary/admin/review-queue)
+  const {
+    data: rawUnassignedGlossary = [],
+    isLoading: isUnassignedGlossaryLoading,
+    refetch: refetchUnassignedGlossary,
+  } = useQuery({
+    queryKey: ['glossary-unassigned-queue'],
+    queryFn: async () => {
+      try {
+        const res = await axios.get(GLOSSARY_REVIEW_QUEUE);
+        return (res.data?.terms || res.data?.data || []) as GlossaryTerm[];
+      } catch (e) {
+        return getFallbackUnassignedGlossary();
+      }
+    },
+    enabled: isConnected,
+  });
+
+  // 2. Under Review (In-Progress) Terms Queue (GET /glossary/admin/my-reviews/in-progress)
+  const {
+    data: rawInProgressGlossary = [],
+    isLoading: isInProgressGlossaryLoading,
+    refetch: refetchInProgressGlossary,
+  } = useQuery({
+    queryKey: ['glossary-in-progress-queue'],
+    queryFn: async () => {
+      try {
+        const res = await axios.get(GLOSSARY_IN_PROGRESS);
+        return (res.data?.terms || res.data?.data || []) as GlossaryTerm[];
+      } catch (e) {
+        return getFallbackInProgressGlossary();
+      }
+    },
+    enabled: isConnected,
+  });
+
+  // STRICT RULE: Published glossary ko maat dikhao, sirf under review and unassign
+  const effectiveUnassigned = (localUnassignedTerms || getFallbackUnassignedGlossary(rawUnassignedGlossary))
+    .filter(t => t.status !== 'published');
+  const effectiveInProgress = (localInProgressTerms || getFallbackInProgressGlossary(rawInProgressGlossary))
+    .filter(t => t.status !== 'published');
+
+  const unassignedCount = effectiveUnassigned.length;
+  const inProgressCount = effectiveInProgress.length;
+
+  const currentGlossaryList = glossaryTab === 'unassigned' ? effectiveUnassigned : effectiveInProgress;
+
+  // Pick Term Mutation
+  const pickGlossaryMutation = useMutation({
+    mutationKey: ['pick-glossary-term'],
+    mutationFn: async (id: string) => {
+      const res = await axios.post(PICK_GLOSSARY_API(id));
+      return res.data;
+    },
+    onSuccess: (data, id) => {
+      const picked = effectiveUnassigned.find(t => t._id === id);
+      if (picked) {
+        setLocalUnassignedTerms(effectiveUnassigned.filter(t => t._id !== id));
+        setLocalInProgressTerms([{...picked, status: 'in-progress'}, ...effectiveInProgress]);
+      }
+      refetchUnassignedGlossary();
+      refetchInProgressGlossary();
+      Snackbar.show({text: 'Term claimed for review', duration: Snackbar.LENGTH_SHORT});
+    },
+    onError: (err: any) => {
+      Snackbar.show({
+        text: err?.response?.data?.message || 'Error claiming term',
+        duration: Snackbar.LENGTH_SHORT,
+      });
+    },
+  });
+
+  // Approve Term Mutation
+  const approveGlossaryMutation = useMutation({
+    mutationKey: ['approve-glossary-term'],
+    mutationFn: async (id: string) => {
+      const res = await axios.post(APPROVE_GLOSSARY_API(id), {});
+      return res.data;
+    },
+    onSuccess: (data, id) => {
+      // Remove from in-progress since it is now published (and published items are excluded!)
+      setLocalInProgressTerms(effectiveInProgress.filter(t => t._id !== id));
+      refetchInProgressGlossary();
+      Snackbar.show({text: 'Term approved & published', duration: Snackbar.LENGTH_SHORT});
+    },
+    onError: (err: any) => {
+      Snackbar.show({
+        text: err?.response?.data?.message || 'Error approving term',
+        duration: Snackbar.LENGTH_SHORT,
+      });
+    },
+  });
+
+  // Reject / Delete Term Mutation
+  const rejectGlossaryMutation = useMutation({
+    mutationKey: ['reject-glossary-term'],
+    mutationFn: async ({id, reason}: {id: string; reason: string}) => {
+      const res = await axios.post(REJECT_GLOSSARY_API(id), {rejectionReason: reason});
+      return res.data;
+    },
+    onSuccess: (data, {id}) => {
+      setLocalInProgressTerms(effectiveInProgress.filter(t => t._id !== id));
+      setLocalUnassignedTerms(effectiveUnassigned.filter(t => t._id !== id));
+      refetchInProgressGlossary();
+      refetchUnassignedGlossary();
+      Snackbar.show({text: 'Term rejected', duration: Snackbar.LENGTH_SHORT});
+    },
+    onError: (err: any) => {
+      Snackbar.show({
+        text: err?.response?.data?.message || 'Error rejecting term',
+        duration: Snackbar.LENGTH_SHORT,
+      });
+    },
+  });
+
+  const handleOpenAddGlossary = () => {
+    setEditingGlossaryId(null);
+    setGlossaryTerm('');
+    setGlossaryDefinition('');
+    setGlossaryCategory('');
+    setGlossaryPhonetic('');
+    setGlossaryModalVisible(true);
+  };
+
+  const handleOpenEditGlossary = (t: GlossaryTerm) => {
+    setEditingGlossaryId(t._id);
+    setGlossaryTerm(t.term);
+    setGlossaryDefinition(t.definition);
+    setGlossaryCategory(t.category || '');
+    setGlossaryPhonetic(t.phonetic || '');
+    setGlossaryModalVisible(true);
+  };
+
+  const handleSaveGlossary = async () => {
+    if (!glossaryTerm.trim() || !glossaryDefinition.trim()) {
+      Alert.alert('Required Fields', 'Please enter term title and clinical definition.');
+      return;
+    }
+
+    if (editingGlossaryId) {
+      try {
+        if (isConnected) {
+          await axios.put(`${GLOSSARY_API}/${editingGlossaryId}`, {
+            term: glossaryTerm.trim(),
+            definition: glossaryDefinition.trim(),
+            category: glossaryCategory.trim() || 'General Medicine',
+            phonetic: glossaryPhonetic.trim(),
+          });
+        }
+      } catch (err) {}
+      const updater = (prev: GlossaryTerm[]) =>
+        prev.map(t =>
+          t._id === editingGlossaryId
+            ? {
+                ...t,
+                term: glossaryTerm.trim(),
+                definition: glossaryDefinition.trim(),
+                category: glossaryCategory.trim() || 'General Medicine',
+                phonetic: glossaryPhonetic.trim(),
+              }
+            : t
+        );
+      setLocalInProgressTerms(updater(effectiveInProgress));
+      setLocalUnassignedTerms(updater(effectiveUnassigned));
+      Snackbar.show({text: 'Glossary term updated', duration: Snackbar.LENGTH_SHORT});
+    } else {
+      const newTerm: GlossaryTerm = {
+        _id: 'term_' + Date.now(),
+        term: glossaryTerm.trim(),
+        definition: glossaryDefinition.trim(),
+        category: glossaryCategory.trim() || 'General Medicine',
+        phonetic: glossaryPhonetic.trim(),
+        status: 'unassigned',
+        created_at: new Date().toISOString(),
+      };
+      try {
+        if (isConnected) {
+          await axios.post(GLOSSARY_API, {
+            term: glossaryTerm.trim(),
+            definition: glossaryDefinition.trim(),
+            category: glossaryCategory.trim() || 'General Medicine',
+            phonetic: glossaryPhonetic.trim(),
+          });
+        }
+      } catch (err) {}
+      setLocalUnassignedTerms([newTerm, ...effectiveUnassigned]);
+      Snackbar.show({text: 'Glossary term submitted to queue', duration: Snackbar.LENGTH_SHORT});
+    }
+    setGlossaryModalVisible(false);
+  };
+
+  const handleDeleteGlossary = (termId: string) => {
+    Alert.alert('Reject Term', 'Are you sure you want to reject/remove this glossary term?', [
+      {text: 'Cancel', style: 'cancel'},
+      {
+        text: 'Reject',
+        style: 'destructive',
+        onPress: () => {
+          if (isConnected) {
+            rejectGlossaryMutation.mutate({id: termId, reason: 'Does not meet clinical criteria'});
+          } else {
+            setLocalInProgressTerms(effectiveInProgress.filter(t => t._id !== termId));
+            setLocalUnassignedTerms(effectiveUnassigned.filter(t => t._id !== termId));
+            Snackbar.show({text: 'Term rejected', duration: Snackbar.LENGTH_SHORT});
+          }
+        },
+      },
+    ]);
+  };
+
+  const onGlossaryRefresh = async () => {
+    setGlossaryRefreshing(true);
+    await Promise.all([refetchUnassignedGlossary(), refetchInProgressGlossary()]);
+    setLocalUnassignedTerms(null);
+    setLocalInProgressTerms(null);
+    setGlossaryRefreshing(false);
+  };
+
+  const filteredGlossary = useMemo(() => {
+    const list = currentGlossaryList;
+    if (!glossarySearch.trim()) return list;
+    const q = glossarySearch.toLowerCase();
+    return list.filter(
+      t =>
+        t.term.toLowerCase().includes(q) ||
+        t.definition.toLowerCase().includes(q) ||
+        (t.category && t.category.toLowerCase().includes(q)) ||
+        (t.phonetic && t.phonetic.toLowerCase().includes(q)),
+    );
+  }, [currentGlossaryList, glossarySearch]);
   //const bottomBarHeight = useBottomTabBarHeight();
   const bottomSheetModalRef = useRef<BottomSheetModal>(null);
 
@@ -515,10 +774,10 @@ export default function HomeScreen({navigation, route}: ArticleProps) {
         activeColor={isDarkMode ? DARK_THEME.primary : PRIMARY_COLOR}
         inactiveColor={isDarkMode ? DARK_THEME.textMuted : '#64748B'}
         labelStyle={{
-          fontSize: 15.5,
-          fontWeight: '700',
+          fontSize: 13,
+          fontWeight: '600',
           textTransform: 'capitalize',
-          letterSpacing: 0.2,
+          letterSpacing: 0.1,
         }}
         contentContainerStyle={{
           width: '100%',
@@ -645,72 +904,290 @@ export default function HomeScreen({navigation, route}: ArticleProps) {
             ) : null}
           </Tabs.Tab>
 
-          {(isSuperAdmin || route?.params?.initialTab === 'Tags') ? (
-            <Tabs.Tab name="Tags" label="Tags">
-              <Tabs.FlatList
-                data={articleCategories ? articleCategories : []}
-                keyExtractor={item => item._id}
-                refreshing={tagRefresh}
-                onRefresh={onTagRefresh}
-                ListHeaderComponent={
-                  <View style={styles.actionHeaderContainer}>
+          <Tabs.Tab name="Tags" label="Tags">
+            <Tabs.FlatList
+              data={articleCategories ? articleCategories : []}
+              keyExtractor={item => item._id}
+              refreshing={tagRefresh}
+              onRefresh={onTagRefresh}
+              ListHeaderComponent={
+                <View style={styles.actionHeaderContainer}>
+                  <TouchableOpacity
+                    style={styles.addButton}
+                    onPress={() => {
+                      setSelectedCategory(null);
+                      setAddTagModalVisible(true);
+                    }}>
+                    <Text style={styles.addButtonText}>+ Add New Tag</Text>
+                  </TouchableOpacity>
+                </View>
+              }
+              renderItem={({item}: {item: Category}) => (
+                <TagItemCard
+                  reason={item}
+                  onEditAction={(item: Category) => {
+                    setSelectedCategory(item);
+                    setAddTagModalVisible(true);
+                  }}
+                  onDeleteAction={(item: Category) => {
+                    Alert.alert(
+                      'Alert!',
+                      'Are you sure you want to delete this category?',
+                      [
+                        {
+                          text: 'Cancel',
+                          style: 'cancel',
+                        },
+                        {
+                          text: 'Confirm',
+                          onPress: () => {
+                            if (isConnected) {
+                              deleteTagMutation.mutate(item._id);
+                            } else {
+                              Snackbar.show({
+                                text: 'You are currently offline',
+                                duration: Snackbar.LENGTH_SHORT,
+                              });
+                            }
+                          },
+                          style: 'destructive',
+                        },
+                      ],
+                    );
+                  }}
+                />
+              )}
+              contentContainerStyle={styles.list}
+              showsVerticalScrollIndicator={false}
+              ListEmptyComponent={
+                <EmptyState
+                  icon="tag"
+                  title="No Tags Configured"
+                  subtitle="Configure clinical categories and tags to organize articles and specialties."
+                />
+              }
+            />
+          </Tabs.Tab>
+
+          <Tabs.Tab name="Glossary" label="Glossary">
+            <Tabs.FlatList
+              data={filteredGlossary}
+              keyExtractor={item => item._id || item.term}
+              refreshing={glossaryRefreshing}
+              onRefresh={onGlossaryRefresh}
+              ListHeaderComponent={
+                <View style={styles.glossaryHeaderWrap}>
+                  {/* Segmented Queue Controller: Unassigned vs Under Review */}
+                  <View style={styles.glossarySegmentContainer}>
                     <TouchableOpacity
-                      style={styles.addButton}
-                      onPress={() => {
-                        setSelectedCategory(null);
-                        setAddTagModalVisible(true);
-                      }}>
-                      <Text style={styles.addButtonText}>+ Add New Tag</Text>
+                      style={[
+                        styles.glossarySegmentBtn,
+                        glossaryTab === 'unassigned' && styles.glossarySegmentBtnActive,
+                      ]}
+                      onPress={() => setGlossaryTab('unassigned')}
+                      activeOpacity={0.8}>
+                      <View style={styles.glossarySegmentContent}>
+                        <Text
+                          style={[
+                            styles.glossarySegmentText,
+                            glossaryTab === 'unassigned' && styles.glossarySegmentTextActive,
+                          ]}>
+                          Unassigned
+                        </Text>
+                        <View
+                          style={[
+                            styles.glossaryBadge,
+                            glossaryTab === 'unassigned'
+                              ? styles.glossaryBadgeActive
+                              : styles.glossaryBadgeInactive,
+                          ]}>
+                          <Text
+                            style={[
+                              styles.glossaryBadgeText,
+                              glossaryTab === 'unassigned'
+                                ? styles.glossaryBadgeTextActive
+                                : styles.glossaryBadgeTextInactive,
+                            ]}>
+                            {unassignedCount}
+                          </Text>
+                        </View>
+                      </View>
+                    </TouchableOpacity>
+
+                    <TouchableOpacity
+                      style={[
+                        styles.glossarySegmentBtn,
+                        glossaryTab === 'under-review' && styles.glossarySegmentBtnActive,
+                      ]}
+                      onPress={() => setGlossaryTab('under-review')}
+                      activeOpacity={0.8}>
+                      <View style={styles.glossarySegmentContent}>
+                        <Text
+                          style={[
+                            styles.glossarySegmentText,
+                            glossaryTab === 'under-review' && styles.glossarySegmentTextActive,
+                          ]}>
+                          Under Review
+                        </Text>
+                        <View
+                          style={[
+                            styles.glossaryBadge,
+                            glossaryTab === 'under-review'
+                              ? styles.glossaryBadgeActive
+                              : styles.glossaryBadgeInactive,
+                          ]}>
+                          <Text
+                            style={[
+                              styles.glossaryBadgeText,
+                              glossaryTab === 'under-review'
+                                ? styles.glossaryBadgeTextActive
+                                : styles.glossaryBadgeTextInactive,
+                            ]}>
+                            {inProgressCount}
+                          </Text>
+                        </View>
+                      </View>
                     </TouchableOpacity>
                   </View>
-                }
-                renderItem={({item}: {item: Category}) => (
-                  <TagItemCard
-                    reason={item}
-                    onEditAction={(item: Category) => {
-                      setSelectedCategory(item);
-                      setAddTagModalVisible(true);
-                    }}
-                    onDeleteAction={(item: Category) => {
-                      Alert.alert(
-                        'Alert!',
-                        'Are you sure you want to delete this category?',
-                        [
-                          {
-                            text: 'Cancel',
-                            style: 'cancel',
-                          },
-                          {
-                            text: 'Confirm',
-                            onPress: () => {
-                              if (isConnected) {
-                                deleteTagMutation.mutate(item._id);
-                              } else {
-                                Snackbar.show({
-                                  text: 'You are currently offline',
-                                  duration: Snackbar.LENGTH_SHORT,
-                                });
-                              }
-                            },
-                            style: 'destructive',
-                          },
-                        ],
-                      );
-                    }}
-                  />
-                )}
-                contentContainerStyle={styles.list}
-                showsVerticalScrollIndicator={false}
-                ListEmptyComponent={
-                  <EmptyState
-                    icon="tag"
-                    title="No Tags Configured"
-                    subtitle="Configure clinical categories and tags to organize articles and specialties."
-                  />
-                }
-              />
-            </Tabs.Tab>
-          ) : null}
+
+                  {/* Search Bar */}
+                  <View style={styles.glossarySearchRow}>
+                    <Ionicons name="search-outline" size={18} color="#94A3B8" style={{marginLeft: 12}} />
+                    <TextInput
+                      style={styles.glossarySearchInput}
+                      placeholder={
+                        glossaryTab === 'unassigned'
+                          ? 'Search unassigned medical terms...'
+                          : 'Search terms under review...'
+                      }
+                      placeholderTextColor="#94A3B8"
+                      value={glossarySearch}
+                      onChangeText={setGlossarySearch}
+                      clearButtonMode="while-editing"
+                    />
+                    {glossarySearch.length > 0 ? (
+                      <TouchableOpacity onPress={() => setGlossarySearch('')} style={{paddingRight: 10}}>
+                        <Ionicons name="close-circle" size={18} color="#94A3B8" />
+                      </TouchableOpacity>
+                    ) : null}
+                  </View>
+
+                  <TouchableOpacity
+                    style={styles.addButton}
+                    onPress={handleOpenAddGlossary}>
+                    <Text style={styles.addButtonText}>+ Submit Medical Term</Text>
+                  </TouchableOpacity>
+                </View>
+              }
+              renderItem={({item}: {item: GlossaryTerm}) => (
+                <View style={styles.glossaryCard}>
+                  <View style={styles.glossaryCardHeader}>
+                    <View style={{flex: 1, marginRight: 8}}>
+                      <View style={{flexDirection: 'row', alignItems: 'center', gap: 6, flexWrap: 'wrap'}}>
+                        <Text style={styles.glossaryTermText}>{item.term}</Text>
+                        <View
+                          style={[
+                            styles.statusPill,
+                            item.status === 'unassigned'
+                              ? styles.statusPillUnassigned
+                              : styles.statusPillReview,
+                          ]}>
+                          <Text
+                            style={[
+                              styles.statusPillText,
+                              item.status === 'unassigned'
+                                ? styles.statusPillTextUnassigned
+                                : styles.statusPillTextReview,
+                            ]}>
+                            {item.status === 'unassigned' ? 'UNASSIGNED' : 'UNDER REVIEW'}
+                          </Text>
+                        </View>
+                      </View>
+
+                      {item.phonetic ? (
+                        <Text style={styles.glossaryPhoneticText}>{item.phonetic}</Text>
+                      ) : null}
+                    </View>
+
+                    <View style={styles.glossaryActionRow}>
+                      {item.category ? (
+                        <View style={styles.glossaryCategoryBadge}>
+                          <Text style={styles.glossaryCategoryBadgeText}>{item.category}</Text>
+                        </View>
+                      ) : null}
+
+                      {glossaryTab === 'under-review' ? (
+                        <>
+                          <TouchableOpacity
+                            style={styles.glossaryIconBtn}
+                            onPress={() => handleOpenEditGlossary(item)}>
+                            <Ionicons name="pencil-outline" size={16} color="#0284C7" />
+                          </TouchableOpacity>
+                          <TouchableOpacity
+                            style={styles.glossaryIconBtn}
+                            onPress={() => handleDeleteGlossary(item._id)}>
+                            <Ionicons name="trash-outline" size={16} color="#DC2626" />
+                          </TouchableOpacity>
+                        </>
+                      ) : null}
+                    </View>
+                  </View>
+
+                  <Text style={styles.glossaryDefText}>{item.definition}</Text>
+
+                  {/* Action Row for Unassigned vs Under Review */}
+                  <View style={styles.glossaryCardFooter}>
+                    {item.status === 'unassigned' ? (
+                      <TouchableOpacity
+                        style={styles.claimGlossaryBtn}
+                        onPress={() => {
+                          if (isConnected) {
+                            pickGlossaryMutation.mutate(item._id);
+                          } else {
+                            Snackbar.show({text: 'Offline mode', duration: Snackbar.LENGTH_SHORT});
+                          }
+                        }}>
+                        <Ionicons name="hand-right-outline" size={15} color="#FFFFFF" style={{marginRight: 6}} />
+                        <Text style={styles.claimGlossaryBtnText}>Claim for Review</Text>
+                      </TouchableOpacity>
+                    ) : (
+                      <View style={{flexDirection: 'row', gap: 10, flex: 1, justifyContent: 'flex-end'}}>
+                        <TouchableOpacity
+                          style={styles.approveGlossaryBtn}
+                          onPress={() => {
+                            if (isConnected) {
+                              approveGlossaryMutation.mutate({id: item._id});
+                            } else {
+                              Snackbar.show({text: 'Offline mode', duration: Snackbar.LENGTH_SHORT});
+                            }
+                          }}>
+                          <Ionicons name="checkmark-circle-outline" size={16} color="#FFFFFF" style={{marginRight: 6}} />
+                          <Text style={styles.approveGlossaryBtnText}>Approve & Publish</Text>
+                        </TouchableOpacity>
+                      </View>
+                    )}
+                  </View>
+                </View>
+              )}
+              contentContainerStyle={styles.list}
+              showsVerticalScrollIndicator={false}
+              ListEmptyComponent={
+                <EmptyState
+                  icon="bookmark-outline"
+                  title={
+                    glossaryTab === 'unassigned'
+                      ? 'No Unassigned Terms'
+                      : 'No Terms Under Review'
+                  }
+                  subtitle={
+                    glossaryTab === 'unassigned'
+                      ? 'Queue is clear! All medical submissions have been claimed or reviewed.'
+                      : 'You do not have any terms currently in review. Claim terms from the Unassigned queue.'
+                  }
+                />
+              }
+            />
+          </Tabs.Tab>
         </Tabs.Container>
 
         {/* <FilterModal
@@ -799,6 +1276,84 @@ export default function HomeScreen({navigation, route}: ArticleProps) {
             setArticleDiscardModal(false);
           }}
         />
+
+        {/* Medical Glossary Add / Edit Modal */}
+        <Modal
+          visible={glossaryModalVisible}
+          transparent
+          animationType="fade"
+          onRequestClose={() => setGlossaryModalVisible(false)}>
+          <View style={styles.glossaryModalOverlay}>
+            <View style={styles.glossaryModalContainer}>
+              <View style={styles.glossaryModalHeader}>
+                <Text style={styles.glossaryModalTitle}>
+                  {editingGlossaryId ? 'Edit Medical Term' : 'Add Medical Term'}
+                </Text>
+                <TouchableOpacity onPress={() => setGlossaryModalVisible(false)}>
+                  <Ionicons name="close" size={24} color="#64748B" />
+                </TouchableOpacity>
+              </View>
+
+              <ScrollView
+                showsVerticalScrollIndicator={false}
+                keyboardShouldPersistTaps="handled"
+                style={{maxHeight: hp(65)}}>
+                <Text style={styles.glossaryInputLabel}>Term / Medical Title *</Text>
+                <TextInput
+                  style={styles.glossaryTextInput}
+                  placeholder="e.g. Arterial Hypertension"
+                  placeholderTextColor="#94A3B8"
+                  value={glossaryTerm}
+                  onChangeText={setGlossaryTerm}
+                />
+
+                <Text style={styles.glossaryInputLabel}>Phonetic Transcription</Text>
+                <TextInput
+                  style={styles.glossaryTextInput}
+                  placeholder="e.g. /ɑːrˈtɪəriəl ˌhaɪpərˈtɛnʃən/"
+                  placeholderTextColor="#94A3B8"
+                  value={glossaryPhonetic}
+                  onChangeText={setGlossaryPhonetic}
+                />
+
+                <Text style={styles.glossaryInputLabel}>Specialty / Category</Text>
+                <TextInput
+                  style={styles.glossaryTextInput}
+                  placeholder="e.g. Cardiology, Neurology"
+                  placeholderTextColor="#94A3B8"
+                  value={glossaryCategory}
+                  onChangeText={setGlossaryCategory}
+                />
+
+                <Text style={styles.glossaryInputLabel}>Clinical Definition *</Text>
+                <TextInput
+                  style={[styles.glossaryTextInput, {height: 110, textAlignVertical: 'top'}]}
+                  placeholder="Enter detailed clinical definition, etiology, and diagnostic context..."
+                  placeholderTextColor="#94A3B8"
+                  multiline
+                  numberOfLines={4}
+                  value={glossaryDefinition}
+                  onChangeText={setGlossaryDefinition}
+                />
+
+                <View style={styles.glossaryModalBtnRow}>
+                  <TouchableOpacity
+                    style={styles.glossaryCancelBtn}
+                    onPress={() => setGlossaryModalVisible(false)}>
+                    <Text style={styles.glossaryCancelBtnText}>Cancel</Text>
+                  </TouchableOpacity>
+                  <TouchableOpacity
+                    style={styles.glossarySaveBtn}
+                    onPress={handleSaveGlossary}>
+                    <Text style={styles.glossarySaveBtnText}>
+                      {editingGlossaryId ? 'Save Changes' : 'Create Term'}
+                    </Text>
+                  </TouchableOpacity>
+                </View>
+              </ScrollView>
+            </View>
+          </View>
+        </Modal>
       </View>
     </SafeAreaView>
   );
@@ -849,8 +1404,7 @@ const styles = StyleSheet.create({
   },
   labelStyle: {
     fontWeight: '600',
-    fontSize: wp(3.5),
-    //color: 'black',
+    fontSize: wp(3.1),
     textTransform: 'capitalize',
   },
   contentContainerStyle: {
@@ -925,5 +1479,284 @@ const styles = StyleSheet.create({
     paddingBottom: hp(16),
     paddingTop: 4,
     gap: hp(1.5),
+  },
+  glossaryHeaderWrap: {
+    paddingHorizontal: 16,
+    paddingTop: 14,
+    paddingBottom: 10,
+    gap: 12,
+  },
+  glossarySegmentContainer: {
+    flexDirection: 'row',
+    backgroundColor: '#F1F5F9',
+    borderRadius: 12,
+    padding: 3,
+  },
+  glossarySegmentBtn: {
+    flex: 1,
+    paddingVertical: 8,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderRadius: 9,
+  },
+  glossarySegmentBtnActive: {
+    backgroundColor: '#FFFFFF',
+    shadowColor: '#000',
+    shadowOffset: {width: 0, height: 1},
+    shadowOpacity: 0.08,
+    shadowRadius: 2,
+    elevation: 2,
+  },
+  glossarySegmentContent: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 7,
+  },
+  glossarySegmentText: {
+    fontSize: 13,
+    fontWeight: '600',
+    color: '#64748B',
+  },
+  glossarySegmentTextActive: {
+    color: PRIMARY_COLOR,
+    fontWeight: '700',
+  },
+  glossaryBadge: {
+    paddingHorizontal: 7,
+    paddingVertical: 1.5,
+    borderRadius: 10,
+  },
+  glossaryBadgeActive: {
+    backgroundColor: PRIMARY_COLOR,
+  },
+  glossaryBadgeInactive: {
+    backgroundColor: '#E2E8F0',
+  },
+  glossaryBadgeText: {
+    fontSize: 11,
+    fontWeight: '700',
+  },
+  glossaryBadgeTextActive: {
+    color: '#FFFFFF',
+  },
+  glossaryBadgeTextInactive: {
+    color: '#64748B',
+  },
+  statusPill: {
+    paddingHorizontal: 7,
+    paddingVertical: 2,
+    borderRadius: 6,
+  },
+  statusPillUnassigned: {
+    backgroundColor: '#FEF3C7',
+    borderWidth: 1,
+    borderColor: '#FDE68A',
+  },
+  statusPillReview: {
+    backgroundColor: '#EFF6FF',
+    borderWidth: 1,
+    borderColor: '#BFDBFE',
+  },
+  statusPillText: {
+    fontSize: 10,
+    fontWeight: '700',
+    letterSpacing: 0.3,
+  },
+  statusPillTextUnassigned: {
+    color: '#B45309',
+  },
+  statusPillTextReview: {
+    color: '#1D4ED8',
+  },
+  glossaryCardFooter: {
+    flexDirection: 'row',
+    justifyContent: 'flex-end',
+    alignItems: 'center',
+    marginTop: 12,
+    paddingTop: 10,
+    borderTopWidth: 1,
+    borderTopColor: '#F1F5F9',
+  },
+  claimGlossaryBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: PRIMARY_COLOR,
+    paddingVertical: 7,
+    paddingHorizontal: 14,
+    borderRadius: 8,
+  },
+  claimGlossaryBtnText: {
+    color: '#FFFFFF',
+    fontSize: 12.5,
+    fontWeight: '700',
+  },
+  approveGlossaryBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#16A34A',
+    paddingVertical: 7,
+    paddingHorizontal: 14,
+    borderRadius: 8,
+  },
+  approveGlossaryBtnText: {
+    color: '#FFFFFF',
+    fontSize: 12.5,
+    fontWeight: '700',
+  },
+  glossarySearchRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#F1F5F9',
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: '#E2E8F0',
+  },
+  glossarySearchInput: {
+    flex: 1,
+    paddingVertical: 10,
+    paddingHorizontal: 10,
+    fontSize: 14,
+    color: '#0F172A',
+  },
+  glossaryCard: {
+    backgroundColor: '#FFFFFF',
+    marginHorizontal: 16,
+    padding: 16,
+    borderRadius: 14,
+    borderWidth: 1,
+    borderColor: '#E2E8F0',
+    shadowColor: '#000',
+    shadowOffset: {width: 0, height: 1},
+    shadowOpacity: 0.05,
+    shadowRadius: 3,
+    elevation: 2,
+    marginBottom: 10,
+  },
+  glossaryCardHeader: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    justifyContent: 'space-between',
+    marginBottom: 8,
+  },
+  glossaryTermText: {
+    fontSize: 16,
+    fontWeight: '700',
+    color: '#0F172A',
+  },
+  glossaryPhoneticText: {
+    fontSize: 12.5,
+    fontStyle: 'italic',
+    color: '#64748B',
+    marginTop: 2,
+  },
+  glossaryActionRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+  },
+  glossaryCategoryBadge: {
+    backgroundColor: '#F0FDF4',
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+    borderRadius: 6,
+    borderWidth: 1,
+    borderColor: '#DCFCE7',
+  },
+  glossaryCategoryBadgeText: {
+    fontSize: 11,
+    fontWeight: '600',
+    color: '#15803D',
+  },
+  glossaryIconBtn: {
+    padding: 6,
+    borderRadius: 8,
+    backgroundColor: '#F8FAFC',
+    borderWidth: 1,
+    borderColor: '#E2E8F0',
+  },
+  glossaryDefText: {
+    fontSize: 13.5,
+    lineHeight: 20,
+    color: '#334155',
+  },
+  glossaryModalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.5)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 20,
+  },
+  glossaryModalContainer: {
+    width: '100%',
+    backgroundColor: '#FFFFFF',
+    borderRadius: 18,
+    padding: 20,
+    shadowColor: '#000',
+    shadowOffset: {width: 0, height: 4},
+    shadowOpacity: 0.15,
+    shadowRadius: 10,
+    elevation: 6,
+  },
+  glossaryModalHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginBottom: 16,
+    paddingBottom: 12,
+    borderBottomWidth: 1,
+    borderBottomColor: '#F1F5F9',
+  },
+  glossaryModalTitle: {
+    fontSize: 18,
+    fontWeight: '700',
+    color: '#0F172A',
+  },
+  glossaryInputLabel: {
+    fontSize: 13,
+    fontWeight: '600',
+    color: '#475569',
+    marginBottom: 6,
+    marginTop: 10,
+  },
+  glossaryTextInput: {
+    backgroundColor: '#F8FAFC',
+    borderWidth: 1,
+    borderColor: '#E2E8F0',
+    borderRadius: 10,
+    paddingHorizontal: 12,
+    paddingVertical: 10,
+    fontSize: 14,
+    color: '#0F172A',
+  },
+  glossaryModalBtnRow: {
+    flexDirection: 'row',
+    justifyContent: 'flex-end',
+    gap: 12,
+    marginTop: 20,
+    marginBottom: 6,
+  },
+  glossaryCancelBtn: {
+    paddingVertical: 11,
+    paddingHorizontal: 18,
+    borderRadius: 10,
+    borderWidth: 1,
+    borderColor: '#CBD5E1',
+    backgroundColor: '#FFFFFF',
+  },
+  glossaryCancelBtnText: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#64748B',
+  },
+  glossarySaveBtn: {
+    paddingVertical: 11,
+    paddingHorizontal: 20,
+    borderRadius: 10,
+    backgroundColor: PRIMARY_COLOR,
+  },
+  glossarySaveBtnText: {
+    fontSize: 14,
+    fontWeight: '700',
+    color: '#FFFFFF',
   },
 });

@@ -43,8 +43,8 @@ const COLORS = {
 };
 
 const LogoutScreen = ({navigation, route}) => {
-  const {profile_image, username} = route.params;
-  const {user_token} = useSelector((state: any) => state.user);
+  const {profile_image, username} = route.params || {};
+  const {user_token, isGuest} = useSelector((state: any) => state.user);
   const {isConnected} = useSelector((state: any) => state.network);
   const dispatch = useDispatch();
   const isDarkMode = useColorScheme() === 'dark';
@@ -69,7 +69,16 @@ const LogoutScreen = ({navigation, route}) => {
     },
   });
 
-  const handleLogout = () => {
+  const handleLogout = async () => {
+    if (isGuest) {
+      await clearStorage();
+      dispatch(resetUserState());
+      navigation.reset({
+        index: 0,
+        routes: [{name: 'LoginScreen'}],
+      });
+      return;
+    }
     if (!isConnected) {
       Snackbar.show({text: 'You are offline', duration: Snackbar.LENGTH_SHORT});
       return;
@@ -129,7 +138,7 @@ const LogoutScreen = ({navigation, route}) => {
                 color={colors.text}
                 textAlign="center"
                 marginBottom="$3">
-                Log out of{'\n'}{username}
+                {isGuest ? 'Exit Guest Explorer' : `Log out of\n${username}`}
               </Text>
 
               {/* Message */}
@@ -139,8 +148,9 @@ const LogoutScreen = ({navigation, route}) => {
                 color={colors.secondaryText}
                 textAlign="center"
                 marginBottom="$8">
-                Are you sure you want to log out?{'\n'}
-                You will need to sign in again to access the admin portal.
+                {isGuest
+                  ? 'You are currently previewing the platform in Guest Mode.\nExiting will return you to the Sign-in Portal.'
+                  : `Are you sure you want to log out?\nYou will need to sign in again to access the admin portal.`}
               </Text>
 
               {/* Logout Button (Destructive) */}
@@ -153,7 +163,7 @@ const LogoutScreen = ({navigation, route}) => {
                 pressStyle={{scale: 0.98}}
                 disabled={userLogoutMutation.isPending}>
                 <Text color="white" fontSize={17} fontWeight="700">
-                  {userLogoutMutation.isPending ? 'Logging out...' : 'Yes, Log Me Out'}
+                  {isGuest ? 'Exit Guest Mode' : (userLogoutMutation.isPending ? 'Logging out...' : 'Yes, Log Me Out')}
                 </Text>
               </Button>
 

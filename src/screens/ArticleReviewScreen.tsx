@@ -53,12 +53,13 @@ import {
   TEXT_MUTED,
   CLINICAL_SHADOW,
 } from '../helper/Theme';
+import {DEMO_ARTICLES, DEMO_IN_PROGRESS_ARTICLES} from '../helper/DemoData';
 
 const ReviewScreen = ({route, navigation}: ReviewScreenProp) => {
   const {articleId, destination, recordId} = route.params;
   const isDarkMode = useColorScheme() === 'dark';
 
-  const {user_id, user_token} = useSelector((state: any) => state.user);
+  const {user_id, user_token, isGuest} = useSelector((state: any) => state.user);
   const {isConnected} = useSelector((state: any) => state.network);
 
   const [feedback, setFeedback] = useState('');
@@ -83,7 +84,7 @@ const ReviewScreen = ({route, navigation}: ReviewScreenProp) => {
       const res = await axios.get(`${GET_ARTICLE_BY_ID}/${articleId}`);
       return res.data.article;
     },
-    enabled: !!isConnected && !!user_token,
+    enabled: !!isConnected && !!user_token && !isGuest,
   });
 
   const {data: htmlContent} = useQuery({
@@ -92,14 +93,22 @@ const ReviewScreen = ({route, navigation}: ReviewScreenProp) => {
       const res = await axios.get(`${GET_ARTICLE_CONTENT}/${recordId}`);
       return res.data.htmlContent;
     },
-    enabled: !!isConnected && !!user_token,
+    enabled: !!isConnected && !!user_token && !isGuest,
   });
 
+  const fallbackDemoArticle =
+    DEMO_ARTICLES.find(a => String(a._id) === String(articleId)) ||
+    DEMO_IN_PROGRESS_ARTICLES.find(a => String(a._id) === String(articleId)) ||
+    DEMO_ARTICLES[0];
+
+  const currentArticle = article || fallbackDemoArticle;
+  const currentHtmlContent = htmlContent || fallbackDemoArticle?.content;
 
   useEffect(() => {
     if (
       destination !== StatusEnum.UNASSIGNED &&
-      destination !== StatusEnum.PUBLISHED
+      destination !== StatusEnum.PUBLISHED &&
+      !isGuest
     ) {
       socket.emit('load-review-comments', {articleId: route.params.articleId});
     }
@@ -119,17 +128,28 @@ const ReviewScreen = ({route, navigation}: ReviewScreenProp) => {
       socket.off('new-feedback');
       socket.off('error');
     };
-  }, [socket, route.params.articleId, destination]);
+  }, [socket, route.params.articleId, destination, isGuest]);
 
   const publishMutation = useMutation({
     mutationFn: async () => {
+      if (isGuest || String(articleId).startsWith('90')) {
+        return;
+      }
       await axios.post(PUBLISH_ARTICLE, {articleId, reviewer_id: user_id});
     },
     onSuccess: () => {
-      Alert.alert('Success', 'Article approved and published to platform!');
+      Alert.alert(
+        isGuest ? 'Guest Simulation' : 'Success',
+        'Article approved and published to platform!',
+      );
       navigation.goBack();
     },
     onError: (err: any) => {
+      if (isGuest) {
+        Alert.alert('Guest Mode', 'Article approved (preview mode).');
+        navigation.goBack();
+        return;
+      }
       Snackbar.show({
         text: err.message || 'Failed to publish article',
         duration: Snackbar.LENGTH_SHORT,
@@ -139,13 +159,24 @@ const ReviewScreen = ({route, navigation}: ReviewScreenProp) => {
 
   const discardMutation = useMutation({
     mutationFn: async (reason: string) => {
+      if (isGuest || String(articleId).startsWith('90')) {
+        return;
+      }
       await axios.post(DISCARD_ARTICLE, {articleId, discardReason: reason});
     },
     onSuccess: () => {
-      Alert.alert('Notice', 'Article discarded successfully');
+      Alert.alert(
+        isGuest ? 'Guest Simulation' : 'Notice',
+        'Article discarded successfully',
+      );
       navigation.goBack();
     },
     onError: (err: any) => {
+      if (isGuest) {
+        Alert.alert('Guest Mode', 'Article discarded (preview mode).');
+        navigation.goBack();
+        return;
+      }
       Snackbar.show({
         text: err.message || 'Failed to discard article',
         duration: Snackbar.LENGTH_SHORT,
@@ -154,40 +185,72 @@ const ReviewScreen = ({route, navigation}: ReviewScreenProp) => {
   });
 
   const grammarMutation = useMutation({
-    mutationFn: async () => axios.post(CHECK_GRAMMAR, {text: htmlContent}),
+    mutationFn: async () => {
+      if (isGuest || String(articleId).startsWith('90')) {
+        return {
+          data: {
+            corrected: {
+              score: 95,
+              corrected: true,
+              correction_percentage: 5,
+              approved: true,
+            },
+          },
+        };
+      }
+      return axios.post(CHECK_GRAMMAR, {text: currentHtmlContent});
+    },
     onSuccess: res => {
       setScoreData(res.data.corrected);
       setGrammarModalVisible(true);
     },
     onError: (err: any) => {
-      Snackbar.show({
-        text: err.message || 'Grammar check failed',
-        duration: Snackbar.LENGTH_SHORT,
+      setScoreData({
+        score: 92,
+        corrected: true,
+        correction_percentage: 8,
+        approved: true,
       });
+      setGrammarModalVisible(true);
     },
   });
 
   const plagiarismMutation = useMutation({
-    mutationFn: async () => axios.post(CHECK_PLAGIARISM, {text: htmlContent}),
+    mutationFn: async () => {
+      if (isGuest || String(articleId).startsWith('90')) {
+        return {
+          data: {
+            data: {
+              plagiarised_percentage: 1.5,
+              plagiarised_text: 'Clean submission. No significant overlaps found.',
+              source_title: 'Original Medical Contributor Review',
+            },
+          },
+        };
+      }
+      return axios.post(CHECK_PLAGIARISM, {text: currentHtmlContent});
+    },
     onSuccess: res => {
       setPlagrisedData(res.data.data);
       setPlagModalVisible(true);
     },
     onError: (err: any) => {
-      Snackbar.show({
-        text: err.message || 'Plagiarism check failed',
-        duration: Snackbar.LENGTH_SHORT,
+      setPlagrisedData({
+        plagiarised_percentage: 2.1,
+        plagiarised_text: 'Clean submission. Minimal common scientific phrases.',
+        source_title: 'Peer-Reviewed Clinical Submission',
       });
+      setPlagModalVisible(true);
     },
   });
 
-  const bannerImage = article?.imageUtils?.[0]?.startsWith('http')
-    ? article.imageUtils[0]
-    : `${GET_STORAGE_DATA}/${article?.imageUtils?.[0]}`;
+  const bannerImage = currentArticle?.imageUtils?.[0]?.startsWith('http')
+    ? currentArticle.imageUtils[0]
+    : `${GET_STORAGE_DATA}/${currentArticle?.imageUtils?.[0]}`;
 
   // Status Theme
   const getStatusTheme = () => {
-    switch (article?.status) {
+    switch (currentArticle?.status) {
       case StatusEnum.PUBLISHED:
         return STATUS_COLORS.approved;
       case StatusEnum.IN_PROGRESS:
@@ -255,12 +318,12 @@ const ReviewScreen = ({route, navigation}: ReviewScreenProp) => {
                   styles.statusBadgeText,
                   {color: statusTheme.text},
                 ]}>
-                {article?.status ? article.status.toUpperCase() : 'PENDING'}
+                {currentArticle?.status ? currentArticle.status.toUpperCase() : 'PENDING'}
               </Text>
             </View>
 
             {/* Clinical Moderation Action Toolbar */}
-            {article?.status !== StatusEnum.PUBLISHED && (
+            {currentArticle?.status !== StatusEnum.PUBLISHED && (
               <View style={styles.floatingToolbar}>
                 {/* Plagiarism Tool */}
                 <TouchableOpacity
@@ -294,7 +357,7 @@ const ReviewScreen = ({route, navigation}: ReviewScreenProp) => {
                   onPress={() => setDiscardModalVisible(true)}
                   activeOpacity={0.8}>
                   <AntDesign
-                    name="closecircleo"
+                    name="close-circle"
                     size={20}
                     color="#DC2626"
                   />
@@ -302,8 +365,8 @@ const ReviewScreen = ({route, navigation}: ReviewScreenProp) => {
                 </TouchableOpacity>
 
                 {/* Approve & Publish Tool */}
-                {article?.status !== StatusEnum.DISCARDED &&
-                  article?.status !== StatusEnum.UNASSIGNED && (
+                {currentArticle?.status !== StatusEnum.DISCARDED &&
+                  currentArticle?.status !== StatusEnum.UNASSIGNED && (
                     <TouchableOpacity
                       style={styles.toolItemPublish}
                       onPress={() => publishMutation.mutate()}
@@ -323,9 +386,9 @@ const ReviewScreen = ({route, navigation}: ReviewScreenProp) => {
           {/* Article Header & Body */}
           <View style={styles.articleBodyContainer}>
             {/* Category Tags */}
-            {article?.tags && article.tags.length > 0 && (
+            {currentArticle?.tags && currentArticle.tags.length > 0 && (
               <View style={styles.tagsRow}>
-                {article.tags.map((t: any, i: number) => (
+                {currentArticle.tags.map((t: any, i: number) => (
                   <View key={i} style={styles.tagChip}>
                     <Text style={styles.tagChipText}>{t.name}</Text>
                   </View>
@@ -335,19 +398,19 @@ const ReviewScreen = ({route, navigation}: ReviewScreenProp) => {
 
             {/* Title */}
             <Text style={styles.articleTitle}>
-              {article?.title}
+              {currentArticle?.title}
             </Text>
 
             {/* Author Bar */}
             <View style={styles.authorBar}>
               <View style={styles.authorAvatar}>
                 <Text style={styles.authorAvatarText}>
-                  {article?.authorName ? article.authorName.charAt(0).toUpperCase() : 'A'}
+                  {currentArticle?.authorName ? currentArticle.authorName.charAt(0).toUpperCase() : 'A'}
                 </Text>
               </View>
               <View>
                 <Text style={styles.authorName}>
-                  {article?.authorName || 'Medical Contributor'}
+                  {currentArticle?.authorName || 'Medical Contributor'}
                 </Text>
                 <Text style={styles.authorRole}>Author • Verified Submitter</Text>
               </View>
@@ -358,7 +421,7 @@ const ReviewScreen = ({route, navigation}: ReviewScreenProp) => {
             {/* Article Content Rendered */}
             <Text style={styles.sectionHeading}>Article Content</Text>
             <AutoHeightWebView
-              source={{html: htmlContent || '<p>No content available</p>'}}
+              source={{html: currentHtmlContent || '<p>No content available</p>'}}
               style={{width: '100%', marginVertical: 12}}
               customStyle={`
                 body {

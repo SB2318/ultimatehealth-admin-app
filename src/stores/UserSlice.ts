@@ -1,10 +1,11 @@
-import {createSlice} from '@reduxjs/toolkit';
+import {createSlice, PayloadAction} from '@reduxjs/toolkit';
 
 export interface UserState {
   user_id: string;
   user_token: string;
   user_handle: string;
   isSuperAdmin: boolean;
+  isGuest: boolean;
 }
 
 const initialState: UserState = {
@@ -12,6 +13,7 @@ const initialState: UserState = {
   user_token: '',
   user_handle: '',
   isSuperAdmin: false,
+  isGuest: false,
 };
 
 const userSlice = createSlice({
@@ -32,11 +34,22 @@ const userSlice = createSlice({
     setIsSuperAdmin(state, action) {
       state.isSuperAdmin = Boolean(action.payload);
     },
+    setIsGuest(state, action: PayloadAction<boolean>) {
+      state.isGuest = Boolean(action.payload);
+    },
+    setGuestMode(state) {
+      state.user_id = 'guest_reviewer_id';
+      state.user_token = 'guest_demo_jwt_token';
+      state.user_handle = 'guest_reviewer';
+      state.isSuperAdmin = true;
+      state.isGuest = true;
+    },
     resetUserState(state) {
       state.user_id = '';
       state.user_token = '';
       state.user_handle = '';
       state.isSuperAdmin = false;
+      state.isGuest = false;
     },
   },
 });
@@ -46,6 +59,8 @@ export const {
   setUserToken,
   setUserHandle,
   setIsSuperAdmin,
+  setIsGuest,
+  setGuestMode,
   resetUserState,
 } = userSlice.actions;
 

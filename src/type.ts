@@ -309,7 +309,7 @@ export type CommentScreenProp = StackScreenProps<
 >;
 export type TabParamList = {
   Dashboard: undefined;
-  Article: undefined;
+  Article: {initialTab?: string} | undefined;
   Podcast: undefined;
   Report: undefined;
   Profile: undefined;
@@ -485,7 +485,16 @@ export type LineDataItem = {
   value: number;
 };
 
+export type TokenUser = {
+  userId?: string;
+  role?: string;
+  isSuperAdmin?: boolean;
+  [key: string]: any;
+};
+
 export type TokenStatus = {
   isValid: boolean;
   message: string;
+  user?: TokenUser;
+  isNetworkError?: boolean;
 };

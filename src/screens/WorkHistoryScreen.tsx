@@ -1,8 +1,9 @@
 import React, {useCallback, useState} from 'react';
-import {View, Text, StyleSheet, Image, useColorScheme} from 'react-native';
+import {View, Text, StyleSheet, Image, useColorScheme, TouchableOpacity} from 'react-native';
 import {MaterialTabBar, Tabs} from 'react-native-collapsible-tab-view';
 import {PRIMARY_COLOR, ON_PRIMARY_COLOR, BUTTON_COLOR} from '../helper/Theme';
 import {SafeAreaView, useSafeAreaInsets} from 'react-native-safe-area-context';
+import EmptyState from '../components/EmptyState';
 import {
   ArticleData,
   EditRequest,
@@ -337,6 +338,25 @@ export default function WorkHistoryScreen({navigation}: WorkHistoryProps) {
 
   return (
     <SafeAreaView style={{flex: 1, backgroundColor: colors.background}}>
+      {/* Header Bar */}
+      <View
+        style={[
+          styles.headerBar,
+          {
+            backgroundColor: colors.surface,
+            borderBottomColor: colors.border,
+          },
+        ]}>
+        <View style={styles.headerTextWrap}>
+          <Text style={[styles.headerTitle, {color: colors.text}]}>
+            Work History
+          </Text>
+          <Text style={[styles.headerSubtitle, {color: colors.secondaryText}]}>
+            Completed duties, reviews & moderation logs
+          </Text>
+        </View>
+      </View>
+
       <Tabs.Container
         renderTabBar={renderTabBar}
         containerStyle={{backgroundColor: colors.background}}>
@@ -346,10 +366,16 @@ export default function WorkHistoryScreen({navigation}: WorkHistoryProps) {
             data={getFallbackArticles(completedArticles)}
             renderItem={renderItem}
             keyExtractor={item => item._id}
-            ListEmptyComponent={renderEmptyState(
-              'No articles available',
-              <Fontisto name="onenote" size={80} color="#6A89A7" />,
-            )}
+            contentContainerStyle={styles.listContent}
+            ListEmptyComponent={
+              <EmptyState
+                icon="file-text"
+                iconType="feather"
+                badge="Articles"
+                title="No Completed Articles"
+                subtitle="Articles that you review, approve, or publish will be recorded here in your personal archive."
+              />
+            }
             showsVerticalScrollIndicator={false}
             refreshing={isCompletedArticleLoading}
             onRefresh={() => {
@@ -370,10 +396,16 @@ export default function WorkHistoryScreen({navigation}: WorkHistoryProps) {
           <Tabs.FlatList
             data={getFallbackImprovements(completedImprovements)}
             renderItem={renderRevisionItem}
-            ListEmptyComponent={renderEmptyState(
-              'No revisions available',
-              <Fontisto name="onenote" size={80} color="#6A89A7" />,
-            )}
+            contentContainerStyle={styles.listContent}
+            ListEmptyComponent={
+              <EmptyState
+                icon="edit-3"
+                iconType="feather"
+                badge="Revisions"
+                title="No Completed Revisions"
+                subtitle="Approved or completed revision reviews will appear here once reviewed."
+              />
+            }
             refreshing={isCompletedImprovementLoading}
             onRefresh={() => {
               setImprovePage(1);
@@ -393,10 +425,16 @@ export default function WorkHistoryScreen({navigation}: WorkHistoryProps) {
           <Tabs.FlatList
             data={getFallbackPodcasts(completedPodcasts)}
             renderItem={renderPodcastItem}
-            ListEmptyComponent={renderEmptyState(
-              'No podcasts available',
-              <MaterialIcons name="podcasts" size={80} color="#6A89A7" />,
-            )}
+            contentContainerStyle={styles.listContent}
+            ListEmptyComponent={
+              <EmptyState
+                icon="headphones"
+                iconType="feather"
+                badge="Podcasts"
+                title="No Completed Podcasts"
+                subtitle="Podcast audio reviews and published episodes will be tracked in this section."
+              />
+            }
             refreshing={isCompletedPodcastLoading}
             onRefresh={() => {
               setPodcastPage(1);
@@ -424,10 +462,16 @@ export default function WorkHistoryScreen({navigation}: WorkHistoryProps) {
                 onTakeActionReport={onTakeActionReport}
               />
             )}
-            ListEmptyComponent={renderEmptyState(
-              'No reports available',
-              <MaterialIcons name="report-off" size={80} color="#6A89A7" />,
-            )}
+            contentContainerStyle={styles.listContent}
+            ListEmptyComponent={
+              <EmptyState
+                icon="shield-checkmark"
+                iconType="ionicons"
+                badge="Disputes"
+                title="No Resolved Reports"
+                subtitle="Reports and moderation actions you have resolved will appear here."
+              />
+            }
             onRefresh={() => {
               setReportPage(1);
               refetchAssignReports();
@@ -444,17 +488,17 @@ export default function WorkHistoryScreen({navigation}: WorkHistoryProps) {
       </Tabs.Container>
 
       {/* Floating Back Button */}
-      <FAB
-        style={{
-          position: 'absolute',
-          right: 20,
-          bottom: 30,
-          backgroundColor: BUTTON_COLOR,
-        }}
-        small
-        icon={() => <Ionicons name="arrow-back" size={24} color="white" />}
+      <TouchableOpacity
+        style={[
+          styles.floatingBackButton,
+          {
+            bottom: Math.max(insets.bottom + 20, 32),
+          },
+        ]}
         onPress={() => navigation.goBack()}
-      />
+        activeOpacity={0.85}>
+        <Ionicons name="arrow-back" size={24} color="#FFFFFF" />
+      </TouchableOpacity>
     </SafeAreaView>
   );
   // return (
@@ -691,6 +735,45 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
+  },
+  headerBar: {
+    paddingHorizontal: 18,
+    paddingTop: 12,
+    paddingBottom: 12,
+    borderBottomWidth: 1,
+  },
+  headerTextWrap: {
+    gap: 2,
+  },
+  headerTitle: {
+    fontSize: 22,
+    fontWeight: '700',
+    letterSpacing: -0.4,
+  },
+  headerSubtitle: {
+    fontSize: 13,
+    fontWeight: '500',
+  },
+  listContent: {
+    paddingHorizontal: 14,
+    paddingTop: 12,
+    paddingBottom: 110,
+  },
+  floatingBackButton: {
+    position: 'absolute',
+    left: 20,
+    width: 50,
+    height: 50,
+    borderRadius: 25,
+    backgroundColor: PRIMARY_COLOR,
+    justifyContent: 'center',
+    alignItems: 'center',
+    shadowColor: '#000',
+    shadowOffset: {width: 0, height: 4},
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+    elevation: 8,
+    zIndex: 999,
   },
   fab: {
     position: 'absolute',

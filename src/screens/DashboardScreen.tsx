@@ -11,13 +11,14 @@ import {
   StatusBar,
 } from 'react-native';
 import {SafeAreaView} from 'react-native-safe-area-context';
-import {useSelector} from 'react-redux';
+import {useSelector, useDispatch} from 'react-redux';
 import {useQuery} from '@tanstack/react-query';
 import axios from 'axios';
 import * as Haptics from 'expo-haptics';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
 import Feather from '@expo/vector-icons/Feather';
+import {resetUserState} from '../stores/UserSlice';
 
 import {
   GET_PROFILE_API,
@@ -63,7 +64,8 @@ import {
 
 export default function DashboardScreen({navigation}: any) {
   const isDarkMode = useColorScheme() === 'dark';
-  const {user_id, user_token, user_handle, isSuperAdmin} = useSelector(
+  const dispatch = useDispatch();
+  const {user_id, user_token, user_handle, isSuperAdmin, isGuest} = useSelector(
     (state: any) => state.user,
   );
   const {isConnected} = useSelector((state: any) => state.network);
@@ -312,13 +314,17 @@ export default function DashboardScreen({navigation}: any) {
   };
 
   const resolvedUser = (user as any)?.user || (user as any)?.data || user;
-  const displayName = resolvedUser?.user_name || resolvedUser?.name || user_handle || 'Clinical Reviewer';
+  const displayName = isGuest
+    ? 'Dr. Guest Explorer'
+    : (resolvedUser?.user_name || resolvedUser?.name || user_handle || 'Clinical Reviewer');
   const rawAvatar = resolvedUser?.Profile_avtar || resolvedUser?.profile_avtar || resolvedUser?.Profile_avatar || resolvedUser?.profile_image || resolvedUser?.avatar;
-  const avatarUrl = rawAvatar
+  const avatarUrl = isGuest
+    ? 'https://images.pexels.com/photos/5452293/pexels-photo-5452293.jpeg?auto=compress&cs=tinysrgb&w=400'
+    : (rawAvatar
     ? rawAvatar.startsWith('http://') || rawAvatar.startsWith('https://')
       ? rawAvatar
       : `${GET_STORAGE_DATA}/${rawAvatar}`
-    : null;
+    : null);
 
   return (
     <SafeAreaView style={[styles.container, {backgroundColor: colors.screenBg}]}>
@@ -380,7 +386,12 @@ export default function DashboardScreen({navigation}: any) {
 
               {/* Clinical Role Chip */}
               <View style={styles.roleChipRow}>
-                {isSuperAdmin ? (
+                {isGuest ? (
+                  <View style={styles.guestPill}>
+                    <Ionicons name="compass" size={11} color="#0284C7" />
+                    <Text style={styles.guestPillText}>GUEST REVIEWER</Text>
+                  </View>
+                ) : isSuperAdmin ? (
                   <View style={styles.superAdminBadge}>
                     <Ionicons name="shield-checkmark" size={12} color="#4338CA" />
                     <Text style={styles.superAdminBadgeText}>SUPER ADMIN</Text>
@@ -425,6 +436,33 @@ export default function DashboardScreen({navigation}: any) {
             )}
           </TouchableOpacity>
         </View>
+
+        {/* GUEST EXPLORER BANNER */}
+        {isGuest && (
+          <View style={styles.guestModeBanner}>
+            <View style={styles.guestBannerLeft}>
+              <View style={styles.guestBadgeDot} />
+              <View style={{flex: 1}}>
+                <Text style={styles.guestBannerTitle}>Guest Mode Active</Text>
+                <Text style={styles.guestBannerSubtitle}>
+                  Simulating full reviewer environment with mock data
+                </Text>
+              </View>
+            </View>
+            <TouchableOpacity
+              style={styles.exitGuestButton}
+              onPress={() => {
+                dispatch(resetUserState());
+                navigation.reset({
+                  index: 0,
+                  routes: [{name: 'LoginScreen'}],
+                });
+              }}
+              activeOpacity={0.8}>
+              <Text style={styles.exitGuestButtonText}>Exit Guest</Text>
+            </TouchableOpacity>
+          </View>
+        )}
 
         {/* ============================================================== */}
         {/* SUPER ADMIN EXECUTIVE BANNER (Only visible to Super Admins)     */}
@@ -544,7 +582,7 @@ export default function DashboardScreen({navigation}: any) {
               styles.kpiCard,
               {backgroundColor: colors.cardBg, borderColor: colors.border},
             ]}
-            onPress={() => navigation.navigate('Article')}
+            onPress={() => navigation.navigate('Article', {initialTab: 'Tags'})}
             activeOpacity={0.85}>
             <View style={styles.kpiCardHeader}>
               <View
@@ -907,6 +945,74 @@ const styles = StyleSheet.create({
     fontWeight: '800',
     color: '#4338CA',
     letterSpacing: 0.6,
+  },
+  guestPill: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#E0F2FE',
+    paddingHorizontal: 9,
+    paddingVertical: 3,
+    borderRadius: 12,
+    gap: 4,
+    borderWidth: 1,
+    borderColor: '#BAE6FD',
+  },
+  guestPillText: {
+    fontSize: 11,
+    fontWeight: '700',
+    color: '#0284C7',
+    letterSpacing: 0.6,
+  },
+  guestModeBanner: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    backgroundColor: '#F0F9FF',
+    borderColor: '#BAE6FD',
+    borderWidth: 1.5,
+    borderRadius: 14,
+    paddingVertical: 10,
+    paddingHorizontal: 14,
+    marginBottom: 16,
+    shadowColor: '#0284C7',
+    shadowOffset: {width: 0, height: 2},
+    shadowOpacity: 0.08,
+    shadowRadius: 6,
+    elevation: 2,
+  },
+  guestBannerLeft: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+    flex: 1,
+  },
+  guestBadgeDot: {
+    width: 8,
+    height: 8,
+    borderRadius: 4,
+    backgroundColor: '#0284C7',
+  },
+  guestBannerTitle: {
+    fontSize: 13,
+    fontWeight: '700',
+    color: '#0369A1',
+  },
+  guestBannerSubtitle: {
+    fontSize: 11.5,
+    color: '#0284C7',
+    marginTop: 1,
+  },
+  exitGuestButton: {
+    backgroundColor: '#0284C7',
+    paddingVertical: 6,
+    paddingHorizontal: 12,
+    borderRadius: 8,
+    marginLeft: 8,
+  },
+  exitGuestButtonText: {
+    color: '#FFFFFF',
+    fontSize: 12,
+    fontWeight: '700',
   },
   bellButton: {
     width: 44,

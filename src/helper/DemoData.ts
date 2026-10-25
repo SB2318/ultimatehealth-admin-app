@@ -5,7 +5,17 @@
  * Automatically wraps empty API responses when database has 0 records.
  */
 
-import {ArticleData, EditRequest, PodcastData, Report, Category, User, Reason} from '../type';
+import {
+  ArticleData,
+  EditRequest,
+  PodcastData,
+  Report,
+  Category,
+  User,
+  Reason,
+  NotificationD,
+  NotificationType,
+} from '../type';
 
 export const DEMO_TAGS: Category[] = [
   {__v: 0, _id: 'tag_cardio', id: 1, name: 'Cardiology'},
@@ -396,4 +406,74 @@ export function getFallbackCount(realCount: number | undefined | null, fallbackC
     return realCount;
   }
   return fallbackCount;
+}
+
+export const DEMO_NOTIFICATIONS: NotificationD[] = [
+  {
+    _id: 'notif_001',
+    userId: DEMO_USER_1,
+    adminId: null,
+    articleId: DEMO_ARTICLES[0],
+    revisonId: null,
+    podcastId: null,
+    commentId: null,
+    articleRecordId: 'pb_rec_901',
+    type: NotificationType.ArticleSubmitToAdmin,
+    title: 'New Clinical Article Submitted',
+    message: 'Dr. Ananya Sharma submitted "Hypertension Management: Contemporary Evidence-Based Guidelines 2026" for peer review.',
+    read: false,
+    timestamp: new Date(Date.now() - 3600000 * 2).toISOString(),
+  },
+  {
+    _id: 'notif_002',
+    userId: DEMO_USER_2,
+    adminId: null,
+    articleId: null,
+    revisonId: DEMO_IMPROVEMENTS[0],
+    podcastId: null,
+    commentId: null,
+    articleRecordId: 'pb_rec_901',
+    type: NotificationType.RevisionSubmitToAdmin,
+    title: 'Clinical Revision Pending Review',
+    message: 'A revision request was submitted regarding pharmacological dosage updates in cardiovascular care.',
+    read: false,
+    timestamp: new Date(Date.now() - 3600000 * 5).toISOString(),
+  },
+  {
+    _id: 'notif_003',
+    userId: DEMO_USER_1,
+    adminId: null,
+    articleId: DEMO_ARTICLES[1],
+    revisonId: null,
+    podcastId: null,
+    commentId: null,
+    articleRecordId: 'pb_rec_902',
+    type: NotificationType.ArticleComment,
+    title: 'New Clinical Commentary',
+    message: 'Dr. Rajesh Mehta commented on the neuroprotective nutrition article.',
+    read: true,
+    timestamp: new Date(Date.now() - 86400000).toISOString(),
+  },
+  {
+    _id: 'notif_004',
+    userId: null,
+    adminId: null,
+    articleId: DEMO_ARTICLES[2],
+    revisonId: null,
+    podcastId: null,
+    commentId: null,
+    articleRecordId: 'pb_rec_903',
+    type: NotificationType.ArticleSubmitToAdmin,
+    title: 'Article Queue Assignment',
+    message: 'Type 2 Diabetes Remission Strategies is queued for peer review.',
+    read: true,
+    timestamp: new Date(Date.now() - 86400000 * 2).toISOString(),
+  },
+];
+
+export function getFallbackNotifications(realNotifications?: NotificationD[]): NotificationD[] {
+  if (Array.isArray(realNotifications) && realNotifications.length > 0) {
+    return realNotifications;
+  }
+  return DEMO_NOTIFICATIONS;
 }

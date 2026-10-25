@@ -1,5 +1,5 @@
 import React, {useCallback, useEffect} from 'react';
-import {useColorScheme, View} from 'react-native';
+import {Alert, useColorScheme, View} from 'react-native';
 import {SafeAreaView} from 'react-native-safe-area-context';
 import {Tabs, MaterialTabBar} from 'react-native-collapsible-tab-view';
 import {useQuery} from '@tanstack/react-query';
@@ -49,26 +49,37 @@ const ProfileScreen = ({navigation}: ProfileScreenProps) => {
   const isDarkMode = useColorScheme() === 'dark';
   const colors = isDarkMode ? COLORS.dark : COLORS.light;
 
-  const {user_token, isSuperAdmin, user_handle: reduxUserHandle} = useSelector((state: any) => state.user);
+  const {user_token, isSuperAdmin, user_handle: reduxUserHandle, isGuest} = useSelector((state: any) => state.user);
   const {isConnected} = useSelector((state: any) => state.network);
   const dispatch = useDispatch();
 
   const {data: user, refetch, isLoading} = useQuery({
-    queryKey: ['get-profile'],
+    queryKey: ['get-profile', isGuest],
     queryFn: async () => {
+      if (isGuest) {
+        return {
+          _id: 'guest_reviewer_id',
+          user_name: 'Dr. Guest Explorer',
+          user_handle: 'guest_explorer',
+          email: 'reviewer@ultimatehealth.blog',
+          Profile_avtar: 'https://images.unsplash.com/photo-1622253692010-333f2da6031d?q=80&w=250&auto=format&fit=crop',
+        } as Admin;
+      }
       const res = await axios.get(GET_PROFILE_API, {
         headers: user_token ? {Authorization: `Bearer ${user_token}`} : {},
       });
       const data = res.data;
       return (data?.user || data?.data || data?.admin || data) as Admin;
     },
-    enabled: !!user_token && isConnected,
+    enabled: isGuest || (!!user_token && isConnected),
   });
 
   const resolvedUser = (user as any)?.user || (user as any)?.data || user;
-  const username = resolvedUser?.user_name || resolvedUser?.name || 'Admin';
-  const userhandle = resolvedUser?.user_handle || resolvedUser?.user_Handle || resolvedUser?.userHandle || reduxUserHandle || '';
-  const profileImg = resolvedUser?.Profile_avtar || resolvedUser?.profile_avtar || resolvedUser?.Profile_avatar || resolvedUser?.profile_image || resolvedUser?.avatar || '';
+  const username = isGuest ? 'Dr. Guest Explorer' : (resolvedUser?.user_name || resolvedUser?.name || 'Admin');
+  const userhandle = isGuest ? 'guest_explorer' : (resolvedUser?.user_handle || resolvedUser?.user_Handle || resolvedUser?.userHandle || reduxUserHandle || '');
+  const profileImg = isGuest
+    ? 'https://images.unsplash.com/photo-1622253692010-333f2da6031d?q=80&w=250&auto=format&fit=crop'
+    : (resolvedUser?.Profile_avtar || resolvedUser?.profile_avtar || resolvedUser?.Profile_avatar || resolvedUser?.profile_image || resolvedUser?.avatar || '');
 
   useEffect(() => {
     if (userhandle) {
@@ -84,11 +95,23 @@ const ProfileScreen = ({navigation}: ProfileScreenProps) => {
       isSuperAdmin={isSuperAdmin}
       onSuperAdminClick={() => navigation.navigate('SuperAdminDashboard')}
       onOverviewClick={() => navigation.navigate('WorkHistoryScreen')}
-      onEditProfileClick={() => navigation.navigate('EditProfile')}
+      onEditProfileClick={() => {
+        if (isGuest) {
+          Alert.alert(
+            'Guest Explorer Mode',
+            'Profile editing is disabled in Guest Mode. You have full access to explore moderation workflows, read clinical articles, and review audio broadcasts.',
+          );
+        } else {
+          navigation.navigate('EditProfile');
+        }
+      }}
       onLogoutClick={() => navigation.navigate('LogoutScreen', {
         profile_image: profileImg,
         username: username,
-      })} userEmailID={''} contriutions={''}    />
+      })}
+      userEmailID={isGuest ? 'reviewer@ultimatehealth.blog' : ''}
+      contriutions={''}
+    />
   );
 
   const renderTabBar = (props: any) => (

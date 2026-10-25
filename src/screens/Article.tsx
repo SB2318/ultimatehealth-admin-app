@@ -53,9 +53,21 @@ import AddTagModal from '../components/AddTagModal';
 import EmptyState from '../components/EmptyState';
 import DiscardReasonModal from '../components/DiscardReasonModal';
 
-export default function HomeScreen({navigation}: ArticleProps) {
+export default function HomeScreen({navigation, route}: ArticleProps) {
   const {user_id, user_token, isSuperAdmin} = useSelector((state: any) => state.user);
   const {isConnected} = useSelector((state: any) => state.network);
+  const tabContainerRef = useRef<any>(null);
+
+  useEffect(() => {
+    const requestedTab = route?.params?.initialTab;
+    if (requestedTab && tabContainerRef.current) {
+      try {
+        tabContainerRef.current.jumpToTab(requestedTab);
+      } catch (e) {
+        console.log('Error jumping to tab:', requestedTab, e);
+      }
+    }
+  }, [route?.params?.initialTab]);
   const {
     filteredAvailableArticles,
     filteredProgressArticles,
@@ -610,7 +622,8 @@ export default function HomeScreen({navigation}: ArticleProps) {
     <SafeAreaView style={styles.container}>
       <View style={[styles.innerContainer]}>
         <Tabs.Container
-          initialTabName="Articles"
+          ref={tabContainerRef}
+          initialTabName={route?.params?.initialTab || 'Articles'}
           renderTabBar={renderTabBar}
           containerStyle={styles.tabsContainer}>
           <Tabs.Tab name="Articles">
@@ -632,7 +645,7 @@ export default function HomeScreen({navigation}: ArticleProps) {
             ) : null}
           </Tabs.Tab>
 
-          {isSuperAdmin ? (
+          {(isSuperAdmin || route?.params?.initialTab === 'Tags') ? (
             <Tabs.Tab name="Tags" label="Tags">
               <Tabs.FlatList
                 data={articleCategories ? articleCategories : []}

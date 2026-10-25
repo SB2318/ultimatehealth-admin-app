@@ -1,40 +1,49 @@
-import {Alert, FlatList, StyleSheet, Text} from 'react-native';
-import React, {useEffect} from 'react';
-import {ON_PRIMARY_COLOR, PRIMARY_COLOR} from '../helper/Theme';
-import NotificationItem from '../components/NotificationItem';
+import React, {useEffect, useState} from 'react';
+import {
+  Alert,
+  FlatList,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
+} from 'react-native';
+import {SafeAreaView} from 'react-native-safe-area-context';
 import {useDispatch, useSelector} from 'react-redux';
 import {useMutation, useQuery, useQueryClient} from '@tanstack/react-query';
 import axios from 'axios';
-import {YStack} from 'tamagui';
-import {NotificationD, NotificationProps, NotificationType} from '../type';
-import {BellOff} from '@tamagui/lucide-icons';
-import Loader from '../components/Loader';
 import Snackbar from 'react-native-snackbar';
-import {hp} from '../helper/Metric';
+import {Feather, Ionicons} from '@expo/vector-icons';
+
+import {PRIMARY_COLOR, PRIMARY_DARK, SCREEN_BG, CARD_BG, BORDER_COLOR, TEXT_PRIMARY, TEXT_SECONDARY} from '../helper/Theme';
+import NotificationItem from '../components/NotificationItem';
+import EmptyState from '../components/EmptyState';
+import Loader from '../components/Loader';
+import {NotificationD, NotificationProps, NotificationType} from '../type';
 import {PROD_URL} from '../helper/APIUtils';
-import {SafeAreaView} from 'react-native-safe-area-context';
+import {DEMO_NOTIFICATIONS, getFallbackNotifications} from '../helper/DemoData';
 
-// PodcastsScreen component displays the list of podcasts and includes a PodcastPlayer
 const NotificationScreen = ({navigation}: NotificationProps) => {
-  //const notifications = [];
-  const {user_token} = useSelector((state: any) => state.user);
-  const [refreshing, setRefreshing] = React.useState(false);
-  const [page, setPage] = React.useState(1);
-  const [totalPages, setTotalPages] = React.useState(0);
+  const {user_token, isGuest} = useSelector((state: any) => state.user);
   const {isConnected} = useSelector((state: any) => state.network);
-  const [notificationsData, setNotificationsData] =
-    React.useState<NotificationD[]>();
 
-  const dispatch = useDispatch();
-
-  // console.log(user_token);
-  //  console.log('user_token');
+  const [refreshing, setRefreshing] = useState(false);
+  const [page, setPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+  const [notificationsData, setNotificationsData] = useState<NotificationD[]>(
+    isGuest ? DEMO_NOTIFICATIONS : []
+  );
 
   const queryClient = useQueryClient();
 
   const {isLoading, refetch} = useQuery({
-    queryKey: ['get-all-notifications', page],
+    queryKey: ['get-all-notifications', page, isGuest],
     queryFn: async () => {
+      if (isGuest) {
+        setNotificationsData(DEMO_NOTIFICATIONS);
+        setTotalPages(1);
+        return DEMO_NOTIFICATIONS;
+      }
+
       try {
         const response = await axios.get(
           `${PROD_URL}/notifications?role=1&page=${page}`,
@@ -47,124 +56,96 @@ const NotificationScreen = ({navigation}: NotificationProps) => {
 
         if (Number(page) === 1) {
           if (response.data.totalPages) {
-            const totalPage = response.data.totalPages;
-            setTotalPages(totalPage);
+            setTotalPages(response.data.totalPages);
           }
-          setNotificationsData(response.data.notifications);
+          const notifs = response.data.notifications || [];
+          const resolved = getFallbackNotifications(notifs);
+          setNotificationsData(resolved);
+          return resolved;
         } else {
           const oldNotif = notificationsData ?? [];
-          setNotificationsData([...oldNotif, ...response.data.notifications]);
+          const combined = [...oldNotif, ...(response.data.notifications || [])];
+          setNotificationsData(combined);
+          return combined;
         }
-        // console.log('Notification Response', response);
-        return response.data.notifications as Notification[];
       } catch (err) {
-        console.error('Error fetching articles:', err);
+        console.error('Error fetching notifications:', err);
+        const fallback = getFallbackNotifications();
+        setNotificationsData(fallback);
+        return fallback;
       }
     },
-    enabled: isConnected && !!user_token && !!page,
+    enabled: isGuest || (isConnected && !!user_token && !!page),
   });
 
-  // Mark Notification as read api integration
   const markNotificationMutation = useMutation({
     mutationKey: ['mark-notification-as-read'],
     mutationFn: async () => {
-      if (user_token === '') {
-        Alert.alert('No token found');
-        // dispatch(
-        //   showAlert({
-        //     title: 'Error!',
-        //     message: 'No token found',
-        //   }),
-        // );
-        return;
-      }
+      if (isGuest || !user_token) return;
       const res = await axios.put(
         `${PROD_URL}/notifications/mark-as-read?role=1`,
-        {
-          role: 1,
-        },
+        {role: 1},
         {
           headers: {
             Authorization: `Bearer ${user_token}`,
           },
         },
       );
-
-      return res.data as any;
+      return res.data;
     },
     onSuccess: async () => {
       queryClient.setQueryData(['unread-notifications'], 0);
       queryClient.invalidateQueries({queryKey: ['unread-notifications']});
-      Snackbar.show({
-        text: 'All notifications marked as read',
-        duration: Snackbar.LENGTH_SHORT,
-      });
     },
-
     onError: error => {
-      console.log(error);
-      Snackbar.show({
-        text: 'Internal server error, cannot mark the notification as read!',
-        duration: Snackbar.LENGTH_SHORT,
-      });
+      console.log('Error marking notifications read:', error);
     },
   });
 
   const deleteNotificationMutation = useMutation({
     mutationKey: ['delete-notification-by-id'],
     mutationFn: async ({id}: {id: string}) => {
-      if (user_token === '') {
-        Alert.alert('No token found');
-        // dispatch(
-        //   showAlert({
-        //     title: 'Error!',
-        //     message: 'No token found',
-        //   }),
-        // );
-        return;
-      }
-      const res = await axios.delete(
-        `${PROD_URL}/notification/${id}`,
-
-        {
-          headers: {
-            Authorization: `Bearer ${user_token}`,
-          },
+      if (isGuest || !user_token) return;
+      const res = await axios.delete(`${PROD_URL}/notification/${id}`, {
+        headers: {
+          Authorization: `Bearer ${user_token}`,
         },
-      );
-
-      return res.data as any;
+      });
+      return res.data;
     },
     onSuccess: async () => {
-      //success();
       refetch();
       Snackbar.show({
         text: 'Notification deleted',
         duration: Snackbar.LENGTH_SHORT,
       });
     },
-
     onError: error => {
-      console.log(error);
+      console.log('Delete notification error:', error);
       Snackbar.show({
-        text: 'Internal server error, failed to delete notification!',
+        text: 'Could not delete notification',
         duration: Snackbar.LENGTH_SHORT,
       });
     },
   });
 
   useEffect(() => {
-
-    if(isConnected){
-     markNotificationMutation.mutate();
+    if (isGuest) {
+      setNotificationsData(DEMO_NOTIFICATIONS);
+      return;
     }
-   
-
-    return () => {};
-  }, []);
+    if (isConnected && user_token) {
+      markNotificationMutation.mutate();
+    }
+  }, [isGuest, isConnected, user_token]);
 
   const onRefresh = () => {
     setRefreshing(true);
+    if (isGuest) {
+      setNotificationsData(DEMO_NOTIFICATIONS);
+      setRefreshing(false);
+      return;
+    }
     refetch();
     setRefreshing(false);
   };
@@ -176,7 +157,10 @@ const NotificationScreen = ({navigation}: NotificationProps) => {
     ) {
       if (item.articleId) {
         navigation.navigate('ArticleReviewScreen', {
-          articleId: parseInt(item.articleId._id, 10),
+          articleId:
+            typeof item.articleId._id === 'number'
+              ? item.articleId._id
+              : parseInt(String(item.articleId._id), 10) || 901,
           authorId: item.articleId.authorId,
           destination: item.articleId.status,
           recordId: item.articleId?.pb_recordId,
@@ -198,30 +182,64 @@ const NotificationScreen = ({navigation}: NotificationProps) => {
     }
   };
 
-  const renderItem = ({item}: {item: NotificationD}) => {
-    return (
-      <NotificationItem
-        item={item}
-        handleDeleteAction={handleDeleteAction}
-        handleClick={handleClickAction}
-      />
-    );
-  };
-
   const handleDeleteAction = (item: NotificationD) => {
-    console.log('Notification ID', item?._id);
+    if (isGuest) {
+      setNotificationsData(prev => prev?.filter(n => n._id !== item._id));
+      Snackbar.show({
+        text: 'Notification dismissed (Guest Mode)',
+        duration: Snackbar.LENGTH_SHORT,
+      });
+      return;
+    }
     deleteNotificationMutation.mutate({
       id: item?._id,
     });
   };
 
-  if (isLoading) {
+  const renderItem = ({item}: {item: NotificationD}) => (
+    <NotificationItem
+      item={item}
+      handleDeleteAction={handleDeleteAction}
+      handleClick={handleClickAction}
+    />
+  );
+
+  if (isLoading && (!notificationsData || notificationsData.length === 0)) {
     return <Loader />;
   }
 
   return (
-    // Main container
     <SafeAreaView style={styles.container}>
+      {/* Top Header */}
+      <View style={styles.headerBar}>
+        <TouchableOpacity
+          onPress={() => navigation.goBack()}
+          style={styles.backBtn}
+          activeOpacity={0.7}>
+          <Ionicons name="arrow-back" size={22} color={PRIMARY_DARK} />
+        </TouchableOpacity>
+        <View style={styles.headerTitleContainer}>
+          <Text style={styles.headerTitle}>Reviewer Notifications</Text>
+          <Text style={styles.headerSub}>Editorial & Governance Alerts</Text>
+        </View>
+        <View style={styles.badgeCount}>
+          <Text style={styles.badgeCountText}>
+            {notificationsData?.length || 0}
+          </Text>
+        </View>
+      </View>
+
+      {/* Guest Mode Indicator */}
+      {isGuest && (
+        <View style={styles.guestBanner}>
+          <Feather name="info" size={14} color="#0284C7" />
+          <Text style={styles.guestBannerText}>
+            Guest Mode • Simulated Peer Review Notifications
+          </Text>
+        </View>
+      )}
+
+      {/* Notification List */}
       <FlatList
         data={notificationsData}
         renderItem={renderItem}
@@ -230,14 +248,21 @@ const NotificationScreen = ({navigation}: NotificationProps) => {
         refreshing={refreshing}
         onRefresh={onRefresh}
         ListEmptyComponent={
-          <YStack style={styles.emptyContainer} alignItems="center">
-            <BellOff size={64} color="#9CA3AF" />
-
-            <Text style={styles.message}>No Notifications Found</Text>
-          </YStack>
+          <View style={styles.emptyWrap}>
+            <EmptyState
+              icon="notifications-off-outline"
+              badgeText="Inbox Clean"
+              title="No Notifications"
+              subtitle="All clinical submissions and peer-review updates have been addressed."
+              actionLabel={isGuest ? 'Reset Demo Notifications' : undefined}
+              onAction={
+                isGuest ? () => setNotificationsData(DEMO_NOTIFICATIONS) : undefined
+              }
+            />
+          </View>
         }
         onEndReached={() => {
-          if (page < totalPages) {
+          if (!isGuest && page < totalPages) {
             setPage(prev => prev + 1);
           }
         }}
@@ -252,63 +277,73 @@ export default NotificationScreen;
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: ON_PRIMARY_COLOR,
-    justifyContent: 'center',
-    //marginTop: 16,
+    backgroundColor: SCREEN_BG,
   },
-  header: {
-    backgroundColor: PRIMARY_COLOR,
-    paddingHorizontal: 16,
-    borderBottomLeftRadius: 20,
-    borderBottomRightRadius: 20,
-    // paddingBottom: hp(3),
-  },
-  content: {
-    marginTop: hp(3),
-    paddingHorizontal: 16,
-  },
-  recentPodcastsHeader: {
+  headerBar: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 15,
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    backgroundColor: CARD_BG,
+    borderBottomWidth: 1,
+    borderBottomColor: BORDER_COLOR,
+    gap: 12,
   },
-  recentPodcastsTitle: {
-    fontSize: 25,
-    fontWeight: 'bold',
-    color: 'white',
-    alignSelf: 'center',
-  },
-  seeMoreText: {
-    fontSize: 16,
-    fontWeight: '600',
-  },
-
-  message: {
-    fontSize: 16,
-    marginTop: hp(2),
-    color: '#000',
-    fontFamily: 'bold',
-    textAlign: 'center',
-  },
-  emptyContainer: {
-    flex: 1,
+  backBtn: {
+    width: 38,
+    height: 38,
+    borderRadius: 19,
+    backgroundColor: '#F1F5F9',
+    alignItems: 'center',
     justifyContent: 'center',
-    alignItems: 'center',
-    padding: 20,
-    top: 70,
   },
-
+  headerTitleContainer: {
+    flex: 1,
+  },
+  headerTitle: {
+    fontSize: 18,
+    fontWeight: '700',
+    color: TEXT_PRIMARY,
+  },
+  headerSub: {
+    fontSize: 12,
+    color: TEXT_SECONDARY,
+    marginTop: 1,
+  },
+  badgeCount: {
+    backgroundColor: '#E0F2FE',
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: '#BAE6FD',
+  },
+  badgeCountText: {
+    fontSize: 12,
+    fontWeight: '700',
+    color: '#0284C7',
+  },
+  guestBanner: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#E0F2FE',
+    paddingHorizontal: 14,
+    paddingVertical: 8,
+    borderBottomWidth: 1,
+    borderBottomColor: '#BAE6FD',
+    gap: 8,
+  },
+  guestBannerText: {
+    fontSize: 12,
+    fontWeight: '600',
+    color: '#0369A1',
+  },
   flatListContentContainer: {
     paddingHorizontal: 16,
-    marginTop: 4,
-    paddingBottom: 120,
+    paddingTop: 12,
+    paddingBottom: 100,
   },
-  emptyImgStyle: {
-    width: 300,
-    height: 200,
-    borderRadius: 8,
-    marginBottom: 10,
-    resizeMode: 'contain',
+  emptyWrap: {
+    paddingTop: 50,
   },
 });

@@ -1,231 +1,3 @@
-// import React, {useState} from 'react';
-// import {
-//   View,
-//   ScrollView,
-//   Text,
-//   StyleSheet,
-//   Alert,
-//   TouchableOpacity,
-//   TextInput,
-// } from 'react-native';
-// import {useSelector} from 'react-redux';
-// import axios from 'axios';
-// import Loader from '../components/Loader';
-// import {useMutation} from '@tanstack/react-query';
-// import {RadioButton} from 'react-native-paper';
-// import Snackbar from 'react-native-snackbar';
-// import {hp, wp} from '../helper/Metric';
-// import {BUTTON_COLOR, PRIMARY_COLOR} from '../helper/Theme';
-// import {
-//   reportActionEnum,
-//   reportActionMessages,
-//   ReportActionScreenProp,
-// } from '../type';
-// import {TAKE_ACTION_ON_REPORT} from '../helper/APIUtils';
-// import {SafeAreaView} from 'react-native-safe-area-context';
-
-// export default function ReportAction({
-//   navigation,
-//   route,
-// }: ReportActionScreenProp) {
-//   const {reportId, report_admin_id} = route.params;
-//   const {user_id} = useSelector((state: any) => state.user);
-//   const {isConnected} = useSelector((state: any) => state.network);
-//   const [dismissReason, setDismissReason] = useState<string>('');
-
-//   const reportActions = Object.entries(reportActionMessages).map(
-//     ([action, message]) => {
-//       return {
-//         label: action,
-//         message: message,
-//       };
-//     },
-//   );
-//   const [selectedReportAction, setSelectedReportAction] = useState<{
-//     label: string;
-//     message: string;
-//   } | null>(null);
-
-//   //console.log(reasons[0].reason)
-//   const submitReportMutation = useMutation({
-//     mutationKey: ['submit-report-action'],
-//     mutationFn: async (dismissReason: string) => {
-//       //console.log("Url", TAKE_ACTION_ON_REPORT);
-
-//       const res = await axios.post(TAKE_ACTION_ON_REPORT, {
-//         reportId: reportId,
-//         admin_id: report_admin_id,
-//         action: selectedReportAction?.label,
-//         dismissReason: dismissReason,
-//       });
-
-//       return res.data as any;
-//     },
-//     onSuccess: () => {
-//       Snackbar.show({
-//         text: 'Report action submitted',
-//         duration: Snackbar.LENGTH_SHORT,
-//       });
-
-//       navigation.navigate('TabScreen');
-//     },
-
-//     onError: () => {
-//       // console.log('Update View Count Error', error);
-//       Alert.alert('Internal server error, try again!');
-//     },
-//   });
-
-//   if (submitReportMutation.isPending) {
-//     return <Loader />;
-//   }
-//   return (
-//     <ScrollView style={{backgroundColor: 'white'}}>
-//       <SafeAreaView style={styles.container}>
-//         {reportActions?.map((reason, index) => (
-//           <View key={index} style={styles.optionContainer}>
-//             <RadioButton
-//               value={reason.message}
-//               status={
-//                 selectedReportAction?.label === reason.label
-//                   ? 'checked'
-//                   : 'unchecked'
-//               }
-//               onPress={() => setSelectedReportAction(reason)}
-//               color="#000"
-//             />
-//             <Text style={styles.optionText}>{reason.message}</Text>
-//           </View>
-//         ))}
-
-//         {selectedReportAction && (
-//           <>
-//             {selectedReportAction.label === reportActionEnum.DISMISSED && (
-//               <TextInput
-//                 style={styles.dismissInput}
-//                 placeholder="Enter dismiss reason"
-//                 value={dismissReason}
-//                 onChangeText={setDismissReason}
-//                 multiline
-//                 numberOfLines={3}
-//               />
-//             )}
-
-//             <TouchableOpacity
-//               style={styles.reportButton}
-//               onPress={() => {
-//                 if (
-//                   selectedReportAction.label === reportActionEnum.DISMISSED &&
-//                   !dismissReason.trim()
-//                 ) {
-//                   Alert.alert(
-//                     'Please provide a reason for dismissing the report.',
-//                   );
-//                   return;
-//                 }
-
-//                 Alert.alert(
-//                   'Alert',
-//                   'You are about to report this author. Do you want to proceed?',
-//                   [
-//                     {
-//                       text: 'Cancel',
-//                       onPress: () => console.log('Cancel Pressed'),
-//                       style: 'cancel',
-//                     },
-//                     {
-//                       text: 'OK',
-//                       onPress: () => {
-//                         if (!isConnected) {
-//                           Snackbar.show({
-//                             text: 'You are currently offline',
-//                             duration: Snackbar.LENGTH_SHORT,
-//                           });
-//                           return;
-//                         }
-//                         if (report_admin_id !== user_id) {
-//                           Alert.alert('Report is not assigned to you');
-//                           return;
-//                         }
-//                         submitReportMutation.mutate(dismissReason);
-//                       },
-//                     },
-//                   ],
-//                   {cancelable: false},
-//                 );
-//               }}>
-//               <Text style={styles.btnText}>Submit</Text>
-//             </TouchableOpacity>
-//           </>
-//         )}
-//       </SafeAreaView>
-//     </ScrollView>
-//   );
-// }
-
-// const styles = StyleSheet.create({
-//   container: {
-//     flex: 1,
-//     backgroundColor: 'white',
-//     justifyContent: 'flex-start',
-//     alignItems: 'flex-start',
-//     padding: hp(2),
-//   },
-//   header: {
-//     fontSize: 18,
-//     color: 'black',
-//     fontWeight: '700',
-//   },
-//   btnText: {
-//     fontSize: 18,
-//     color: 'white',
-//     fontWeight: '700',
-//   },
-
-//   reportButton: {
-//     backgroundColor: BUTTON_COLOR,
-//     paddingVertical: hp(1.2),
-//     paddingHorizontal: wp(10),
-//     justifyContent: 'center',
-//     alignItems: 'center',
-//     alignSelf: 'center',
-//     borderRadius: 10,
-//     width: '96%',
-//   },
-//   text: {
-//     fontSize: 16,
-//     color: '#28282B',
-//     marginTop: 10,
-//     fontWeight: '500',
-//   },
-//   optionContainer: {
-//     flexDirection: 'row',
-//     alignItems: 'center',
-
-//     paddingVertical: hp(1),
-//     marginBottom: hp(1),
-//     backgroundColor: '#fff',
-//     borderRadius: 8,
-//   },
-//   optionText: {
-//     fontSize: 16,
-//     color: '#333',
-//     marginLeft: 6,
-//     fontWeight: '400',
-//   },
-
-//   dismissInput: {
-//     width: '96%',
-//     borderColor: '#ccc',
-//     borderWidth: 1,
-//     borderRadius: 8,
-//     padding: 10,
-//     marginBottom: 12,
-//     fontSize: 16,
-//     textAlignVertical: 'top',
-//   },
-// });
-
 import React, {useState} from 'react';
 import {
   Alert,
@@ -249,7 +21,7 @@ import {
   reportActionMessages,
 } from '../type';
 import Loader from '../components/Loader';
-import { TAKE_ACTION_ON_REPORT } from '../helper/APIUtils';
+import {TAKE_ACTION_ON_REPORT} from '../helper/APIUtils';
 
 const ReportAction = ({navigation, route}: ReportActionScreenProp) => {
   const isDarkMode = useColorScheme() === 'dark';
@@ -265,10 +37,10 @@ const ReportAction = ({navigation, route}: ReportActionScreenProp) => {
   };
 
   const {reportId, report_admin_id} = route.params;
-  const {user_id} = useSelector((state: any) => state.user);
+  const {user_id, isGuest} = useSelector((state: any) => state.user);
   const {isConnected} = useSelector((state: any) => state.network);
 
-  const [selectedAction, setSelectedAction] = useState<string>("");
+  const [selectedAction, setSelectedAction] = useState<string>('');
   const [dismissReason, setDismissReason] = useState('');
 
   const reportActions = Object.entries(reportActionMessages).map(([key, value]) => ({
@@ -296,6 +68,23 @@ const ReportAction = ({navigation, route}: ReportActionScreenProp) => {
   });
 
   const handleSubmit = () => {
+    if (isGuest) {
+      if (!selectedAction) {
+        Alert.alert('Please select an action');
+        return;
+      }
+      if (selectedAction === reportActionEnum.DISMISSED && !dismissReason.trim()) {
+        Alert.alert('Please provide a reason for dismissal');
+        return;
+      }
+      Alert.alert(
+        'Guest Mode Simulation',
+        'Incident report action successfully simulated! The audit log has recorded your governance resolution.',
+        [{text: 'OK', onPress: () => navigation.navigate('TabScreen')}],
+      );
+      return;
+    }
+
     if (!isConnected) {
       Snackbar.show({text: 'You are offline', duration: Snackbar.LENGTH_SHORT});
       return;
@@ -329,31 +118,34 @@ const ReportAction = ({navigation, route}: ReportActionScreenProp) => {
             </Text>
 
             <YStack gap="$4">
-              <RadioGroup 
-              value={selectedAction || ''} 
-              onValueChange={setSelectedAction}>
-              <YStack gap="$4">
-                {reportActions.map((action, index) => (
-                  <TouchableOpacity
-                    key={index}
-                    onPress={() => setSelectedAction(action.label)}
-                    style={{
-                      backgroundColor: colors.surface,
-                      padding: 18,
-                      borderRadius: 16,
-                      borderWidth: 1.5,
-                      borderColor: selectedAction === action.label ? colors.primary : colors.border,
-                    }}>
-                    <XStack alignItems="center" gap="$3">
-                      <RadioGroup.Item value={action.label} />
-                      <Text fontSize={16} color={colors.text}>
-                        {action.message}
-                      </Text>
-                    </XStack>
-                  </TouchableOpacity>
-                ))}
-              </YStack>
-            </RadioGroup>
+              <RadioGroup
+                value={selectedAction || ''}
+                onValueChange={setSelectedAction}>
+                <YStack gap="$4">
+                  {reportActions.map((action, index) => (
+                    <TouchableOpacity
+                      key={index}
+                      onPress={() => setSelectedAction(action.label)}
+                      style={{
+                        backgroundColor: colors.surface,
+                        padding: 18,
+                        borderRadius: 16,
+                        borderWidth: 1.5,
+                        borderColor:
+                          selectedAction === action.label
+                            ? colors.primary
+                            : colors.border,
+                      }}>
+                      <XStack alignItems="center" gap="$3">
+                        <RadioGroup.Item value={action.label} />
+                        <Text fontSize={16} color={colors.text}>
+                          {action.message}
+                        </Text>
+                      </XStack>
+                    </TouchableOpacity>
+                  ))}
+                </YStack>
+              </RadioGroup>
             </YStack>
 
             {selectedAction === reportActionEnum.DISMISSED && (

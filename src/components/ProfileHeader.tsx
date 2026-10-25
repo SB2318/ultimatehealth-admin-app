@@ -34,11 +34,13 @@ const ProfileHeader = ({
   onOverviewClick,
   onEditProfileClick,
   onLogoutClick,
+  isSuperAdmin,
+  onSuperAdminClick,
 }: ProfileHeaderProps) => {
   const isDarkMode = useColorScheme() === 'dark';
 
-  const avatarUri = profileImg
-    ? profileImg.startsWith('https')
+  const avatarUri = profileImg && profileImg.trim() !== ''
+    ? profileImg.startsWith('http://') || profileImg.startsWith('https://')
       ? profileImg
       : `${GET_STORAGE_DATA}/${profileImg}`
     : 'https://images.pexels.com/photos/771742/pexels-photo-771742.jpeg?auto=compress&cs=tinysrgb&dpr=1&w=500';
@@ -93,26 +95,84 @@ const ProfileHeader = ({
         </Text>
 
         {/* Clinical Role Badge */}
-        <View style={styles.roleBadge}>
-          <Feather name="shield" size={12} color={PRIMARY_COLOR} />
-          <Text style={styles.roleBadgeText}>Clinical Moderator</Text>
+        <View
+          style={[
+            styles.roleBadge,
+            isSuperAdmin && {
+              backgroundColor: isDarkMode ? '#1E1B4B' : '#EEF2FF',
+              borderColor: isDarkMode ? '#4338CA' : '#C7D2FE',
+            },
+          ]}>
+          <Feather
+            name={isSuperAdmin ? 'award' : 'shield'}
+            size={12}
+            color={isSuperAdmin ? '#6366F1' : PRIMARY_COLOR}
+          />
+          <Text
+            style={[
+              styles.roleBadgeText,
+              isSuperAdmin && {color: isSuperAdmin ? '#4F46E5' : PRIMARY_COLOR},
+            ]}>
+            {isSuperAdmin ? 'Super Admin • Executive' : 'Clinical Moderator'}
+          </Text>
         </View>
 
+        {isSuperAdmin && (
+          <TouchableOpacity
+            onPress={onSuperAdminClick}
+            activeOpacity={0.8}
+            style={{width: '85%', maxWidth: 340, marginTop: 12}}>
+            <XStack
+              backgroundColor={isDarkMode ? '#3E2A10' : '#FEF3C7'}
+              paddingHorizontal={14}
+              paddingVertical={10}
+              borderRadius={14}
+              borderWidth={1}
+              borderColor="#F59E0B"
+              alignItems="center"
+              justifyContent="space-between">
+              <XStack alignItems="center" gap="$2.5" flex={1}>
+                <MaterialCommunityIcons name="crown" size={20} color="#F59E0B" />
+                <YStack flex={1}>
+                  <Text fontSize={14} fontWeight="700" color={isDarkMode ? '#FDE68A' : '#92400E'}>
+                    Super Admin Console
+                  </Text>
+                  <Text fontSize={11} color={isDarkMode ? '#FCD34D' : '#B45309'} marginTop={1}>
+                    Platform Governance & Analytics
+                  </Text>
+                </YStack>
+              </XStack>
+              <View
+                style={{
+                  width: 28,
+                  height: 28,
+                  borderRadius: 14,
+                  backgroundColor: isDarkMode ? '#543810' : '#FDE68A',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  marginLeft: 6,
+                }}>
+                <Feather name="arrow-right" size={15} color={isDarkMode ? '#FDE68A' : '#92400E'} />
+              </View>
+            </XStack>
+          </TouchableOpacity>
+        )}
+
         {/* Action Buttons Row */}
-        <XStack gap="$3" alignItems="center" marginTop="$4" paddingHorizontal={16}>
+        <XStack gap="$2.5" alignItems="center" marginTop="$4" paddingHorizontal={12}>
           {/* Edit Profile */}
           <TouchableOpacity onPress={onEditProfileClick} activeOpacity={0.8}>
             <XStack
               backgroundColor={surfaceColor}
-              paddingHorizontal={16}
-              paddingVertical={11}
+              paddingHorizontal={15}
+              paddingVertical={12}
               borderRadius={14}
               borderWidth={1}
               borderColor={borderColor}
               alignItems="center"
               gap="$2">
-              <MaterialIcons name="edit" size={18} color={PRIMARY_COLOR} />
-              <Text fontSize={13} fontWeight="700" color={textColor}>
+              <MaterialIcons name="edit" size={20} color={PRIMARY_COLOR} />
+              <Text fontSize={14.5} fontWeight="700" color={textColor}>
                 Edit Profile
               </Text>
             </XStack>
@@ -122,8 +182,8 @@ const ProfileHeader = ({
           <TouchableOpacity onPress={onOverviewClick} activeOpacity={0.8}>
             <XStack
               backgroundColor={surfaceColor}
-              paddingHorizontal={16}
-              paddingVertical={11}
+              paddingHorizontal={15}
+              paddingVertical={12}
               borderRadius={14}
               borderWidth={1}
               borderColor={borderColor}
@@ -131,10 +191,10 @@ const ProfileHeader = ({
               gap="$2">
               <MaterialCommunityIcons
                 name="clipboard-text-clock-outline"
-                size={18}
+                size={20}
                 color={PRIMARY_COLOR}
               />
-              <Text fontSize={13} fontWeight="700" color={textColor}>
+              <Text fontSize={14.5} fontWeight="700" color={textColor}>
                 Work History
               </Text>
             </XStack>
@@ -145,14 +205,14 @@ const ProfileHeader = ({
             <XStack
               backgroundColor="#FEF2F2"
               paddingHorizontal={14}
-              paddingVertical={11}
+              paddingVertical={12}
               borderRadius={14}
               borderWidth={1}
               borderColor="#FECACA"
               alignItems="center"
               gap="$1.5">
-              <MaterialIcons name="logout" size={18} color="#DC2626" />
-              <Text fontSize={13} fontWeight="700" color="#DC2626">
+              <MaterialIcons name="logout" size={20} color="#DC2626" />
+              <Text fontSize={14.5} fontWeight="700" color="#DC2626">
                 Logout
               </Text>
             </XStack>

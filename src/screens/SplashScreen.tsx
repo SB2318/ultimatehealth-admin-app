@@ -6,7 +6,7 @@
 // import {useDispatch} from 'react-redux';
 // import VersionCheck from 'react-native-version-check';
 
-// import {setUserHandle, setUserId, setUserToken} from '../stores/UserSlice';
+// import {setUserHandle, setUserId, setUserToken, setIsSuperAdmin} from '../stores/UserSlice';
 // import axios from 'axios';
 // import {SplashScreenProp} from '../type';
 // import {useCheckTokenStatus} from '../hooks/useGetTokenStatus';
@@ -295,7 +295,7 @@ import {useDispatch} from 'react-redux';
 import VersionCheck from 'react-native-version-check';
 
 import {clearStorage, KEYS, retrieveItem} from '../helper/Utils';
-import {setUserHandle, setUserId, setUserToken} from '../stores/UserSlice';
+import {setUserHandle, setUserId, setUserToken, setIsSuperAdmin} from '../stores/UserSlice';
 import {useCheckTokenStatus} from '../hooks/useGetTokenStatus';
 import axios from 'axios';
 import { SplashScreenProp } from '../type';
@@ -333,13 +333,20 @@ export default function SplashScreen({navigation}: SplashScreenProp) {
       const userId = await retrieveItem(KEYS.USER_ID);
       const userToken = await retrieveItem(KEYS.USER_TOKEN);
       const userHandle = await retrieveItem(KEYS.USER_HANDLE);
+      const isSuperAdmin = await retrieveItem(KEYS.IS_SUPER_ADMIN);
 
       if (userId && userToken) {
         axios.defaults.headers.common['Authorization'] = `Bearer ${userToken}`;
+        axios.defaults.headers.common['x-type'] = 'mobile';
+        axios.defaults.headers.common['x-client-type'] = 'mobile';
+        axios.defaults.headers.common['x-type-header'] = 'mobile';
 
         dispatch(setUserId(userId));
         dispatch(setUserToken(userToken));
         dispatch(setUserHandle(userHandle));
+        if (isSuperAdmin !== undefined && isSuperAdmin !== null) {
+          dispatch(setIsSuperAdmin(isSuperAdmin === 'true'));
+        }
 
         navigation.reset({
           index: 0,

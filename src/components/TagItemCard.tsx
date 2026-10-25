@@ -44,15 +44,15 @@ export default function ReasonItemCard({
           <TouchableOpacity
             style={styles.editButton}
             onPress={() => onEditAction(reason)}
-            hitSlop={12}>
-            <Icon name="edit-2" size={22} color={PRIMARY_COLOR} />
+            hitSlop={8}>
+            <Icon name="edit-2" size={18} color={PRIMARY_COLOR} />
           </TouchableOpacity>
 
           <TouchableOpacity
             style={styles.deleteButton}
             onPress={() => onDeleteAction(reason)}
-            hitSlop={12}>
-            <Icon name="trash-2" size={22} color="#EF4444" />
+            hitSlop={8}>
+            <Icon name="trash-2" size={18} color="#EF4444" />
           </TouchableOpacity>
         </View>
       </View>
@@ -64,17 +64,17 @@ const styles = StyleSheet.create({
   card: {
     backgroundColor: "#FFFFFF",
     marginHorizontal: wp(4),
-    marginVertical: hp(1.2),
-    paddingVertical: hp(2.5),
-    paddingHorizontal: wp(5),
-    borderRadius: 20,
-    borderWidth: 1.5,
+    marginVertical: 5,
+    paddingVertical: 10,
+    paddingHorizontal: wp(4),
+    borderRadius: 14,
+    borderWidth: 1,
     borderColor: "#F1F5F9",
     shadowColor: "#000",
-    shadowOffset: { width: 0, height: 6 },
-    shadowOpacity: 0.1,
-    shadowRadius: 14,
-    elevation: 8,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.06,
+    shadowRadius: 6,
+    elevation: 3,
   },
 
   cardPressed: {
@@ -87,46 +87,46 @@ const styles = StyleSheet.create({
     left: 0,
     top: 0,
     bottom: 0,
-    width: 6,
+    width: 5,
     backgroundColor: PRIMARY_COLOR,
-    borderTopLeftRadius: 20,
-    borderBottomLeftRadius: 20,
+    borderTopLeftRadius: 14,
+    borderBottomLeftRadius: 14,
   },
 
   cardContent: {
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
-    paddingLeft: 14,
+    paddingLeft: 10,
   },
 
   textContainer: {
     flex: 1,
-    paddingRight: wp(4),
+    paddingRight: wp(3),
   },
 
   reasonText: {
-    fontSize: 16.5,
-    lineHeight: 24,
+    fontSize: 15,
+    lineHeight: 20,
     color: TEXT_PRIMARY,
-    fontWeight: "500",
+    fontWeight: "600",
   },
 
   iconGroup: {
     flexDirection: "row",
     alignItems: "center",
-    gap: wp(3),
+    gap: 8,
   },
 
   editButton: {
-    padding: 12,
-    borderRadius: 14,
+    padding: 8,
+    borderRadius: 10,
     backgroundColor: "#EFF6FF",
   },
 
   deleteButton: {
-    padding: 12,
-    borderRadius: 14,
+    padding: 8,
+    borderRadius: 10,
     backgroundColor: "#FEF2F2",
   },
 });

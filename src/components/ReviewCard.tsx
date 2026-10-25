@@ -122,6 +122,12 @@ const ReviewCard = ({
     ? item.imageUtils[0]
     : `${GET_STORAGE_DATA}/${item?.imageUtils?.[0] ?? ''}`;
 
+  const statusStr = (item?.status || '').toLowerCase();
+  const isAvailable =
+    statusStr.includes('unassign') ||
+    statusStr.includes('pending') ||
+    (!item?.reviewer_id && !statusStr.includes('progress') && !statusStr.includes('publish') && !statusStr.includes('discard'));
+
   return (
     <Pressable
       onPress={() => {
@@ -135,11 +141,7 @@ const ReviewCard = ({
         {isSelected && (
           <Animated.View style={[menuStyle, styles.floatingMenuContainer]}>
             <ArticleFloatingMenu
-              items={
-                item.status === StatusEnum.UNASSIGNED
-                  ? unAssignActions
-                  : progressActions
-              }
+              items={isAvailable ? unAssignActions : progressActions}
               top={hp(1.5)}
               left={wp(2)}
             />

@@ -13,6 +13,7 @@ import FontAwesome from '@expo/vector-icons/FontAwesome';
 import EditProfile from '../screens/EditProfile';
 import LogoutScreen from '../screens/auth/LogoutScreen';
 import WorkHistoryScreen from '../screens/WorkHistoryScreen';
+import SuperAdminDashboard from '../screens/superadmin/SuperAdminDashboard';
 import ImprovementReviewScreen from '../screens/ImprovementReviewScreen';
 import ChangesHistoryScreen from '../screens/ChangesHistoryScreen';
 import { PRIMARY_COLOR } from '../helper/Theme';
@@ -21,6 +22,7 @@ import ReportAction from '../screens/ReportAction';
 import PodcastDetail from '../screens/PodcastDetails';
 import { FontAwesome6 } from '@expo/vector-icons';
 import PodcastDiscussion from '../screens/PodcastDiscussion';
+import Notification from '../screens/Notification';
 
 const Stack = createStackNavigator<RootStackParamList>();
 
@@ -242,6 +244,42 @@ const StackNavigation = () => {
         options={{
           headerShown: false,
         }}
+      />
+
+       <Stack.Screen
+        name="SuperAdminDashboard"
+        component={SuperAdminDashboard}
+        options={{
+          headerShown: false,
+        }}
+      />
+
+      <Stack.Screen
+        name="Notification"
+        component={Notification}
+        options={({navigation}) => ({
+          headerShown: true,
+          headerTitle: 'Notifications & Alerts',
+          headerTitleAlign: 'center',
+          headerShadowVisible: false,
+          headerStyle: {
+            backgroundColor: '#FFFFFF',
+          },
+          headerTitleStyle: {
+            fontSize: 16,
+            fontWeight: '700',
+            color: '#0F172A',
+          },
+          headerLeft: () => (
+            <TouchableOpacity
+              style={styles.profileScreenHeaderLeftButton}
+              onPress={() => {
+                navigation.goBack();
+              }}>
+              <FontAwesome size={20} name="arrow-left" color="#0F172A" />
+            </TouchableOpacity>
+          ),
+        })}
       />
      
     </Stack.Navigator>

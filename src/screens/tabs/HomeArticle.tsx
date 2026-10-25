@@ -1,11 +1,11 @@
 import React, {useState} from 'react';
 import {
-  FlatList,
   StyleSheet,
   Text,
   TouchableOpacity,
   View,
 } from 'react-native';
+import {Tabs} from 'react-native-collapsible-tab-view';
 import {hp, wp} from '../../helper/Metric';
 import {
   PRIMARY_COLOR,
@@ -19,7 +19,9 @@ import {
   CLINICAL_SHADOW_SUBTLE,
 } from '../../helper/Theme';
 import {ArticleData} from '../../type';
+import {getFallbackArticles, getFallbackProgressArticles} from '../../helper/DemoData';
 import {Feather, MaterialCommunityIcons} from '@expo/vector-icons';
+import EmptyState from '../../components/EmptyState';
 
 type Props = {
   inProgressArticle: ArticleData[];
@@ -42,11 +44,15 @@ export default function HomeArticle({
 }: Props) {
   const [selectedCategory, setSelectedCategory] = useState<'Available' | 'Inprogress'>('Available');
 
-  const availableCount = availableArticle?.length || 0;
-  const inProgressCount = inProgressArticle?.length || 0;
+  // Wrap with realistic clinical demo articles if backend queue is empty
+  const effectiveAvailable = getFallbackArticles(availableArticle);
+  const effectiveInProgress = getFallbackProgressArticles(inProgressArticle);
 
-  return (
-    <View style={styles.outerContainer}>
+  const availableCount = effectiveAvailable.length;
+  const inProgressCount = effectiveInProgress.length;
+
+  const renderHeader = () => (
+    <View style={styles.headerWrapper}>
       {/* Modern Clinical Segmented Pill Controller */}
       <View style={styles.segmentWrapper}>
         <View style={styles.segmentContainer}>
@@ -126,77 +132,71 @@ export default function HomeArticle({
       <View style={styles.queueMetaBar}>
         <Feather
           name={selectedCategory === 'Available' ? 'inbox' : 'activity'}
-          size={14}
+          size={18}
           color={PRIMARY_COLOR}
         />
         <Text style={styles.queueMetaText}>
+          <Text style={styles.queueMetaCount}>
+            {selectedCategory === 'Available' ? availableCount : inProgressCount}
+          </Text>
           {selectedCategory === 'Available'
-            ? `${availableCount} article${availableCount === 1 ? '' : 's'} awaiting clinical moderation`
-            : `${inProgressCount} article${inProgressCount === 1 ? '' : 's'} currently under review`}
+            ? ` article${availableCount === 1 ? '' : 's'} awaiting clinical moderation`
+            : ` article${inProgressCount === 1 ? '' : 's'} currently under review`}
         </Text>
       </View>
-
-      {/* Articles List */}
-      <View style={styles.listContainer}>
-        <FlatList
-          data={selectedCategory === 'Available' ? availableArticle : inProgressArticle}
-          renderItem={renderItem}
-          keyExtractor={item => item._id.toString()}
-          contentContainerStyle={styles.flatListContent}
-          refreshing={refreshing}
-          onRefresh={() => {
-            if (selectedCategory === 'Available') {
-              onRefresh(1);
-            } else {
-              onRefresh(2);
-            }
-          }}
-          ListEmptyComponent={
-            <View style={styles.emptyContainer}>
-              <View style={styles.emptyIconCircle}>
-                <MaterialCommunityIcons
-                  name="clipboard-check-outline"
-                  size={42}
-                  color={PRIMARY_COLOR}
-                />
-              </View>
-              <Text style={styles.emptyTitle}>
-                {selectedCategory === 'Available'
-                  ? 'All Caught Up!'
-                  : 'No Articles in Progress'}
-              </Text>
-              <Text style={styles.emptySubtitle}>
-                {selectedCategory === 'Available'
-                  ? 'There are no pending articles in the review queue right now.'
-                  : 'Self-assign articles from the Available Queue to start reviewing.'}
-              </Text>
-            </View>
-          }
-          onEndReached={() => {
-            if (selectedCategory === 'Available') {
-              onAvailablePageEnd();
-            } else {
-              onProgressPageEnd();
-            }
-          }}
-          onEndReachedThreshold={0.5}
-          showsVerticalScrollIndicator={false}
-        />
-      </View>
     </View>
+  );
+
+  return (
+    <Tabs.FlatList
+      data={selectedCategory === 'Available' ? effectiveAvailable : effectiveInProgress}
+      renderItem={renderItem}
+      keyExtractor={item => item._id.toString()}
+      ListHeaderComponent={renderHeader}
+      contentContainerStyle={styles.flatListContent}
+      refreshing={refreshing}
+      onRefresh={() => {
+        if (selectedCategory === 'Available') {
+          onRefresh(1);
+        } else {
+          onRefresh(2);
+        }
+      }}
+      ListEmptyComponent={
+        <EmptyState
+          icon={selectedCategory === 'Available' ? 'clipboard-check-outline' : 'file-document-edit-outline'}
+          iconType="material"
+          title={selectedCategory === 'Available' ? 'All Caught Up!' : 'No Articles in Progress'}
+          subtitle={
+            selectedCategory === 'Available'
+              ? 'There are no pending articles in the review queue right now.'
+              : 'Self-assign articles from the Available Queue to start reviewing.'
+          }
+        />
+      }
+      onEndReached={() => {
+        if (selectedCategory === 'Available') {
+          onAvailablePageEnd();
+        } else {
+          onProgressPageEnd();
+        }
+      }}
+      onEndReachedThreshold={0.5}
+      showsVerticalScrollIndicator={false}
+    />
   );
 }
 
 const styles = StyleSheet.create({
-  outerContainer: {
-    flex: 1,
+  headerWrapper: {
+    paddingTop: 12,
     backgroundColor: SCREEN_BG,
-    paddingTop: 8,
   },
 
   segmentWrapper: {
     paddingHorizontal: 16,
     paddingVertical: 6,
+    marginBottom: 8,
   },
 
   segmentContainer: {
@@ -209,7 +209,7 @@ const styles = StyleSheet.create({
   segmentButton: {
     flex: 1,
     borderRadius: 11,
-    paddingVertical: 8,
+    paddingVertical: 9.5,
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -222,23 +222,24 @@ const styles = StyleSheet.create({
   segmentContent: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 6,
+    gap: 7,
   },
 
   segmentLabel: {
-    fontSize: 13,
-    fontWeight: '600',
+    fontSize: 15,
+    fontWeight: '700',
     color: TEXT_SECONDARY,
+    letterSpacing: 0.1,
   },
 
   segmentLabelActive: {
     color: TEXT_PRIMARY,
-    fontWeight: '700',
+    fontWeight: '800',
   },
 
   badge: {
-    paddingHorizontal: 7,
-    paddingVertical: 2,
+    paddingHorizontal: 8,
+    paddingVertical: 2.5,
     borderRadius: 10,
   },
 
@@ -251,7 +252,7 @@ const styles = StyleSheet.create({
   },
 
   badgeText: {
-    fontSize: 11,
+    fontSize: 12.5,
     fontWeight: '700',
   },
 
@@ -266,31 +267,33 @@ const styles = StyleSheet.create({
   queueMetaBar: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 6,
+    gap: 8,
     paddingHorizontal: 20,
-    paddingVertical: 6,
+    paddingVertical: 8,
+    marginBottom: 10,
   },
 
   queueMetaText: {
-    fontSize: 12,
-    color: TEXT_MUTED,
+    fontSize: 15,
+    color: TEXT_SECONDARY,
     fontWeight: '500',
   },
 
-  listContainer: {
-    flex: 1,
-    marginBottom: hp(10), // Padding to avoid overlap with floating tab bar
+  queueMetaCount: {
+    fontSize: 17,
+    fontWeight: '800',
+    color: PRIMARY_COLOR,
   },
 
   flatListContent: {
     paddingHorizontal: 16,
-    paddingBottom: 24,
+    paddingBottom: hp(16),
   },
 
   emptyContainer: {
     alignItems: 'center',
     justifyContent: 'center',
-    paddingVertical: hp(10),
+    paddingVertical: hp(8),
     paddingHorizontal: 28,
   },
 

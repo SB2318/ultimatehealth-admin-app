@@ -22,8 +22,8 @@ import {useFirebaseMessaging} from '../../../FirebaseContext';
 import EmailInputModal from '../../components/EmailInputModal';
 import {LOGIN_API, SEND_OTP} from '../../helper/APIUtils';
 import {fp, hp, wp} from '../../helper/Metric';
-import {KEYS, storeItem} from '../../helper/Utils';
-import {setUserHandle, setUserId, setUserToken} from '../../stores/UserSlice';
+import {KEYS, getApiErrorMessage, storeItem} from '../../helper/Utils';
+import {setUserHandle, setUserId, setUserToken, setIsSuperAdmin} from '../../stores/UserSlice';
 import {Admin, AuthData, LoginScreenProp} from '../../type';
 import Snackbar from 'react-native-snackbar';
 import { PRIMARY_COLOR } from '../../helper/Theme';
@@ -112,24 +112,37 @@ export default function LoginScreen({navigation}: LoginScreenProp) {
     mutationKey: ['login'],
     mutationFn: async () => {
       console.log('Login Mutation Enter');
-      const res = await axios.post(LOGIN_API, {
-        email: email,
-        password: password,
-        fcmToken: fcmToken,
-      });
+      const res = await axios.post(
+        LOGIN_API,
+        {
+          email: email,
+          password: password,
+          fcmToken: fcmToken,
+        },
+        {
+          headers: {
+            'x-type': 'mobile',
+            'x-client-type': 'mobile',
+            'x-type-header': 'mobile',
+          },
+        },
+      );
 
-      return res.data.user as Admin;
+      return res.data as any;
     },
 
     onSuccess: async data => {
+      const isSuperAdmin = Boolean(data?.isSuperAdmin);
       const auth: AuthData = {
-        userId: data._id,
+        userId: data.user._id,
         token: data?.refreshToken,
-        user_handle: data?.user_handle,
+        user_handle: data?.user.user_handle,
+        isSuperAdmin: isSuperAdmin,
       };
       try {
         await storeItem(KEYS.USER_ID, auth.userId.toString());
-        await storeItem(KEYS.USER_HANDLE, data?.user_handle);
+        await storeItem(KEYS.USER_HANDLE, data?.user.user_handle);
+        await storeItem(KEYS.IS_SUPER_ADMIN, JSON.stringify(isSuperAdmin));
         if (auth.token) {
           await storeItem(KEYS.USER_TOKEN, auth.token.toString());
           await storeItem(
@@ -143,6 +156,10 @@ export default function LoginScreen({navigation}: LoginScreenProp) {
             'Authorization'
           ] = `Bearer ${auth.token}`;
           dispatch(setUserHandle(auth.user_handle));
+          dispatch(setIsSuperAdmin(isSuperAdmin));
+          axios.defaults.headers.common['x-type'] = 'mobile';
+          axios.defaults.headers.common['x-client-type'] = 'mobile';
+          axios.defaults.headers.common['x-type-header'] = 'mobile';
           setTimeout(() => {
             navigation?.reset({
               index: 0,
@@ -202,19 +219,8 @@ export default function LoginScreen({navigation}: LoginScreenProp) {
     },
     onError: error => {
       setEmailInputVisible(false);
-      if (axios.isAxiosError(error)) {
-        if (error.response) {
-          const message =
-            error.response.data?.message ||
-            error.response.data?.error ||
-            'Something went wrong.';
-          Alert.alert('Error', message);
-        } else {
-          Alert.alert('Error', 'Network error.');
-        }
-      } else {
-        Alert.alert('Error', 'Network error.');
-      }
+      const message = getApiErrorMessage(error, 'Something went wrong.');
+      Alert.alert('Error', message);
     },
   });
 

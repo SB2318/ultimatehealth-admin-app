@@ -4,7 +4,7 @@ import config from '@/tamagui.config';
 import {NavigationContainer} from '@react-navigation/native';
 import React, {useEffect} from 'react';
 import {View, StatusBar, useColorScheme} from 'react-native';
-import {SafeAreaProvider} from 'react-native-safe-area-context';
+import {SafeAreaProvider, initialWindowMetrics} from 'react-native-safe-area-context';
 import {TamaguiProvider} from 'tamagui';
 import StackNavigation from '../navigations/StackNavigation';
 import UpdateModal from './AppUpdateModal';
@@ -45,7 +45,7 @@ export default function AppContent() {
     <TamaguiProvider config={config}>
       <SocketProvider>
         <FirebaseProvider>
-          <SafeAreaProvider>
+          <SafeAreaProvider initialMetrics={initialWindowMetrics}>
             <View
               style={{
                 flex: 1,

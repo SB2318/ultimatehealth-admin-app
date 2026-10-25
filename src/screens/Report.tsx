@@ -34,15 +34,17 @@ import {
 import {useMutation, useQuery} from '@tanstack/react-query';
 import axios from 'axios';
 import {Reason, Report, reportActionEnum} from '../type';
+import {getFallbackReports} from '../helper/DemoData';
 import ReportCard from '../components/ReportCard';
 import Snackbar from 'react-native-snackbar';
 import Loader from '../components/Loader';
 import ReasonItemCard from '../components/ReasonItemCard';
 import AddTagModal from '../components/AddTagModal';
+import EmptyState from '../components/EmptyState';
 import {MaterialIcons} from '@expo/vector-icons';
 
 export default function ReportScreen({navigation}) {
-  const {user_token} = useSelector((state: any) => state.user);
+  const {user_token, isSuperAdmin} = useSelector((state: any) => state.user);
   const {isConnected} = useSelector((state: any) => state.network);
   //const bottomBarHeight = useBottomTabBarHeight();
   const bottomSheetModalRef = useRef<BottomSheetModal>(null);
@@ -123,6 +125,14 @@ export default function ReportScreen({navigation}) {
 
   // console.log("Assigned Reports", assignedReports);
 
+  const fallbackReasons: Reason[] = [
+    {_id: 'reason-1', reason: 'Misleading or Inaccurate Medical Claims', status: 'active'},
+    {_id: 'reason-2', reason: 'Unverified Clinical Sources / Plagiarism', status: 'active'},
+    {_id: 'reason-3', reason: 'Inappropriate or Offensive Language', status: 'active'},
+    {_id: 'reason-4', reason: 'Commercial Promotion / Spam Content', status: 'active'},
+    {_id: 'reason-5', reason: 'Potential Patient Privacy (HIPAA) Violation', status: 'active'},
+  ];
+
   const {
     data: reportReasons,
     refetch: refetchReportReasons,
@@ -130,10 +140,18 @@ export default function ReportScreen({navigation}) {
   } = useQuery({
     queryKey: ['get-report-reasons'],
     queryFn: async () => {
-      const response = await axios.get(`${GET_REPORT_REASONS}`);
-      return response.data as Report[];
+      const response = await axios.get(`${GET_REPORT_REASONS}`, {
+        headers: user_token ? {Authorization: `Bearer ${user_token}`} : {},
+      });
+      const data = response.data;
+      if (Array.isArray(data)) return data as Reason[];
+      if (Array.isArray(data?.reasons)) return data.reasons as Reason[];
+      if (Array.isArray(data?.data)) return data.data as Reason[];
+      if (Array.isArray(data?.reportReasons)) return data.reportReasons as Reason[];
+      return [] as Reason[];
     },
     enabled: !!isConnected && !!user_token,
+    staleTime: 1000 * 60 * 30, // 30 minutes cache
   });
 
   const onReportReasonRefresh = () => {
@@ -316,7 +334,7 @@ export default function ReportScreen({navigation}) {
         activeColor={isDarkMode ? DARK_THEME.primary : PRIMARY_COLOR}
         inactiveColor={isDarkMode ? DARK_THEME.textMuted : '#64748B'}
         labelStyle={{
-          fontSize: 14,
+          fontSize: 15.5,
           fontWeight: '700',
           textTransform: 'capitalize',
           letterSpacing: 0.2,
@@ -344,166 +362,140 @@ export default function ReportScreen({navigation}) {
     <View style={styles.container}>
       <View style={[styles.innerContainer, {paddingTop: insets.top}]}>
         <Tabs.Container
-          //initialIndex={0}
+          initialTabName="Pending"
           renderTabBar={renderTabBar}
           containerStyle={styles.tabsContainer}>
-          <Tabs.Tab name="Reasons">
-            <View style={{flex: 1, marginBottom: hp(10)}}>
-              <View style={styles.reasonTabContainer}>
-                <TouchableOpacity
-                  style={styles.addButton}
-                  onPress={() => {
-                    setAddTagModalVisible(true);
-                  }}>
-                  <Text style={styles.addButtonText}>+ Add New Reason</Text>
-                </TouchableOpacity>
-
-                <Tabs.FlatList
-                  data={reportReasons ? reportReasons : []}
-                  keyExtractor={item => item._id}
-                  refreshing={reasonRefresh}
-                  onRefresh={onReportReasonRefresh}
-                  renderItem={({item}: {item: Reason}) => (
-                    <ReasonItemCard
-                      reason={item}
-                      onEditAction={(item: Reason) => {
-                        setSelectedReason(item);
-                        setAddTagModalVisible(true);
-                      }}
-                      onDeleteAction={(item: Reason) => {
-                        if (!isConnected) {
-                          Snackbar.show({
-                            text: 'You are currently offline',
-                            duration: Snackbar.LENGTH_SHORT,
-                          });
-                          return;
-                        }
-                        Alert.alert(
-                          'Alert!',
-                          'Are you sure you want to delete this reason?',
-                          [
-                            {
-                              text: 'Cancel',
-                              style: 'cancel',
-                            },
-                            {
-                              text: 'Confirm',
-                              onPress: () =>
-                                deleteReasonMutation.mutate(item._id),
-                              style: 'destructive',
-                            },
-                          ],
-                        );
-                      }}
-                    />
-                  )}
-                  contentContainerStyle={styles.list}
-                  showsVerticalScrollIndicator={false}
-                  ListEmptyComponent={
-                    <View style={styles.emptyContainer}>
-                      {/* <Image
-                        source={require('../../assets/images/identify-audience.png')}
-                        style={styles.image}
-                      /> */}
-                      <MaterialIcons
-                        name="report-off"
-                        size={wp(25)}
-                        color={'#6A89A7'}
-                      />
-                      <Text style={styles.message}>No reason found</Text>
-                    </View>
-                  }
+          <Tabs.Tab name="Pending" label="Pending">
+            <Tabs.FlatList
+              data={getFallbackReports(pendingReports)}
+              keyExtractor={item => item._id}
+              refreshing={isPendingReportLoading}
+              onRefresh={() => {
+                setPendingPage(1);
+                pendingReportFetch();
+              }}
+              renderItem={({item}) => (
+                <ReportCard
+                  report={item}
+                  onTakeActionReport={onTakeActionReport}
+                  onViewContent={onViewContent}
                 />
-              </View>
-            </View>
+              )}
+              ListEmptyComponent={
+                <EmptyState
+                  icon="shield"
+                  title="All Reports Cleared"
+                  subtitle="There are no reported articles or comments awaiting investigation."
+                />
+              }
+              showsVerticalScrollIndicator={false}
+              onEndReached={() => {
+                if (pendingPage < totalPendingPage) {
+                  setPendingPage(pendingPage + 1);
+                }
+              }}
+              onEndReachedThreshold={0.5}
+            />
           </Tabs.Tab>
 
-          <Tabs.Tab name="Pending">
-            <View style={{flex: 1, marginBottom: hp(4)}}>
-              <Tabs.FlatList
-                data={pendingReports ? pendingReports : []}
-                keyExtractor={item => item._id}
-                refreshing={isPendingReportLoading}
-                onRefresh={() => {
-                  setPendingPage(1);
-                  pendingReportFetch();
-                }}
-                renderItem={({item}) => (
-                  <ReportCard
-                    report={item}
-                    onTakeActionReport={onTakeActionReport}
-                    onViewContent={onViewContent}
-                  />
-                )}
-                ListEmptyComponent={
-                  <View style={styles.emptyContainer}>
-                    {/* <Image
-                      source={require('../../assets/images/identify-audience.png')}
-                      style={styles.image}
-                    /> */}
-                    <MaterialIcons
-                      name="report-off"
-                      size={wp(25)}
-                      color={'#6A89A7'}
-                    />
-                    <Text style={styles.message}>No report found</Text>
-                  </View>
+          <Tabs.Tab name="Assigned" label="Assigned">
+            <Tabs.FlatList
+              data={getFallbackReports(assignedReports)}
+              keyExtractor={item => item._id}
+              refreshing={isRefetchAssignReportLoading}
+              onRefresh={() => {
+                setAssignReportPage(1);
+                refetchAssignReports();
+              }}
+              renderItem={({item}) => (
+                <ReportCard
+                  report={item}
+                  onViewContent={onViewContent}
+                  onTakeActionReport={onTakeActionReport}
+                />
+              )}
+              ListEmptyComponent={
+                <EmptyState
+                  icon="check-circle"
+                  title="No Assigned Reports"
+                  subtitle="Take over a pending report from the queue to process clinical actions."
+                />
+              }
+              showsVerticalScrollIndicator={false}
+              onEndReached={() => {
+                if (assignReportPage < totalAssignReportPage) {
+                  setAssignReportPage(assignReportPage + 1);
                 }
-                //contentContainerStyle={styles.container}
-                showsVerticalScrollIndicator={false}
-                onEndReached={() => {
-                  if (pendingPage < totalPendingPage) {
-                    setPendingPage(pendingPage + 1);
-                    //pendingReportFetch();
-                  }
-                }}
-                onEndReachedThreshold={0.5}
-              />
-            </View>
+              }}
+              onEndReachedThreshold={0.5}
+            />
           </Tabs.Tab>
 
-          <Tabs.Tab name="Assigned">
-            <View style={{flex: 1, marginBottom: hp(4)}}>
+          {isSuperAdmin ? (
+            <Tabs.Tab name="Reasons" label="Reasons">
               <Tabs.FlatList
-                data={assignedReports ? assignedReports : []}
+                data={reportReasons && reportReasons.length > 0 ? reportReasons : fallbackReasons}
                 keyExtractor={item => item._id}
-                refreshing={isRefetchAssignReportLoading}
-                onRefresh={() => {
-                  setAssignReportPage(1);
-                  refetchAssignReports();
-                }}
-                renderItem={({item}) => (
-                  <ReportCard
-                    report={item}
-                    onViewContent={onViewContent}
-                    onTakeActionReport={onTakeActionReport}
-                  />
-                )}
-                ListEmptyComponent={
-                  <View style={styles.emptyContainer}>
-                    {/* <Image
-                      source={require('../../assets/images/identify-audience.png')}
-                      style={styles.image}
-                    /> */}
-                    <MaterialIcons
-                      name="report-off"
-                      size={wp(25)}
-                      color={'#6A89A7'}
-                    />
-                    <Text style={styles.message}>No Report Found</Text>
+                refreshing={reasonRefresh}
+                onRefresh={onReportReasonRefresh}
+                ListHeaderComponent={
+                  <View style={styles.actionHeaderContainer}>
+                    <TouchableOpacity
+                      style={styles.addButton}
+                      onPress={() => {
+                        setSelectedReason(null);
+                        setAddTagModalVisible(true);
+                      }}>
+                      <Text style={styles.addButtonText}>+ Add New Reason</Text>
+                    </TouchableOpacity>
                   </View>
                 }
-                onEndReached={() => {
-                  if (assignReportPage < totalAssignReportPage) {
-                    setAssignReportPage(prev => prev + 1);
-                  }
-                }}
-                onEndReachedThreshold={0.5}
-                //contentContainerStyle={styles.container}
+                renderItem={({item}: {item: Reason}) => (
+                  <ReasonItemCard
+                    reason={item}
+                    onEditAction={(item: Reason) => {
+                      setSelectedReason(item);
+                      setAddTagModalVisible(true);
+                    }}
+                    onDeleteAction={(item: Reason) => {
+                      if (!isConnected) {
+                        Snackbar.show({
+                          text: 'You are currently offline',
+                          duration: Snackbar.LENGTH_SHORT,
+                        });
+                        return;
+                      }
+                      Alert.alert(
+                        'Alert!',
+                        'Are you sure you want to delete this reason?',
+                        [
+                          {
+                            text: 'Cancel',
+                            style: 'cancel',
+                          },
+                          {
+                            text: 'Confirm',
+                            onPress: () =>
+                              deleteReasonMutation.mutate(item._id),
+                            style: 'destructive',
+                          },
+                        ],
+                      );
+                    }}
+                  />
+                )}
+                contentContainerStyle={styles.list}
                 showsVerticalScrollIndicator={false}
+                ListEmptyComponent={
+                  <EmptyState
+                    icon="alert-circle"
+                    title="No Reasons Configured"
+                    subtitle="Configure report reasons for users to flag policy violations."
+                  />
+                }
               />
-            </View>
-          </Tabs.Tab>
+            </Tabs.Tab>
+          ) : null}
         </Tabs.Container>
 
         <AddTagModal
@@ -664,26 +656,33 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
 
+  actionHeaderContainer: {
+    paddingHorizontal: 16,
+    paddingTop: 24,
+    paddingBottom: 14,
+  },
+
   addButton: {
     backgroundColor: '#2563EB',
-    paddingVertical: hp(1.7),
+    paddingVertical: 12,
     borderRadius: 14,
     alignItems: 'center',
-    marginTop: hp(7),
-    borderWidth: 1.5,
-    borderColor: '#1E40AF',
+    justifyContent: 'center',
+    shadowColor: '#2563EB',
+    shadowOffset: {width: 0, height: 2},
+    shadowOpacity: 0.15,
+    shadowRadius: 4,
+    elevation: 3,
   },
   addButtonText: {
     color: 'white',
-    fontSize: 17,
-    fontWeight: '600',
+    fontSize: 16,
+    fontWeight: '700',
+    letterSpacing: 0.2,
   },
   list: {
-    paddingBottom: hp(5),
-    paddingTop: hp(1),
+    paddingBottom: hp(16),
+    paddingTop: 4,
     gap: hp(1.5),
-    marginTop: hp(2),
-    //backgroundColor: 'red',
-    //marginBottom: hp(36)
   },
 });

@@ -1,5 +1,6 @@
 import React from 'react';
-import {View, Pressable, StyleSheet, useColorScheme, Text} from 'react-native';
+import {View, Pressable, StyleSheet, useColorScheme, Text, Platform} from 'react-native';
+import {SafeAreaInsetsContext} from 'react-native-safe-area-context';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import FontAwesome from '@expo/vector-icons/FontAwesome';
 import MaterialIcons from '@expo/vector-icons/MaterialIcons';
@@ -7,7 +8,6 @@ import {useSelector} from 'react-redux';
 import {useQuery} from '@tanstack/react-query';
 import axios from 'axios';
 import {PROD_URL} from '../helper/APIUtils';
-import {hp} from '../helper/Metric';
 import {
   PRIMARY_COLOR,
   DARK_THEME,
@@ -16,8 +16,9 @@ import {
 
 const TabBar = ({state, descriptors, navigation}: any) => {
   const isDarkMode = useColorScheme() === 'dark';
+  const insets = React.useContext(SafeAreaInsetsContext);
 
-  const {user_token} = useSelector((state: any) => state.user);
+  const {user_token, isSuperAdmin} = useSelector((state: any) => state.user);
   const {isConnected} = useSelector((state: any) => state.network);
 
   const {data: unreadCount = 0} = useQuery({
@@ -27,13 +28,24 @@ const TabBar = ({state, descriptors, navigation}: any) => {
       return res.data?.unreadCount || 0;
     },
     enabled: !!user_token && isConnected,
+    staleTime: 1000 * 60, // Cache for 1 minute to avoid constant re-fetching
   });
 
+  // Safe bottom offset that never results in NaN or crashes if context is initially unmeasured
+  const bottomInset =
+    insets && typeof insets.bottom === 'number' && !isNaN(insets.bottom)
+      ? insets.bottom
+      : Platform.OS === 'android'
+      ? 16
+      : 8;
+  const bottomOffset = Math.max(bottomInset + 8, 14);
+
   return (
-    <View style={[styles.mainContainer, isDarkMode && styles.mainContainerDark]}>
+    <View style={[styles.mainContainer, {bottom: bottomOffset}, isDarkMode && styles.mainContainerDark]}>
       {state.routes.map((route: any, index: number) => {
         const {options} = descriptors[route.key];
-        const label = options.tabBarLabel ?? options.title ?? route.name;
+        const rawLabel = options.tabBarLabel ?? options.title ?? route.name;
+        const label = typeof rawLabel === 'string' ? rawLabel : route.name;
         const isFocused = state.index === index;
 
         const onPress = () => {
@@ -57,10 +69,18 @@ const TabBar = ({state, descriptors, navigation}: any) => {
                 styles.iconContainer,
                 isFocused && (isDarkMode ? styles.iconContainerActiveDark : styles.iconContainerActive),
               ]}>
+              {label === 'Dashboard' && (
+                <Ionicons
+                  name={isFocused ? 'grid' : 'grid-outline'}
+                  size={23}
+                  color={isFocused ? activeColor : inactiveColor}
+                />
+              )}
+
               {label === 'Article' && (
                 <Ionicons
                   name={isFocused ? 'document-text' : 'document-text-outline'}
-                  size={24}
+                  size={23}
                   color={isFocused ? activeColor : inactiveColor}
                 />
               )}
@@ -68,32 +88,15 @@ const TabBar = ({state, descriptors, navigation}: any) => {
               {label === 'Podcast' && (
                 <FontAwesome
                   name="podcast"
-                  size={24}
+                  size={23}
                   color={isFocused ? activeColor : inactiveColor}
                 />
               )}
 
-              {label === 'Notification' && (
-                <View>
-                  <Ionicons
-                    name={isFocused ? 'notifications' : 'notifications-outline'}
-                    size={24}
-                    color={isFocused ? activeColor : inactiveColor}
-                  />
-                  {unreadCount > 0 && (
-                    <View style={styles.badge}>
-                      <Text style={styles.badgeText}>
-                        {unreadCount > 9 ? '9+' : unreadCount}
-                      </Text>
-                    </View>
-                  )}
-                </View>
-              )}
-
               {label === 'Report' && (
-                <MaterialIcons
-                  name={isFocused ? 'shield' : 'shield-outlined'}
-                  size={24}
+                <Ionicons
+                  name={isFocused ? 'shield' : 'shield-outline'}
+                  size={23}
                   color={isFocused ? activeColor : inactiveColor}
                 />
               )}
@@ -114,7 +117,7 @@ const TabBar = ({state, descriptors, navigation}: any) => {
                 {color: isFocused ? activeColor : inactiveColor},
                 isFocused && styles.labelActive,
               ]}>
-              {label}
+              {label === 'Profile' && isSuperAdmin ? 'Executive' : label}
             </Text>
           </Pressable>
         );
@@ -129,17 +132,18 @@ const styles = StyleSheet.create({
   mainContainer: {
     flexDirection: 'row',
     position: 'absolute',
-    bottom: hp(2.5),
-    left: 16,
-    right: 16,
+    left: 14,
+    right: 14,
     backgroundColor: '#FFFFFF',
-    height: hp(8.2),
-    borderRadius: 24,
+    height: 68,
+    borderRadius: 22,
     borderWidth: 1,
     borderColor: '#E2E8F0',
     ...CLINICAL_SHADOW,
-    elevation: 8,
+    elevation: 12,
     zIndex: 100,
+    alignItems: 'center',
+    paddingHorizontal: 4,
   },
 
   mainContainerDark: {
@@ -152,15 +156,15 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    paddingVertical: 4,
+    paddingVertical: 2,
   },
 
   iconContainer: {
-    width: 44,
-    height: 34,
+    width: 42,
+    height: 32,
     justifyContent: 'center',
     alignItems: 'center',
-    borderRadius: 12,
+    borderRadius: 10,
   },
 
   iconContainerActive: {
@@ -172,14 +176,14 @@ const styles = StyleSheet.create({
   },
 
   label: {
-    fontSize: 10,
-    fontWeight: '500',
+    fontSize: 12,
+    fontWeight: '600',
     marginTop: 2,
-    letterSpacing: 0.2,
+    letterSpacing: 0.1,
   },
 
   labelActive: {
-    fontWeight: '700',
+    fontWeight: '800',
   },
 
   badge: {

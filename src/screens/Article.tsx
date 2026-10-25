@@ -50,10 +50,11 @@ import HomeArticle from './tabs/HomeArticle';
 import Improvement from './tabs/Improvement';
 import TagItemCard from '../components/TagItemCard';
 import AddTagModal from '../components/AddTagModal';
+import EmptyState from '../components/EmptyState';
 import DiscardReasonModal from '../components/DiscardReasonModal';
 
 export default function HomeScreen({navigation}: ArticleProps) {
-  const {user_id, user_token} = useSelector((state: any) => state.user);
+  const {user_id, user_token, isSuperAdmin} = useSelector((state: any) => state.user);
   const {isConnected} = useSelector((state: any) => state.network);
   const {
     filteredAvailableArticles,
@@ -87,34 +88,32 @@ export default function HomeScreen({navigation}: ArticleProps) {
   //const bottomBarHeight = useBottomTabBarHeight();
   const bottomSheetModalRef = useRef<BottomSheetModal>(null);
 
-  const getAllCategories = useCallback(async () => {
-    const {data: categoryData} = await axios.get(
-      `${PROD_URL + ARTICLE_TAGS_API}`,
-    );
-    if (
-      selectedTags === undefined ||
-      (selectedTags && selectedTags.length === 0)
-    ) {
-      //console.log('Category Data', categoryData);
-      dispatch(
-        setSelectedTags({
-          selectedTags: categoryData.map((category: Category) => category.name),
-        }),
-      );
-      //setSelectedCategory(categoryData[0]?.name);
-    } else {
-      //  setSelectedCategory(selectedTags[0]);
-    }
-    // console.log("Article data", categoryData.length);
-    setArticleCategories(categoryData);
-    dispatch(setTags({tags: categoryData}));
-  }, [dispatch, selectedTags]);
+  const {data: categoryData, refetch: refetchCategories} = useQuery({
+    queryKey: ['article-tags'],
+    queryFn: async () => {
+      const {data} = await axios.get(`${PROD_URL + ARTICLE_TAGS_API}`);
+      return data as Category[];
+    },
+    staleTime: 1000 * 60 * 60, // 1 hour cache
+    enabled: !!isConnected && !!user_token,
+  });
 
   useEffect(() => {
-    getAllCategories();
-
-    return () => {};
-  }, [getAllCategories]);
+    if (categoryData && categoryData.length > 0) {
+      setArticleCategories(categoryData);
+      dispatch(setTags({tags: categoryData}));
+      if (
+        selectedTags === undefined ||
+        (selectedTags && selectedTags.length === 0)
+      ) {
+        dispatch(
+          setSelectedTags({
+            selectedTags: categoryData.map((category: Category) => category.name),
+          }),
+        );
+      }
+    }
+  }, [categoryData, dispatch, selectedTags]);
 
   const onAvailablePageEnd = () => {
     if (availablePage < totalAvailablePage) {
@@ -464,15 +463,9 @@ export default function HomeScreen({navigation}: ArticleProps) {
 
   const onTagRefresh = async () => {
     setTagRefresh(true);
-    await getAllCategories();
+    await refetchCategories();
     setTagRefresh(false);
   };
-  useFocusEffect(
-    useCallback(() => {
-      availableAticleRefetch();
-      refetchProgressArticles();
-    }, [availableAticleRefetch, refetchProgressArticles]),
-  );
 
   const handleImprovementReviewNav = (
     requestId: string,
@@ -510,7 +503,7 @@ export default function HomeScreen({navigation}: ArticleProps) {
         activeColor={isDarkMode ? DARK_THEME.primary : PRIMARY_COLOR}
         inactiveColor={isDarkMode ? DARK_THEME.textMuted : '#64748B'}
         labelStyle={{
-          fontSize: 14,
+          fontSize: 15.5,
           fontWeight: '700',
           textTransform: 'capitalize',
           letterSpacing: 0.2,
@@ -617,79 +610,9 @@ export default function HomeScreen({navigation}: ArticleProps) {
     <SafeAreaView style={styles.container}>
       <View style={[styles.innerContainer]}>
         <Tabs.Container
-          //  renderHeader={renderHeader}
-          initialIndex={0}
+          initialTabName="Articles"
           renderTabBar={renderTabBar}
           containerStyle={styles.tabsContainer}>
-          {/* Tab 1 */}
-
-          <Tabs.Tab name="Tags">
-            <View style={{flex: 1, marginBottom: hp(5)}}>
-              <View style={styles.reasonTabContainer}>
-                <TouchableOpacity
-                  style={styles.addButton}
-                  onPress={() => {
-                    setAddTagModalVisible(true);
-                  }}>
-                  <Text style={styles.addButtonText}>+ Add New Tag</Text>
-                </TouchableOpacity>
-
-                <Tabs.FlatList
-                  data={articleCategories ? articleCategories : []}
-                  keyExtractor={item => item._id}
-                  refreshing={tagRefresh}
-                  onRefresh={onTagRefresh}
-                  renderItem={({item}: {item: Category}) => (
-                    <TagItemCard
-                      reason={item}
-                      onEditAction={(item: Category) => {
-                        setSelectedCategory(item);
-                        setAddTagModalVisible(true);
-                      }}
-                      onDeleteAction={(item: Category) => {
-                        Alert.alert(
-                          'Alert!',
-                          'Are you sure you want to delete this category?',
-                          [
-                            {
-                              text: 'Cancel',
-                              style: 'cancel',
-                            },
-                            {
-                              text: 'Confirm',
-                              onPress: () => {
-                                if (isConnected) {
-                                  deleteTagMutation.mutate(item._id);
-                                } else {
-                                  Snackbar.show({
-                                    text: 'You are currently offline',
-                                    duration: Snackbar.LENGTH_SHORT,
-                                  });
-                                }
-                              },
-                              style: 'destructive',
-                            },
-                          ],
-                        );
-                      }}
-                    />
-                  )}
-                  contentContainerStyle={styles.list}
-                  showsVerticalScrollIndicator={false}
-                  ListEmptyComponent={
-                    <View style={styles.emptyContainer}>
-                      <Image
-                        source={require('../../assets/images/identify-audience.png')}
-                        style={styles.image}
-                      />
-
-                      <Text style={styles.message}>No tags found</Text>
-                    </View>
-                  }
-                />
-              </View>
-            </View>
-          </Tabs.Tab>
           <Tabs.Tab name="Articles">
             <HomeArticle
               availableArticle={filteredAvailableArticles}
@@ -708,6 +631,73 @@ export default function HomeScreen({navigation}: ArticleProps) {
               <Improvement handleNav={handleImprovementReviewNav} />
             ) : null}
           </Tabs.Tab>
+
+          {isSuperAdmin ? (
+            <Tabs.Tab name="Tags" label="Tags">
+              <Tabs.FlatList
+                data={articleCategories ? articleCategories : []}
+                keyExtractor={item => item._id}
+                refreshing={tagRefresh}
+                onRefresh={onTagRefresh}
+                ListHeaderComponent={
+                  <View style={styles.actionHeaderContainer}>
+                    <TouchableOpacity
+                      style={styles.addButton}
+                      onPress={() => {
+                        setSelectedCategory(null);
+                        setAddTagModalVisible(true);
+                      }}>
+                      <Text style={styles.addButtonText}>+ Add New Tag</Text>
+                    </TouchableOpacity>
+                  </View>
+                }
+                renderItem={({item}: {item: Category}) => (
+                  <TagItemCard
+                    reason={item}
+                    onEditAction={(item: Category) => {
+                      setSelectedCategory(item);
+                      setAddTagModalVisible(true);
+                    }}
+                    onDeleteAction={(item: Category) => {
+                      Alert.alert(
+                        'Alert!',
+                        'Are you sure you want to delete this category?',
+                        [
+                          {
+                            text: 'Cancel',
+                            style: 'cancel',
+                          },
+                          {
+                            text: 'Confirm',
+                            onPress: () => {
+                              if (isConnected) {
+                                deleteTagMutation.mutate(item._id);
+                              } else {
+                                Snackbar.show({
+                                  text: 'You are currently offline',
+                                  duration: Snackbar.LENGTH_SHORT,
+                                });
+                              }
+                            },
+                            style: 'destructive',
+                          },
+                        ],
+                      );
+                    }}
+                  />
+                )}
+                contentContainerStyle={styles.list}
+                showsVerticalScrollIndicator={false}
+                ListEmptyComponent={
+                  <EmptyState
+                    icon="tag"
+                    title="No Tags Configured"
+                    subtitle="Configure clinical categories and tags to organize articles and specialties."
+                  />
+                }
+              />
+            </Tabs.Tab>
+          ) : null}
         </Tabs.Container>
 
         {/* <FilterModal
@@ -893,22 +883,34 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
 
+  actionHeaderContainer: {
+    paddingHorizontal: 16,
+    paddingTop: 24,
+    paddingBottom: 14,
+  },
+
   addButton: {
     backgroundColor: PRIMARY_COLOR,
-    paddingVertical: hp(1.5),
-    borderRadius: 12,
+    paddingVertical: 12,
+    borderRadius: 14,
     alignItems: 'center',
-    marginTop: hp(7),
+    justifyContent: 'center',
+    shadowColor: PRIMARY_COLOR,
+    shadowOffset: {width: 0, height: 2},
+    shadowOpacity: 0.15,
+    shadowRadius: 4,
+    elevation: 3,
   },
 
   addButtonText: {
     color: 'white',
-    fontSize: 17,
-    fontWeight: '600',
+    fontSize: 16,
+    fontWeight: '700',
+    letterSpacing: 0.2,
   },
   list: {
-    paddingBottom: hp(15),
-    paddingTop: hp(1),
+    paddingBottom: hp(16),
+    paddingTop: 4,
     gap: hp(1.5),
   },
 });

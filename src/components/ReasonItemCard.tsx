@@ -35,7 +35,7 @@ export default function ReasonItemCard({
 
         <View style={styles.textContainer}>
           <Text style={styles.reasonText} numberOfLines={3}>
-            {reason.reason}
+            {reason.reason || (reason as any).name || (reason as any).title || 'Report Reason'}
           </Text>
         </View>
 

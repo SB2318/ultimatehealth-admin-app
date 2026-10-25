@@ -21,6 +21,7 @@ import Icon from '@expo/vector-icons/Ionicons';
 import {useMutation} from '@tanstack/react-query';
 import axios, {AxiosError} from 'axios';
 import {CHECK_OTP, SEND_OTP} from '../../helper/APIUtils';
+import {getApiErrorMessage} from '../../helper/Utils';
 import {useSelector} from 'react-redux';
 import {OtpScreenProp} from '../../type';
 import Snackbar from 'react-native-snackbar';
@@ -220,15 +221,11 @@ export default function OtpScreen({navigation, route}: OtpScreenProp) {
       inputs.current[0]?.focus();
     },
     onError: error => {
-      if (axios.isAxiosError(error) && error.response) {
-        const message =
-          error.response.data?.message ||
-          error.response.data?.error ||
-          'Failed to resend code. Please try again.';
-        setErrorMessage(message);
-      } else {
-        setErrorMessage('Network error. Please try again.');
-      }
+      const message = getApiErrorMessage(
+        error,
+        'Failed to resend code. Please try again.',
+      );
+      setErrorMessage(message);
     },
   });
 
@@ -256,10 +253,10 @@ export default function OtpScreen({navigation, route}: OtpScreenProp) {
       });
     },
     onError: (error: AxiosError<any>) => {
-      const message =
-        error.response?.data?.message ||
-        error.response?.data?.error ||
-        'Invalid or expired verification code';
+      const message = getApiErrorMessage(
+        error,
+        'Invalid or expired verification code',
+      );
       setErrorMessage(message);
     },
   });
@@ -365,7 +362,7 @@ export default function OtpScreen({navigation, route}: OtpScreenProp) {
             </View>
 
             {/* Error Message Banner */}
-            {errorMessage && (
+            {errorMessage ? (
               <View
                 style={[
                   styles.errorBanner,
@@ -376,10 +373,13 @@ export default function OtpScreen({navigation, route}: OtpScreenProp) {
                 ]}>
                 <Icon name="alert-circle" size={18} color={colors.errorText} />
                 <Text style={[styles.errorBannerText, {color: colors.errorText}]}>
-                  {errorMessage}
+                  {typeof errorMessage === 'string'
+                    ? errorMessage
+                    : (errorMessage as any)?.message ||
+                      'Invalid or expired verification code'}
                 </Text>
               </View>
-            )}
+            ) : null}
 
             {/* Continue Button */}
             <TouchableOpacity
@@ -416,7 +416,7 @@ export default function OtpScreen({navigation, route}: OtpScreenProp) {
               ) : (
                 <View style={styles.resendActionRow}>
                   <Text style={[styles.resendPrompt, {color: colors.secondaryText}]}>
-                    Didn't receive the code?
+                    {"Didn't receive the code?"}
                   </Text>
                   <TouchableOpacity
                     onPress={handleResend}

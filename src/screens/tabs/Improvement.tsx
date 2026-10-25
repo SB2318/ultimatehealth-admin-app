@@ -1,19 +1,20 @@
-import DiscardReasonModal from '@/src/components/DiscardReasonModal';
+import DiscardReasonModal from '../../components/DiscardReasonModal';
 import {useMutation, useQuery} from '@tanstack/react-query';
 import axios from 'axios';
 import React, {useCallback, useState} from 'react';
 import {
   Alert,
-  FlatList,
   Image,
   StyleSheet,
   Text,
   TouchableOpacity,
   View,
 } from 'react-native';
+import {Tabs} from 'react-native-collapsible-tab-view';
 import Snackbar from 'react-native-snackbar';
 import {useSelector} from 'react-redux';
 import ImprovementCard from '../../components/ImprovementCard';
+import EmptyState from '../../components/EmptyState';
 import Loader from '../../components/Loader';
 import {
   DISCARD_IMPROVEMENT,
@@ -25,6 +26,7 @@ import {
 import {hp, wp} from '../../helper/Metric';
 import {ON_PRIMARY_COLOR, PRIMARY_COLOR} from '../../helper/Theme';
 import {EditRequest} from '../../type';
+import {getFallbackImprovements} from '../../helper/DemoData';
 import { Fontisto } from '@expo/vector-icons';
 
 export default function Imrovement({
@@ -292,146 +294,183 @@ export default function Imrovement({
     return <Loader />;
   }
 
-  return (
-    <View style={{flex: 1, backgroundColor: ON_PRIMARY_COLOR}}>
-      <View style={styles.container}>
-        <View style={styles.buttonContainer}>
+  const activeCount =
+    selectedCat === 'Available'
+      ? getFallbackImprovements(availableImprovements).length
+      : getFallbackImprovements(progressImprovements).length;
+
+  const ListHeader = () => (
+    <View style={styles.headerContainer}>
+      <View style={styles.segmentWrapper}>
+        <View style={styles.segmentContainer}>
           {categories.map((item, index) => (
             <TouchableOpacity
               key={index}
-              style={{
-                ...styles.button,
-                backgroundColor: selectedCat !== item ? 'white' : PRIMARY_COLOR,
-                borderColor: selectedCat !== item ? PRIMARY_COLOR : 'white',
-              }}
-              onPress={() => {
-                setSelectedCat(item);
-              }}>
+              style={[
+                styles.segmentButton,
+                selectedCat === item && styles.segmentButtonActive,
+              ]}
+              onPress={() => setSelectedCat(item)}
+              activeOpacity={0.8}>
               <Text
-                style={{
-                  ...styles.labelStyle,
-                  color: selectedCat !== item ? 'black' : 'white',
-                }}>
-                {item}
+                style={[
+                  styles.segmentLabel,
+                  selectedCat === item && styles.segmentLabelActive,
+                ]}>
+                {item === 'Available' ? 'Available Revisions' : 'In Progress'}
               </Text>
             </TouchableOpacity>
           ))}
         </View>
-
-        <View style={styles.articleContainer}>
-          <FlatList
-            data={
-              selectedCat === categories[0]
-                ? availableImprovements
-                  ? availableImprovements
-                  : []
-                : progressImprovements
-                ? progressImprovements
-                : []
-            }
-            renderItem={renderItem}
-            keyExtractor={item => item._id.toString()}
-            contentContainerStyle={styles.flatListContentContainer}
-            refreshing={refreshing}
-            onRefresh={onRefresh}
-            ListEmptyComponent={
-              <View style={styles.emptyContainer}>
-                {/* <Image
-                  source={require('../../../assets/images/article.png')}
-                  style={styles.image}
-                /> */}
-                <Fontisto name="onenote" size={wp(25)} color={'#6A89A7'} />
-                <Text style={styles.message}>No Article Found</Text>
-              </View>
-            }
-            onEndReached={() => {
-              if (selectedCat === categories[0]) {
-                if (availablePage < totalAvailPage) {
-                  setAvailablePage(prev => prev + 1);
-                }
-              } else if (selectedCat === categories[1]) {
-                if (progressPage < totalProgressPage) {
-                  setProgressPage(prev => prev + 1);
-                }
-              }
-            }}
-            onEndReachedThreshold={0.5}
-          />
-        </View>
-
-        <DiscardReasonModal
-          visible={discardReqModal}
-          callback={(reason: string) => {
-            console.log('discard modal click-', discardReqModal);
-            // onclick(item, 1, reason);
-            if (discardReqId !== '') {
-              discardImprovementMutation.mutate({
-                requestId: discardReqId,
-                discardReason: reason,
-              });
-            } else {
-              Snackbar.show({
-                text: 'Improvement id not found, please try again',
-                duration: Snackbar.LENGTH_SHORT,
-              });
-            }
-          }}
-          dismiss={() => {
-            setDiscardReId('');
-            setDiscardReqModal(false);
-          }}
-        />
       </View>
+
+      <View style={styles.metaRow}>
+        <View style={styles.dotIndicator} />
+        <Text style={styles.countText}>
+          <Text style={styles.countNumber}>{activeCount}</Text>{' '}
+          {selectedCat === 'Available'
+            ? 'revisions awaiting clinical moderation'
+            : 'revisions currently in review'}
+        </Text>
+      </View>
+    </View>
+  );
+
+  return (
+    <View style={{flex: 1, backgroundColor: ON_PRIMARY_COLOR}}>
+      <Tabs.FlatList
+        data={
+          selectedCat === categories[0]
+            ? getFallbackImprovements(availableImprovements)
+            : getFallbackImprovements(progressImprovements)
+        }
+        renderItem={renderItem}
+        keyExtractor={item => item._id.toString()}
+        ListHeaderComponent={ListHeader}
+        contentContainerStyle={styles.flatListContentContainer}
+        refreshing={refreshing}
+        onRefresh={onRefresh}
+        showsVerticalScrollIndicator={false}
+        ListEmptyComponent={
+          <EmptyState
+            icon="file-text"
+            title="No Revisions Found"
+            subtitle="All revision requests have been moderated or there are no pending submissions in this queue."
+          />
+        }
+        onEndReached={() => {
+          if (selectedCat === categories[0]) {
+            if (availablePage < totalAvailPage) {
+              setAvailablePage(prev => prev + 1);
+            }
+          } else if (selectedCat === categories[1]) {
+            if (progressPage < totalProgressPage) {
+              setProgressPage(prev => prev + 1);
+            }
+          }
+        }}
+        onEndReachedThreshold={0.5}
+      />
+
+      <DiscardReasonModal
+        visible={discardReqModal}
+        callback={(reason: string) => {
+          console.log('discard modal click-', discardReqModal);
+          if (discardReqId !== '') {
+            discardImprovementMutation.mutate({
+              requestId: discardReqId,
+              discardReason: reason,
+            });
+          } else {
+            Snackbar.show({
+              text: 'Improvement id not found, please try again',
+              duration: Snackbar.LENGTH_SHORT,
+            });
+          }
+        }}
+        dismiss={() => {
+          setDiscardReId('');
+          setDiscardReqModal(false);
+        }}
+      />
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  buttonContainer: {
-    //alignSelf:"center",
+  headerContainer: {
+    paddingTop: 8,
+    paddingBottom: 4,
+    backgroundColor: ON_PRIMARY_COLOR,
+  },
+  segmentWrapper: {
+    paddingHorizontal: 16,
+    paddingVertical: 6,
+    marginBottom: 6,
+  },
+  segmentContainer: {
     flexDirection: 'row',
-    paddingHorizontal: 6,
-    // backgroundColor:"red"
-  },
-  button: {
-    flex: 1,
+    backgroundColor: '#E2E8F0',
     borderRadius: 14,
-    marginHorizontal: 6,
-    marginVertical: 4,
-    padding: 8,
-    borderWidth: 1,
-    justifyContent: 'center',
+    padding: 3,
+  },
+  segmentButton: {
+    flex: 1,
+    borderRadius: 11,
+    paddingVertical: 9.5,
     alignItems: 'center',
+    justifyContent: 'center',
   },
-  labelStyle: {
-    fontWeight: 'bold',
+  segmentButtonActive: {
+    backgroundColor: '#FFFFFF',
+    shadowColor: '#000',
+    shadowOffset: {width: 0, height: 1},
+    shadowOpacity: 0.08,
+    shadowRadius: 2,
+    elevation: 2,
+  },
+  segmentLabel: {
     fontSize: 15,
-    textTransform: 'capitalize',
+    fontWeight: '700',
+    color: '#64748B',
+    letterSpacing: 0.1,
   },
-  container: {
-    flex: 1,
-    // backgroundColor: '#F0F8FF',
-    marginTop: hp(8),
-    //justifyContent: 'center',
-    //alignItems: 'center',
+  segmentLabelActive: {
+    color: '#0F172A',
+    fontWeight: '800',
   },
-  articleContainer: {
-    flex: 1,
-    width: '100%',
-    paddingHorizontal: 0,
-    marginBottom: 80,
-    //zIndex: -2,
+  metaRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 18,
+    paddingVertical: 8,
+    gap: 8,
+    marginBottom: 4,
+  },
+  dotIndicator: {
+    width: 8,
+    height: 8,
+    borderRadius: 4,
+    backgroundColor: '#0EA5E9',
+  },
+  countText: {
+    fontSize: 14,
+    color: '#475569',
+    fontWeight: '500',
+  },
+  countNumber: {
+    fontSize: 16,
+    fontWeight: '800',
+    color: '#0284C7',
   },
   flatListContentContainer: {
-    // marginTop: hp(20),
-    paddingHorizontal: 16,
+    paddingBottom: hp(16),
     backgroundColor: ON_PRIMARY_COLOR,
   },
 
   image: {
     height: 190,
     width: 190,
-    //borderRadius: 80,
     resizeMode: 'cover',
     marginTop: hp(10),
     marginBottom: hp(4),

@@ -50,6 +50,7 @@ export const KEYS = {
   VULTR_CHAT_MODEL: 'zephyr-7b-beta-f32',
   VULTR_COLLECTION: 'care_companion',
   USER_HANDLE: 'USER_HANDLE',
+  IS_SUPER_ADMIN: 'IS_SUPER_ADMIN',
 };
 export const StatusEnum = {
   UNASSIGNED: 'unassigned', // can't change
@@ -161,29 +162,33 @@ export const createFeebackHTMLStructure = (feedback: string) => {
 };
 
 export const checkImageCopyright = async (imageUrls: string[]) => {
-  let results: CopyrightCheckerResponse[] = [];
-
-  for (const url of imageUrls) {
-  
-    if (url) {
-      console.log("Checking copyright for image URL:", url);
+  const validUrls = imageUrls.filter(Boolean);
+  const promises = validUrls.map(async url => {
+    try {
+      const imageUrl = url.includes(GET_IMAGE) ? url : `${GET_IMAGE}/${url}`;
       const response = await axios.post(CHECK_IMAGE_COPYRIGHT, {
-        image_url: url.includes(`${GET_IMAGE}`)? url: `${GET_IMAGE}/${url}`,
+        image_url: imageUrl,
       });
 
-      console.log("image_url", url.includes(`${GET_IMAGE}`)? url: `${GET_IMAGE}/${url}`)
-      console.log("Response", response.data.data);
-
-      if (response.data.data) {
-        
+      if (response.data?.data) {
         const res: CopyrightCheckerResponse = response.data.data;
         res.image_url = url;
-
-        results.push(res);
+        return res;
       }
+      return null;
+    } catch (err) {
+      console.log('Error checking image copyright for:', url, err);
+      return null;
     }
-  }
-  return results;
+  });
+
+  const settled = await Promise.allSettled(promises);
+  return settled
+    .filter(
+      (s): s is PromiseFulfilledResult<CopyrightCheckerResponse> =>
+        s.status === 'fulfilled' && s.value !== null,
+    )
+    .map(s => s.value);
 };
 
 export function msToTime(ms: number): string {
@@ -202,3 +207,63 @@ export function msToTime(ms: number): string {
   
   return result;
 }
+
+
+export const getApiErrorMessage = (
+  error: any,
+  defaultMessage: string = 'Something went wrong. Please try again.',
+): string => {
+  if (!error) return defaultMessage;
+
+  if (typeof error === 'string') return error;
+
+  const data = error.response?.data;
+  if (data !== undefined && data !== null) {
+    if (typeof data === 'string' && data.trim().length > 0) return data;
+
+    if (data.message !== undefined && data.message !== null) {
+      if (typeof data.message === 'string' && data.message.trim().length > 0) {
+        return data.message;
+      }
+      if (typeof data.message === 'object') {
+        if (typeof data.message.message === 'string' && data.message.message.trim().length > 0) {
+          return data.message.message;
+        }
+        if (typeof data.message.error === 'string' && data.message.error.trim().length > 0) {
+          return data.message.error;
+        }
+      }
+    }
+
+    if (data.error !== undefined && data.error !== null) {
+      if (typeof data.error === 'string' && data.error.trim().length > 0) {
+        return data.error;
+      }
+      if (typeof data.error === 'object') {
+        if (typeof data.error.message === 'string' && data.error.message.trim().length > 0) {
+          return data.error.message;
+        }
+        if (typeof data.error.error === 'string' && data.error.error.trim().length > 0) {
+          return data.error.error;
+        }
+      }
+    }
+
+    if (typeof data.detail === 'string' && data.detail.trim().length > 0) {
+      return data.detail;
+    }
+
+    if (Array.isArray(data.errors) && data.errors.length > 0) {
+      const first = data.errors[0];
+      if (typeof first === 'string') return first;
+      if (first && typeof first.msg === 'string') return first.msg;
+      if (first && typeof first.message === 'string') return first.message;
+    }
+  }
+
+  if (typeof error.message === 'string' && error.message.trim().length > 0) {
+    return error.message;
+  }
+
+  return defaultMessage;
+};

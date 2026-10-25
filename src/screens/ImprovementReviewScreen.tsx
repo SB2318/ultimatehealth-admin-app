@@ -24,8 +24,7 @@
 //   DISCARD_IMPROVEMENT,
 //   GET_IMPROVEMENT_BY_ID,
 //   GET_IMPROVEMENT_CONTENT,
-//   GET_PROFILE_API,
-//   GET_STORAGE_DATA,
+// //   GET_STORAGE_DATA,
 //   PUBLISH_IMPROVEMENT,
 //   PUBLISH_IMPROVEMENT_POCKETBASE,
 // } from '../helper/APIUtils';
@@ -1193,7 +1192,6 @@ import {
   DISCARD_IMPROVEMENT,
   GET_IMPROVEMENT_BY_ID,
   GET_IMPROVEMENT_CONTENT,
-  GET_PROFILE_API,
   GET_STORAGE_DATA,
   PUBLISH_IMPROVEMENT,
   PUBLISH_IMPROVEMENT_POCKETBASE,
@@ -1283,13 +1281,6 @@ const ImprovementReviewScreen = ({
     enabled: !!user_token && isConnected,
   });
 
-  const {data: user} = useQuery({
-    queryKey: ['get-profile'],
-    queryFn: async () => axios.get(GET_PROFILE_API).then(res => res.data),
-    enabled: !!user_token && isConnected,
-  });
-
-  if (user) dispatch(setUserHandle(user.user_handle));
 
   useEffect(() => {
     if (destination !== StatusEnum.UNASSIGNED) {

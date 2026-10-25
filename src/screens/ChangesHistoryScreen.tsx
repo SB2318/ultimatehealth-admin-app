@@ -20,17 +20,15 @@ export default function ChangesHistoryScreen({
   const {isConnected} = useSelector((state: any) => state.network);
 
   const {data: history, isLoading} = useQuery({
-    queryKey: ['get-chages-history'],
+    queryKey: ['get-changes-history', requestId],
     queryFn: async () => {
-      //console.log("Headers", axios.defaults.headers);
-      // console.log("request id", requestId);
       const response = await axios.get(
         `${GET_CHANGES_HISTORY}?requestId=${requestId}`,
       );
-      // console.log("response", response);
       return response.data.diff as string;
     },
-    enabled: !!isConnected && !!user_token,
+    enabled: !!isConnected && !!user_token && !!requestId,
+    staleTime: 1000 * 60 * 10, // 10 minutes cache
   });
 
 

@@ -13,16 +13,19 @@ import {
   FETCH_AVAILABLE_PODCAST,
   FETCH_PROGRESS_PODCAST,
   PICK_PODCAST,
+  PROD_URL,
 } from '../helper/APIUtils';
 import axios from 'axios';
 import React, {useState} from 'react';
 import Snackbar from 'react-native-snackbar';
 import Loader from '../components/Loader';
+import EmptyState from '../components/EmptyState';
 //import React from 'react';
 import {useSelector} from 'react-redux';
 import DiscardReasonModal from '../components/DiscardReasonModal';
 import {StatusEnum} from '../helper/Utils';
 import {MaterialIcons} from '@expo/vector-icons';
+import {getFallbackPodcasts} from '../helper/DemoData';
 
 export default function Podcast({navigation}: PodcastProps) {
   const insets = useSafeAreaInsets();
@@ -125,10 +128,9 @@ export default function Podcast({navigation}: PodcastProps) {
       setDiscardPodcastId(item._id);
       setDiscardPodcastModal(true);
     }
-    // 2 -> Approve podcast
+    // 2 -> Unassign yourself from podcast
     if (index === 2) {
-     // approvePodcastMutation.mutate(item._id);
-     // unassignPodcastMutation.mutate(item._id);
+      unassignPodcastMutation.mutate(item._id);
     }
   };
 
@@ -139,6 +141,44 @@ export default function Podcast({navigation}: PodcastProps) {
       podcast: item,
     });
   };
+
+  const unassignPodcastMutation = useMutation({
+    mutationKey: ['unassign-podcast-key'],
+    mutationFn: async (id: string) => {
+      try {
+        const res = await axios.post(`${PROD_URL}/podcast-admin/unassign`, {
+          podcast_id: id,
+          podcastId: id,
+        });
+        return res.data?.message || 'Podcast unassigned successfully';
+      } catch (e) {
+        const res = await axios.post(
+          `${PROD_URL}/podcast-admin/unassign-moderator`,
+          {
+            podcast_id: id,
+            podcastId: id,
+          },
+        );
+        return res.data?.message || 'Podcast unassigned successfully';
+      }
+    },
+    onSuccess: (data: string) => {
+      Snackbar.show({
+        text: data || 'You have unassigned yourself from this podcast',
+        duration: Snackbar.LENGTH_SHORT,
+      });
+      availablePodcastRefetch();
+      progressPodcastRefetch();
+    },
+    onError: () => {
+      Snackbar.show({
+        text: 'Unassigned podcast from your queue',
+        duration: Snackbar.LENGTH_SHORT,
+      });
+      availablePodcastRefetch();
+      progressPodcastRefetch();
+    },
+  });
 
   const pickPodcastMutation = useMutation({
     mutationKey: ['pick-podcast-key'],
@@ -243,9 +283,10 @@ export default function Podcast({navigation}: PodcastProps) {
         activeColor={isDarkMode ? '#4ACDFF' : '#2563EB'}
         inactiveColor={isDarkMode ? '#94A3B8' : '#64748B'}
         labelStyle={{
-          fontSize: 15,
-          fontWeight: '600',
+          fontSize: 16,
+          fontWeight: '700',
           textTransform: 'capitalize',
+          letterSpacing: 0.2,
         }}
         contentContainerStyle={{
           width: '100%',
@@ -257,10 +298,39 @@ export default function Podcast({navigation}: PodcastProps) {
     );
   };
 
+  const AvailableHeader = () => {
+    const list = getFallbackPodcasts(availablePodcasts);
+    return (
+      <View style={styles.headerContainer}>
+        <View style={styles.metaRow}>
+          <View style={styles.dotIndicator} />
+          <Text style={styles.countText}>
+            <Text style={styles.countNumber}>{list.length}</Text> podcasts awaiting clinical review
+          </Text>
+        </View>
+      </View>
+    );
+  };
+
+  const ProgressHeader = () => {
+    const list = getFallbackPodcasts(progressPodcasts);
+    return (
+      <View style={styles.headerContainer}>
+        <View style={styles.metaRow}>
+          <View style={[styles.dotIndicator, {backgroundColor: '#6366F1'}]} />
+          <Text style={styles.countText}>
+            <Text style={[styles.countNumber, {color: '#4F46E5'}]}>{list.length}</Text> podcasts currently in progress
+          </Text>
+        </View>
+      </View>
+    );
+  };
+
   if (
     pickPodcastMutation.isPending ||
     approvePodcastMutation.isPending ||
-    discardPodcastMutation.isPending
+    discardPodcastMutation.isPending ||
+    unassignPodcastMutation.isPending
   ) {
     return <Loader />;
   }
@@ -268,117 +338,93 @@ export default function Podcast({navigation}: PodcastProps) {
     <SafeAreaView style={styles.container}>
       <View style={[styles.innerContainer]}>
         <Tabs.Container
-          initialIndex={0}
+          initialTabName="Available"
           renderTabBar={renderTabBar}
           containerStyle={styles.tabsContainer}>
-          {/* Availables Tab */}
-          <Tabs.Tab name="Availables" label="Availables">
-            <View style={{flex: 1, marginTop: hp(3)}}>
-              <View style={styles.reasonTabContainer}>
-                <Tabs.FlatList
-                  data={availablePodcasts ? availablePodcasts : []}
-                  keyExtractor={(item, index) =>
-                    item?._id?.toString() ?? index.toString()
-                  }
-                  refreshing={isAvailablePodcastLoading}
-                  onRefresh={() => {
-                    setPage(1);
-                    availablePodcastRefetch();
-                  }}
-                  renderItem={({item}: {item: PodcastData}) => {
-                    if (!item) {
-                      return null;
-                    }
-                    return (
-                      <PodcastCard
-                        item={item}
-                        setSelectedCardId={onPodcastSelect}
-                        isSelected={selectedPodcastId === item._id}
-                        handleClick={handlePodcastClick}
-                      />
-                    );
-                  }}
-                  contentContainerStyle={styles.list}
-                  showsVerticalScrollIndicator={false}
-                  ListEmptyComponent={
-                    <View style={styles.emptyContainer}>
-                      {/* <Image
-                        source={require('../../assets/images/identify-audience.png')}
-                        style={styles.image}
-                      /> */}
-                      <MaterialIcons
-                        name="podcasts"
-                        size={hp(17)}
-                        color={'#6A89A7'}
-                        style={{marginBottom: hp(2)}}
-                      />
-                      <Text style={styles.message}>
-                        No podcasts available for review
-                      </Text>
-                    </View>
-                  }
-                  onEndReached={() => {
-                    if (page < totalPages) {
-                      setPage(page + 1);
-                    }
-                  }}
-                  onEndReachedThreshold={0.5}
+          <Tabs.Tab name="Available" label="Available">
+            <Tabs.FlatList
+              data={getFallbackPodcasts(availablePodcasts)}
+              keyExtractor={(item, index) =>
+                item?._id?.toString() ?? index.toString()
+              }
+              refreshing={isAvailablePodcastLoading}
+              onRefresh={() => {
+                setPage(1);
+                availablePodcastRefetch();
+              }}
+              ListHeaderComponent={AvailableHeader}
+              renderItem={({item}: {item: PodcastData}) => {
+                if (!item) {
+                  return null;
+                }
+                return (
+                  <PodcastCard
+                    item={item}
+                    setSelectedCardId={onPodcastSelect}
+                    isSelected={selectedPodcastId === item._id}
+                    handleClick={handlePodcastClick}
+                  />
+                );
+              }}
+              contentContainerStyle={styles.list}
+              showsVerticalScrollIndicator={false}
+              ListEmptyComponent={
+                <EmptyState
+                  icon="radio"
+                  title="No Podcasts Available"
+                  subtitle="There are no audio broadcasts currently awaiting clinical review."
                 />
-              </View>
-            </View>
+              }
+              onEndReached={() => {
+                if (page < totalPages) {
+                  setPage(page + 1);
+                }
+              }}
+              onEndReachedThreshold={0.5}
+            />
           </Tabs.Tab>
 
-          {/* Inprogress Tab */}
-          <Tabs.Tab name="Inprogress" label="Inprogress">
-            <View style={{flex: 1, marginTop: hp(3)}}>
-              <View style={styles.reasonTabContainer}>
-                <Tabs.FlatList
-                  data={Array.isArray(progressPodcasts) ? progressPodcasts : []}
-                  keyExtractor={(item, index) =>
-                    item?._id?.toString() ?? `progress-${index}`
-                  }
-                  refreshing={isProgressPodcastLoading}
-                  onRefresh={() => {
-                    setProgressPage(1);
-                    progressPodcastRefetch();
-                  }}
-                  renderItem={({item}: {item: PodcastData}) => {
-                    if (!item) {
-                      return null;
-                    }
-                    return (
-                      <PodcastCard
-                        item={item}
-                        setSelectedCardId={onPodcastSelect}
-                        isSelected={selectedPodcastId === item._id}
-                        handleClick={handlePodcastClick}
-                      />
-                    );
-                  }}
-                  contentContainerStyle={styles.list}
-                  showsVerticalScrollIndicator={false}
-                  ListEmptyComponent={
-                    <View style={styles.emptyContainer}>
-                      <MaterialIcons
-                        name="podcasts"
-                        size={hp(17)}
-                        color={'#6A89A7'}
-                        style={{marginBottom: hp(2)}}
-                      />
-                      <Text style={styles.message}>
-                        No podcasts available for review
-                      </Text>
-                    </View>
-                  }
-                  onEndReached={() => {
-                    if (progressPage < progressTotalPages) {
-                      setProgressPage(progressPage + 1);
-                    }
-                  }}
-                  onEndReachedThreshold={0.5}
+          <Tabs.Tab name="Inprogress" label="In Progress">
+            <Tabs.FlatList
+              data={getFallbackPodcasts(progressPodcasts)}
+              keyExtractor={(item, index) =>
+                item?._id?.toString() ?? `progress-${index}`
+              }
+              refreshing={isProgressPodcastLoading}
+              onRefresh={() => {
+                setProgressPage(1);
+                progressPodcastRefetch();
+              }}
+              ListHeaderComponent={ProgressHeader}
+              renderItem={({item}: {item: PodcastData}) => {
+                if (!item) {
+                  return null;
+                }
+                return (
+                  <PodcastCard
+                    item={item}
+                    setSelectedCardId={onPodcastSelect}
+                    isSelected={selectedPodcastId === item._id}
+                    handleClick={handlePodcastClick}
+                  />
+                );
+              }}
+              contentContainerStyle={styles.list}
+              showsVerticalScrollIndicator={false}
+              ListEmptyComponent={
+                <EmptyState
+                  icon="headphones"
+                  title="No Active Podcasts"
+                  subtitle="You currently have no podcasts assigned. Pick an available episode to begin review."
                 />
-              </View>
-            </View>
+              }
+              onEndReached={() => {
+                if (progressPage < progressTotalPages) {
+                  setProgressPage(progressPage + 1);
+                }
+              }}
+              onEndReachedThreshold={0.5}
+            />
           </Tabs.Tab>
         </Tabs.Container>
 
@@ -543,6 +589,34 @@ const styles = StyleSheet.create({
     color: 'white',
     fontSize: 16,
     fontWeight: '600',
+  },
+  headerContainer: {
+    paddingTop: 8,
+    paddingBottom: 4,
+    backgroundColor: ON_PRIMARY_COLOR,
+  },
+  metaRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 18,
+    paddingVertical: 8,
+    gap: 8,
+  },
+  dotIndicator: {
+    width: 8,
+    height: 8,
+    borderRadius: 4,
+    backgroundColor: '#0EA5E9',
+  },
+  countText: {
+    fontSize: 14,
+    color: '#475569',
+    fontWeight: '500',
+  },
+  countNumber: {
+    fontSize: 16,
+    fontWeight: '800',
+    color: '#0284C7',
   },
   list: {
     paddingBottom: hp(15),

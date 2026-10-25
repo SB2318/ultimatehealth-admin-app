@@ -1,4 +1,4 @@
-import React, {useCallback} from 'react';
+import React, {useCallback, useEffect} from 'react';
 import {useColorScheme, View} from 'react-native';
 import {SafeAreaView} from 'react-native-safe-area-context';
 import {Tabs, MaterialTabBar} from 'react-native-collapsible-tab-view';
@@ -7,6 +7,7 @@ import {useDispatch, useSelector} from 'react-redux';
 import {useFocusEffect} from '@react-navigation/native';
 
 import ProfileHeader from '../components/ProfileHeader';
+
 import ActivityOverview from '../components/ActivityOverview';
 import Loader from '../components/Loader';
 
@@ -48,37 +49,45 @@ const ProfileScreen = ({navigation}: ProfileScreenProps) => {
   const isDarkMode = useColorScheme() === 'dark';
   const colors = isDarkMode ? COLORS.dark : COLORS.light;
 
-  const {user_token} = useSelector((state: any) => state.user);
+  const {user_token, isSuperAdmin, user_handle: reduxUserHandle} = useSelector((state: any) => state.user);
   const {isConnected} = useSelector((state: any) => state.network);
   const dispatch = useDispatch();
 
   const {data: user, refetch, isLoading} = useQuery({
     queryKey: ['get-profile'],
     queryFn: async () => {
-      const res = await axios.get(GET_PROFILE_API);
-      return res.data as Admin;
+      const res = await axios.get(GET_PROFILE_API, {
+        headers: user_token ? {Authorization: `Bearer ${user_token}`} : {},
+      });
+      const data = res.data;
+      return (data?.user || data?.data || data?.admin || data) as Admin;
     },
     enabled: !!user_token && isConnected,
   });
 
-  if (user) {
-    dispatch(setUserHandle(user.user_handle));
-  }
+  const resolvedUser = (user as any)?.user || (user as any)?.data || user;
+  const username = resolvedUser?.user_name || resolvedUser?.name || 'Admin';
+  const userhandle = resolvedUser?.user_handle || resolvedUser?.user_Handle || resolvedUser?.userHandle || reduxUserHandle || '';
+  const profileImg = resolvedUser?.Profile_avtar || resolvedUser?.profile_avtar || resolvedUser?.Profile_avatar || resolvedUser?.profile_image || resolvedUser?.avatar || '';
 
-  useFocusEffect(useCallback(() => {
-    refetch();
-  }, [refetch]));
+  useEffect(() => {
+    if (userhandle) {
+      dispatch(setUserHandle(userhandle));
+    }
+  }, [userhandle, dispatch]);
 
   const renderHeader = () => (
     <ProfileHeader
-      username={user?.user_name || 'Admin'}
-      userhandle={user?.user_handle || ''}
-      profileImg={user?.Profile_avtar}
+      username={username}
+      userhandle={userhandle}
+      profileImg={profileImg}
+      isSuperAdmin={isSuperAdmin}
+      onSuperAdminClick={() => navigation.navigate('SuperAdminDashboard')}
       onOverviewClick={() => navigation.navigate('WorkHistoryScreen')}
       onEditProfileClick={() => navigation.navigate('EditProfile')}
       onLogoutClick={() => navigation.navigate('LogoutScreen', {
-        profile_image: user?.Profile_avtar || '',
-        username: user?.user_name || 'Admin User',
+        profile_image: profileImg,
+        username: username,
       })} userEmailID={''} contriutions={''}    />
   );
 
@@ -116,7 +125,7 @@ const ProfileScreen = ({navigation}: ProfileScreenProps) => {
         initialTabName="Articles"
         renderHeader={renderHeader}
         renderTabBar={renderTabBar}
-        headerHeight={380} // Adjust based on your ProfileHeader height
+        headerHeight={isSuperAdmin ? 415 : 370} // Adjust based on ProfileHeader height
         containerStyle={{backgroundColor: colors.background}}
       >
         {/* Articles Tab */}

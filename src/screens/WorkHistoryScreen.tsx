@@ -30,6 +30,12 @@ import ImprovementCard from '../components/ImprovementCard';
 import PodcastCard from '../components/PodcastCard';
 import {Fontisto, MaterialIcons} from '@expo/vector-icons';
 import {YStack} from 'tamagui';
+import {
+  getFallbackArticles,
+  getFallbackImprovements,
+  getFallbackPodcasts,
+  getFallbackReports,
+} from '../helper/DemoData';
 
 const COLORS = {
   light: {
@@ -229,7 +235,7 @@ export default function WorkHistoryScreen({navigation}: WorkHistoryProps) {
           item={item}
           isSelected={selectedCardId === item._id}
           setSelectedCardId={setSelectedCardId}
-          onClick={(item, index, reason) => {
+          onclick={(item: any, index: any, reason: any) => {
             // TODO: handle card click if needed
           }}
           onNavigate={item => {
@@ -257,7 +263,7 @@ export default function WorkHistoryScreen({navigation}: WorkHistoryProps) {
           item={item}
           isSelected={selectedCardId === item._id}
           setSelectedCardId={setSelectedCardId}
-          onClick={() => {}}
+          onclick={() => {}}
           onNavigate={item => {
             if (item?.status === StatusEnum.DISCARDED) {
               return;
@@ -337,7 +343,7 @@ export default function WorkHistoryScreen({navigation}: WorkHistoryProps) {
         {/* Articles Tab */}
         <Tabs.Tab name="Articles">
           <Tabs.FlatList
-            data={completedArticles}
+            data={getFallbackArticles(completedArticles)}
             renderItem={renderItem}
             keyExtractor={item => item._id}
             ListEmptyComponent={renderEmptyState(
@@ -362,7 +368,7 @@ export default function WorkHistoryScreen({navigation}: WorkHistoryProps) {
         {/* Revision Tab */}
         <Tabs.Tab name="Revision">
           <Tabs.FlatList
-            data={completedImprovements}
+            data={getFallbackImprovements(completedImprovements)}
             renderItem={renderRevisionItem}
             ListEmptyComponent={renderEmptyState(
               'No revisions available',
@@ -385,7 +391,7 @@ export default function WorkHistoryScreen({navigation}: WorkHistoryProps) {
         {/* Podcast Tab */}
         <Tabs.Tab name="Podcast">
           <Tabs.FlatList
-            data={completedPodcasts}
+            data={getFallbackPodcasts(completedPodcasts)}
             renderItem={renderPodcastItem}
             ListEmptyComponent={renderEmptyState(
               'No podcasts available',
@@ -408,7 +414,7 @@ export default function WorkHistoryScreen({navigation}: WorkHistoryProps) {
         {/* Reports Tab */}
         <Tabs.Tab name="Reports">
           <Tabs.FlatList
-            data={assignedReports}
+            data={getFallbackReports(assignedReports)}
             renderItem={({item}) => (
               <ReportCard
                 report={item}

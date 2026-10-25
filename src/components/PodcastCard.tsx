@@ -65,72 +65,77 @@ const PodcastCard = ({
 
   const hostName = item.user_id?.user_name || 'Medical Contributor';
 
-  const menuActions =
-    item.status === 'review-pending'
-      ? [
-          {
-            name: 'Self-Assign Podcast',
-            action: () => {
-              handleClick(item, 0, '');
-              toggleMenu();
-            },
-            icon: 'hand-point-right',
-            color: PRIMARY_COLOR,
+  const statusStr = (item?.status || '').toLowerCase();
+  const isAvailable =
+    statusStr.includes('unassign') ||
+    statusStr.includes('pending') ||
+    (!item?.admin_id && !statusStr.includes('progress') && !statusStr.includes('publish') && !statusStr.includes('discard'));
+
+  const menuActions = isAvailable
+    ? [
+        {
+          name: 'Self-Assign Podcast',
+          action: () => {
+            handleClick(item, 0, '');
+            toggleMenu();
           },
-          {
-            name: 'Listen & Review',
-            action: () => {
-              handleClick(item, 3, '');
-              toggleMenu();
-            },
-            icon: 'eye',
-            color: PRIMARY_COLOR,
+          icon: 'hand-point-right',
+          color: PRIMARY_COLOR,
+        },
+        {
+          name: 'Listen & Review',
+          action: () => {
+            handleClick(item, 3, '');
+            toggleMenu();
           },
-          {
-            name: 'Discard Episode',
-            action: () => {
-              handleClick(item, 1, '');
-              toggleMenu();
-            },
-            icon: 'times-circle',
-            color: '#DC2626',
+          icon: 'eye',
+          color: PRIMARY_COLOR,
+        },
+        {
+          name: 'Discard Episode',
+          action: () => {
+            handleClick(item, 1, '');
+            toggleMenu();
           },
-        ]
-      : [
-          {
-            name: 'Listen & Review',
-            action: () => {
-              handleClick(item, 3, '');
-              toggleMenu();
-            },
-            icon: 'eye',
-            color: PRIMARY_COLOR,
+          icon: 'times-circle',
+          color: '#DC2626',
+        },
+      ]
+    : [
+        {
+          name: 'Listen & Review',
+          action: () => {
+            handleClick(item, 3, '');
+            toggleMenu();
           },
-          {
-            name: 'Discard Episode',
-            action: () => {
-              handleClick(item, 1, '');
-              toggleMenu();
-            },
-            icon: 'ban',
-            color: '#DC2626',
+          icon: 'eye',
+          color: PRIMARY_COLOR,
+        },
+        {
+          name: 'Unassign Yourself',
+          action: () => {
+            handleClick(item, 2, '');
+            toggleMenu();
           },
-          {
-            name: 'Unassign Yourself',
-            action: () => {
-              handleClick(item, 2, '');
-              toggleMenu();
-            },
-            icon: 'minus-circle',
-            color: '#059669',
+          icon: 'minus-circle',
+          color: '#059669',
+        },
+        {
+          name: 'Discard Episode',
+          action: () => {
+            handleClick(item, 1, '');
+            toggleMenu();
           },
-        ];
+          icon: 'ban',
+          color: '#DC2626',
+        },
+      ];
 
   const toggleMenu = () => {
     const isOpening = width.value === 0;
     if (isOpening) {
-      width.value = withSpring(270, {damping: 20, stiffness: 180});
-      yValue.value = withSpring(0, {damping: 22});
+      width.value = withTiming(260, {duration: 250});
+      yValue.value = withTiming(4, {duration: 250});
       setSelectedCardId(item._id);
     } else {
       width.value = withTiming(0, {duration: 180});
@@ -282,6 +287,7 @@ const styles = StyleSheet.create({
     backgroundColor: CARD_BG,
     borderRadius: 20,
     marginVertical: 10,
+    marginHorizontal: 16,
     overflow: 'hidden',
     borderWidth: 1,
     borderColor: BORDER_COLOR,

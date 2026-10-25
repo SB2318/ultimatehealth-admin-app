@@ -3,7 +3,7 @@ import React, {useEffect} from 'react';
 import {ON_PRIMARY_COLOR, PRIMARY_COLOR} from '../helper/Theme';
 import NotificationItem from '../components/NotificationItem';
 import {useDispatch, useSelector} from 'react-redux';
-import {useMutation, useQuery} from '@tanstack/react-query';
+import {useMutation, useQuery, useQueryClient} from '@tanstack/react-query';
 import axios from 'axios';
 import {YStack} from 'tamagui';
 import {NotificationD, NotificationProps, NotificationType} from '../type';
@@ -29,6 +29,8 @@ const NotificationScreen = ({navigation}: NotificationProps) => {
 
   // console.log(user_token);
   //  console.log('user_token');
+
+  const queryClient = useQueryClient();
 
   const {isLoading, refetch} = useQuery({
     queryKey: ['get-all-notifications', page],
@@ -91,8 +93,8 @@ const NotificationScreen = ({navigation}: NotificationProps) => {
       return res.data as any;
     },
     onSuccess: async () => {
-      //success();
-
+      queryClient.setQueryData(['unread-notifications'], 0);
+      queryClient.invalidateQueries({queryKey: ['unread-notifications']});
       Snackbar.show({
         text: 'All notifications marked as read',
         duration: Snackbar.LENGTH_SHORT,

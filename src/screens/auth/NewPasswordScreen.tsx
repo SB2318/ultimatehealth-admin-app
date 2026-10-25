@@ -17,6 +17,7 @@ import Icon from '@expo/vector-icons/Ionicons';
 import {useMutation} from '@tanstack/react-query';
 import axios, {AxiosError} from 'axios';
 import {RESET_PASSWORD_API} from '../../helper/APIUtils';
+import {getApiErrorMessage} from '../../helper/Utils';
 import {NewPasswordScreenProp} from '../../type';
 import Snackbar from 'react-native-snackbar';
 import {useSelector} from 'react-redux';
@@ -167,15 +168,11 @@ export default function NewPasswordScreen({
       );
     },
     onError: (error: AxiosError<any>) => {
-      if (error.response) {
-        const message =
-          error.response.data?.message ||
-          error.response.data?.error ||
-          'Something went wrong. Please try again.';
-        setErrorMessage(message);
-      } else {
-        setErrorMessage('Network error. Please try again.');
-      }
+      const message = getApiErrorMessage(
+        error,
+        'Something went wrong. Please try again.',
+      );
+      setErrorMessage(message);
     },
   });
 
@@ -380,7 +377,7 @@ export default function NewPasswordScreen({
             </View>
 
             {/* Error Message Banner */}
-            {errorMessage && (
+            {errorMessage ? (
               <View
                 style={[
                   styles.errorBanner,
@@ -391,10 +388,13 @@ export default function NewPasswordScreen({
                 ]}>
                 <Icon name="alert-circle" size={18} color={colors.errorText} />
                 <Text style={[styles.errorBannerText, {color: colors.errorText}]}>
-                  {errorMessage}
+                  {typeof errorMessage === 'string'
+                    ? errorMessage
+                    : (errorMessage as any)?.message ||
+                      'Something went wrong. Please try again.'}
                 </Text>
               </View>
-            )}
+            ) : null}
 
             {/* Confirm & Save Button */}
             <TouchableOpacity

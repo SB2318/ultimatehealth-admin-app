@@ -29,7 +29,6 @@ import {
   DISCARD_ARTICLE,
   GET_ARTICLE_BY_ID,
   GET_ARTICLE_CONTENT,
-  GET_PROFILE_API,
   GET_STORAGE_DATA,
   PUBLISH_ARTICLE,
 } from '../helper/APIUtils';
@@ -96,16 +95,6 @@ const ReviewScreen = ({route, navigation}: ReviewScreenProp) => {
     enabled: !!isConnected && !!user_token,
   });
 
-  const {data: user} = useQuery({
-    queryKey: ['get-profile'],
-    queryFn: async () => {
-      const res = await axios.get(GET_PROFILE_API);
-      return res.data;
-    },
-    enabled: !!isConnected && !!user_token,
-  });
-
-  if (user) dispatch(setUserHandle(user.user_handle));
 
   useEffect(() => {
     if (

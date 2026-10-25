@@ -22,8 +22,10 @@ export type RootStackParamList = {
     recordId: string;
   };
   EditProfile: undefined;
+  SuperAdmin?: undefined;
   LogoutScreen: {profile_image: string; username: string};
   WorkHistoryScreen: undefined;
+  SuperAdminDashboard: undefined;
   ImprovementReviewScreen: {
     requestId: string;
     authorId: string;
@@ -52,6 +54,7 @@ export type RootStackParamList = {
     podcastId: string;
     mentionedUsers: User[];
   };
+  Notification: undefined;
 };
 
 export type Admin = {
@@ -69,12 +72,14 @@ export type Admin = {
   verificationToken: string | null;
   refreshToken: string | null;
   fcmToken: string | null;
+  isSuperAdmin?: boolean;
 };
 
 export type AuthData = {
   userId: string;
   token: string | null;
   user_handle: string | null;
+  isSuperAdmin?: boolean;
 };
 
 export type EditRequest = {
@@ -165,6 +170,8 @@ export type ProfileHeaderProps = {
   contriutions: string;
   onEditProfileClick: () => void;
   onLogoutClick: () => void;
+  isSuperAdmin?: boolean;
+  onSuperAdminClick?: () => void;
 };
 
 export type HomeScreenFilterModalProps = {
@@ -222,9 +229,9 @@ export type ArticleProps = CompositeScreenProps<
   StackScreenProps<RootStackParamList, 'ArticleReviewScreen'>
 >;
 
-export type NotificationProps = CompositeScreenProps<
-  BottomTabScreenProps<TabParamList, 'Notification'>,
-  StackScreenProps<RootStackParamList, 'ArticleReviewScreen'>
+export type NotificationProps = StackScreenProps<
+  RootStackParamList,
+  'Notification'
 >;
 
 export type PodcastProps = CompositeScreenProps<
@@ -301,9 +308,9 @@ export type CommentScreenProp = StackScreenProps<
   'CommentScreen'
 >;
 export type TabParamList = {
+  Dashboard: undefined;
   Article: undefined;
   Podcast: undefined;
-  Notification: undefined;
   Report: undefined;
   Profile: undefined;
 };

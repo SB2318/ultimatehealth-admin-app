@@ -44,7 +44,7 @@ export default function Imrovement({
   const [selectedCardId, setSelectedCardId] = useState<string>('');
   const [discardReqId, setDiscardReId] = useState<string>('');
   const [discardReqModal, setDiscardReqModal] = useState<boolean>(false);
-  const {user_id, user_token} = useSelector((state: any) => state.user);
+  const {user_id, user_token, isGuest} = useSelector((state: any) => state.user);
   const {isConnected} = useSelector((state: any) => state.network);
 
   const [selectedCat, setSelectedCat] = useState<string>('Available');
@@ -294,10 +294,17 @@ export default function Imrovement({
     return <Loader />;
   }
 
+  const effectiveAvailable = isGuest
+    ? getFallbackImprovements(availableImprovements)
+    : availableImprovements;
+  const effectiveProgress = isGuest
+    ? getFallbackImprovements(progressImprovements)
+    : progressImprovements;
+
   const activeCount =
     selectedCat === 'Available'
-      ? getFallbackImprovements(availableImprovements).length
-      : getFallbackImprovements(progressImprovements).length;
+      ? effectiveAvailable.length
+      : effectiveProgress.length;
 
   const ListHeader = () => (
     <View style={styles.headerContainer}>
@@ -341,8 +348,8 @@ export default function Imrovement({
       <Tabs.FlatList
         data={
           selectedCat === categories[0]
-            ? getFallbackImprovements(availableImprovements)
-            : getFallbackImprovements(progressImprovements)
+            ? effectiveAvailable
+            : effectiveProgress
         }
         renderItem={renderItem}
         keyExtractor={item => item._id.toString()}

@@ -44,7 +44,7 @@ import EmptyState from '../components/EmptyState';
 import {MaterialIcons} from '@expo/vector-icons';
 
 export default function ReportScreen({navigation}) {
-  const {user_token, isSuperAdmin} = useSelector((state: any) => state.user);
+  const {user_token, isSuperAdmin, isGuest} = useSelector((state: any) => state.user);
   const {isConnected} = useSelector((state: any) => state.network);
   //const bottomBarHeight = useBottomTabBarHeight();
   const bottomSheetModalRef = useRef<BottomSheetModal>(null);
@@ -358,6 +358,10 @@ export default function ReportScreen({navigation}) {
     return <Loader />;
   }
 
+  const effectivePendingReports = isGuest ? getFallbackReports(pendingReports) : pendingReports;
+  const effectiveAssignedReports = isGuest ? getFallbackReports(assignedReports) : assignedReports;
+  const effectiveReasons = (reportReasons && reportReasons.length > 0) ? reportReasons : (isGuest ? fallbackReasons : []);
+
   return (
     <View style={styles.container}>
       <View style={[styles.innerContainer, {paddingTop: insets.top}]}>
@@ -367,8 +371,9 @@ export default function ReportScreen({navigation}) {
           containerStyle={styles.tabsContainer}>
           <Tabs.Tab name="Pending" label="Pending">
             <Tabs.FlatList
-              data={getFallbackReports(pendingReports)}
+              data={effectivePendingReports}
               keyExtractor={item => item._id}
+              contentContainerStyle={styles.reportListContent}
               refreshing={isPendingReportLoading}
               onRefresh={() => {
                 setPendingPage(1);
@@ -400,8 +405,9 @@ export default function ReportScreen({navigation}) {
 
           <Tabs.Tab name="Assigned" label="Assigned">
             <Tabs.FlatList
-              data={getFallbackReports(assignedReports)}
+              data={effectiveAssignedReports}
               keyExtractor={item => item._id}
+              contentContainerStyle={styles.reportListContent}
               refreshing={isRefetchAssignReportLoading}
               onRefresh={() => {
                 setAssignReportPage(1);
@@ -434,7 +440,7 @@ export default function ReportScreen({navigation}) {
           {isSuperAdmin ? (
             <Tabs.Tab name="Reasons" label="Reasons">
               <Tabs.FlatList
-                data={reportReasons && reportReasons.length > 0 ? reportReasons : fallbackReasons}
+                data={effectiveReasons}
                 keyExtractor={item => item._id}
                 refreshing={reasonRefresh}
                 onRefresh={onReportReasonRefresh}
@@ -658,8 +664,12 @@ const styles = StyleSheet.create({
 
   actionHeaderContainer: {
     paddingHorizontal: 16,
-    paddingTop: 24,
-    paddingBottom: 14,
+    paddingTop: 12,
+    paddingBottom: 8,
+  },
+  reportListContent: {
+    paddingTop: 16,
+    paddingBottom: hp(14),
   },
 
   addButton: {
@@ -668,6 +678,8 @@ const styles = StyleSheet.create({
     borderRadius: 14,
     alignItems: 'center',
     justifyContent: 'center',
+    flexDirection: 'row',
+    gap: 6,
     shadowColor: '#2563EB',
     shadowOffset: {width: 0, height: 2},
     shadowOpacity: 0.15,

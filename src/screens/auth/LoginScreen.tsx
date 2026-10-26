@@ -521,7 +521,7 @@ export default function LoginScreen({navigation}: LoginScreenProp) {
             />
           </View>
 
-          {/* Guest Explorer Button */}
+          {/* Guest Explorer Card */}
           <TouchableOpacity
             style={[
               styles.guestButton,
@@ -532,26 +532,49 @@ export default function LoginScreen({navigation}: LoginScreenProp) {
             ]}
             onPress={handleGuestExplorer}
             activeOpacity={0.85}>
-            <View style={styles.guestIconCircle}>
-              <Icon name="compass" size={20} color="#0284C7" />
+            <View style={{flexDirection: 'row', alignItems: 'center'}}>
+              <View style={styles.guestIconCircle}>
+                <Icon name="compass" size={20} color="#0284C7" />
+              </View>
+              <View style={styles.guestTextContainer}>
+                <View style={{flexDirection: 'row', alignItems: 'center', gap: 6}}>
+                  <Text
+                    style={[
+                      styles.guestTitle,
+                      {color: isDarkMode ? '#F1F5F9' : '#0F172A'},
+                    ]}>
+                    Explore in Guest Mode
+                  </Text>
+                  <View style={styles.guestDemoBadge}>
+                    <Text style={styles.guestDemoBadgeText}>SANDBOX</Text>
+                  </View>
+                </View>
+                <Text
+                  style={[
+                    styles.guestSubtitle,
+                    {color: isDarkMode ? '#94A3B8' : '#0369A1'},
+                  ]}>
+                  Instant access to Reviewer Queue & Super Admin Console
+                </Text>
+              </View>
+              <Icon name="arrow-forward" size={18} color="#0284C7" />
             </View>
-            <View style={styles.guestTextContainer}>
-              <Text
-                style={[
-                  styles.guestTitle,
-                  {color: isDarkMode ? '#F1F5F9' : '#0F172A'},
-                ]}>
-                Explore in Guest Mode
-              </Text>
-              <Text
-                style={[
-                  styles.guestSubtitle,
-                  {color: isDarkMode ? '#94A3B8' : '#0369A1'},
-                ]}>
-                Preview duty queue with clinical mock data
-              </Text>
+
+            {/* Quick feature tags */}
+            <View style={styles.guestFeatureRow}>
+              <View style={[styles.guestFeatureChip, {backgroundColor: isDarkMode ? '#1E293B' : '#E0F2FE'}]}>
+                <Icon name="shield-checkmark" size={11} color="#0284C7" />
+                <Text style={styles.guestFeatureText}>Governance Console</Text>
+              </View>
+              <View style={[styles.guestFeatureChip, {backgroundColor: isDarkMode ? '#1E293B' : '#E0F2FE'}]}>
+                <Icon name="document-text" size={11} color="#0284C7" />
+                <Text style={styles.guestFeatureText}>Applicant CVs</Text>
+              </View>
+              <View style={[styles.guestFeatureChip, {backgroundColor: isDarkMode ? '#1E293B' : '#E0F2FE'}]}>
+                <Icon name="sparkles" size={11} color="#0284C7" />
+                <Text style={styles.guestFeatureText}>AI & Plagiarism</Text>
+              </View>
             </View>
-            <Icon name="arrow-forward" size={18} color="#0284C7" />
           </TouchableOpacity>
         </View>
 
@@ -823,12 +846,44 @@ const styles = StyleSheet.create({
   },
 
   guestButton: {
+    borderWidth: 1.5,
+    borderRadius: 16,
+    paddingVertical: 12,
+    paddingHorizontal: 14,
+  },
+  guestDemoBadge: {
+    backgroundColor: '#0284C7',
+    paddingHorizontal: 6,
+    paddingVertical: 1,
+    borderRadius: 4,
+  },
+  guestDemoBadgeText: {
+    color: '#FFFFFF',
+    fontSize: 9.5,
+    fontWeight: '800',
+    letterSpacing: 0.5,
+  },
+  guestFeatureRow: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 6,
+    marginTop: 10,
+    paddingTop: 8,
+    borderTopWidth: 1,
+    borderTopColor: 'rgba(2, 132, 199, 0.15)',
+  },
+  guestFeatureChip: {
     flexDirection: 'row',
     alignItems: 'center',
-    borderWidth: 1.5,
-    borderRadius: 14,
-    paddingVertical: 10,
-    paddingHorizontal: 12,
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+    borderRadius: 6,
+    gap: 4,
+  },
+  guestFeatureText: {
+    fontSize: 10.5,
+    fontWeight: '700',
+    color: '#0284C7',
   },
   guestIconCircle: {
     width: 36,

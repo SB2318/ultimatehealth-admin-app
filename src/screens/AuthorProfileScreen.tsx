@@ -248,7 +248,7 @@ const AuthorProfileScreen = ({navigation, route}: AuthorProfileScreenProps) => {
         ListEmptyComponent={
           <EmptyState
             icon="document-text-outline"
-            badgeText="No Submissions"
+            badge="No Submissions"
             title="No Authored Works"
             subtitle="This contributor has not yet published clinical articles."
           />

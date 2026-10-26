@@ -117,11 +117,13 @@ export default function DashboardScreen({navigation}: any) {
   const availableArticles = Array.isArray(articleQueueData?.articles)
     ? articleQueueData.articles
     : [];
-  // Use real backend count if available, otherwise wrap with realistic clinical demo numbers
-  const availableArticlesCount = getFallbackCount(
-    articleQueueData?.total ?? (availableArticles.length > 0 ? availableArticles.length : undefined),
-    DEMO_ARTICLES.length,
-  );
+  // Use real backend count when authenticated; only use fallback demo count in guest mode
+  const availableArticlesCount = isGuest
+    ? getFallbackCount(
+        articleQueueData?.total ?? (availableArticles.length > 0 ? availableArticles.length : undefined),
+        DEMO_ARTICLES.length,
+      )
+    : (articleQueueData?.total ?? availableArticles.length);
 
   const {data: inProgressArticles = [], refetch: refetchProgressArticles} = useQuery({
     queryKey: ['get-progress-articles', 1],
@@ -139,8 +141,10 @@ export default function DashboardScreen({navigation}: any) {
     enabled: !!user_token && !!user_id && isConnected,
   });
 
-  // Effective in-progress duties: wraps with realistic clinical reviews when queue is empty
-  const inProgressList = getFallbackProgressArticles(inProgressArticles);
+  // Effective in-progress duties: wraps with clinical demo reviews only in guest mode
+  const inProgressList = isGuest
+    ? getFallbackProgressArticles(inProgressArticles)
+    : inProgressArticles;
 
   // 4. Improvements Queue Stats
   const {
@@ -172,10 +176,12 @@ export default function DashboardScreen({navigation}: any) {
   const availableImprovements = Array.isArray(improvementQueueData?.articles)
     ? improvementQueueData.articles
     : [];
-  const improvementsCount = getFallbackCount(
-    improvementQueueData?.total ?? (availableImprovements.length > 0 ? availableImprovements.length : undefined),
-    DEMO_IMPROVEMENTS.length,
-  );
+  const improvementsCount = isGuest
+    ? getFallbackCount(
+        improvementQueueData?.total ?? (availableImprovements.length > 0 ? availableImprovements.length : undefined),
+        DEMO_IMPROVEMENTS.length,
+      )
+    : (improvementQueueData?.total ?? availableImprovements.length);
 
   // 5. Podcasts Queue Stats
   const {
@@ -207,10 +213,12 @@ export default function DashboardScreen({navigation}: any) {
   const availablePodcasts = Array.isArray(podcastQueueData?.podcasts)
     ? podcastQueueData.podcasts
     : [];
-  const podcastsCount = getFallbackCount(
-    podcastQueueData?.total ?? (availablePodcasts.length > 0 ? availablePodcasts.length : undefined),
-    DEMO_PODCASTS.length,
-  );
+  const podcastsCount = isGuest
+    ? getFallbackCount(
+        podcastQueueData?.total ?? (availablePodcasts.length > 0 ? availablePodcasts.length : undefined),
+        DEMO_PODCASTS.length,
+      )
+    : (podcastQueueData?.total ?? availablePodcasts.length);
 
   // 6. Reports Queue Stats
   const {
@@ -242,10 +250,12 @@ export default function DashboardScreen({navigation}: any) {
   const pendingReports = Array.isArray(reportQueueData?.pendingReports)
     ? reportQueueData.pendingReports
     : [];
-  const reportsCount = getFallbackCount(
-    reportQueueData?.total ?? (pendingReports.length > 0 ? pendingReports.length : undefined),
-    DEMO_REPORTS.length,
-  );
+  const reportsCount = isGuest
+    ? getFallbackCount(
+        reportQueueData?.total ?? (pendingReports.length > 0 ? pendingReports.length : undefined),
+        DEMO_REPORTS.length,
+      )
+    : (reportQueueData?.total ?? pendingReports.length);
 
   // 7. Super Admin: Doctor / Moderator Applicants
   const {data: rawApplicants = [], refetch: refetchApplicants} = useQuery({
@@ -256,9 +266,10 @@ export default function DashboardScreen({navigation}: any) {
           headers: user_token ? {Authorization: `Bearer ${user_token}`} : {},
         });
         const data = res.data;
-        if (Array.isArray(data)) return data;
+        if (Array.isArray(data?.data?.applicants)) return data.data.applicants;
         if (Array.isArray(data?.applicants)) return data.applicants;
         if (Array.isArray(data?.data)) return data.data;
+        if (Array.isArray(data)) return data;
         return [];
       } catch {
         return [];
@@ -268,10 +279,12 @@ export default function DashboardScreen({navigation}: any) {
   });
 
   const rawApplicantsList = Array.isArray(rawApplicants) ? rawApplicants : [];
-  const pendingApplicantsCount = getFallbackCount(
-    rawApplicantsList.filter((a: any) => !a?.status || a.status.toLowerCase() === 'pending').length,
-    3,
-  );
+  const pendingApplicantsCount = isGuest
+    ? getFallbackCount(
+        rawApplicantsList.filter((a: any) => !a?.status || a.status.toLowerCase() === 'pending').length,
+        3,
+      )
+    : rawApplicantsList.filter((a: any) => !a?.status || a.status.toLowerCase() === 'pending').length;
 
   // Refresh All Data with Haptic Feedback
   const onRefresh = useCallback(async () => {
@@ -582,7 +595,7 @@ export default function DashboardScreen({navigation}: any) {
               styles.kpiCard,
               {backgroundColor: colors.cardBg, borderColor: colors.border},
             ]}
-            onPress={() => navigation.navigate('Article', {initialTab: 'Tags'})}
+            onPress={() => navigation.navigate('Article', {initialTab: 'Revision'})}
             activeOpacity={0.85}>
             <View style={styles.kpiCardHeader}>
               <View
@@ -598,7 +611,7 @@ export default function DashboardScreen({navigation}: any) {
               </View>
               <View style={[styles.kpiBadge, {backgroundColor: '#FEF3C7'}]}>
                 <Text style={[styles.kpiBadgeText, {color: '#B45309'}]}>
-                  REVISIONS
+                  REVISION
                 </Text>
               </View>
             </View>
@@ -606,7 +619,7 @@ export default function DashboardScreen({navigation}: any) {
               {isImprovementsLoading ? '...' : improvementsCount}
             </Text>
             <Text style={[styles.kpiLabel, {color: colors.textSecondary}]}>
-              {improvementsCount === 0 ? 'Revisions (Queue Clear)' : 'Revisions Pending'}
+              {improvementsCount === 0 ? 'Revision (Queue Clear)' : 'Revision Pending'}
             </Text>
           </TouchableOpacity>
 

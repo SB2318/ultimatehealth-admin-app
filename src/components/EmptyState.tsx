@@ -47,7 +47,12 @@ export default function EmptyState({
     const iconColor = isDarkMode ? DARK_THEME.primary : PRIMARY_COLOR;
     const iconSize = 34;
 
-    switch (iconType) {
+    const resolvedType =
+      iconType === 'feather' && (icon.includes('-outline') || icon.includes('-sharp'))
+        ? 'ionicons'
+        : iconType;
+
+    switch (resolvedType) {
       case 'material':
         return (
           <MaterialCommunityIcons

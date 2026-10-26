@@ -29,7 +29,7 @@ import {getFallbackPodcasts} from '../helper/DemoData';
 
 export default function Podcast({navigation}: PodcastProps) {
   const insets = useSafeAreaInsets();
-  const {user_token} = useSelector((state: any) => state.user);
+  const {user_token, isGuest} = useSelector((state: any) => state.user);
   const {isConnected} = useSelector((state: any) => state.network);
   const [selectedPodcastId, setSelectedPodcastId] = useState<string>('');
   const [page, setPage] = useState(1);
@@ -298,14 +298,16 @@ export default function Podcast({navigation}: PodcastProps) {
     );
   };
 
+  const effectiveAvailablePodcasts = isGuest ? getFallbackPodcasts(availablePodcasts) : availablePodcasts;
+  const effectiveProgressPodcasts = isGuest ? getFallbackPodcasts(progressPodcasts) : progressPodcasts;
+
   const AvailableHeader = () => {
-    const list = getFallbackPodcasts(availablePodcasts);
     return (
       <View style={styles.headerContainer}>
         <View style={styles.metaRow}>
           <View style={styles.dotIndicator} />
           <Text style={styles.countText}>
-            <Text style={styles.countNumber}>{list.length}</Text> podcasts awaiting clinical review
+            <Text style={styles.countNumber}>{effectiveAvailablePodcasts.length}</Text> podcasts awaiting clinical review
           </Text>
         </View>
       </View>
@@ -313,13 +315,12 @@ export default function Podcast({navigation}: PodcastProps) {
   };
 
   const ProgressHeader = () => {
-    const list = getFallbackPodcasts(progressPodcasts);
     return (
       <View style={styles.headerContainer}>
         <View style={styles.metaRow}>
           <View style={[styles.dotIndicator, {backgroundColor: '#6366F1'}]} />
           <Text style={styles.countText}>
-            <Text style={[styles.countNumber, {color: '#4F46E5'}]}>{list.length}</Text> podcasts currently in progress
+            <Text style={[styles.countNumber, {color: '#4F46E5'}]}>{effectiveProgressPodcasts.length}</Text> podcasts currently in progress
           </Text>
         </View>
       </View>
@@ -343,7 +344,7 @@ export default function Podcast({navigation}: PodcastProps) {
           containerStyle={styles.tabsContainer}>
           <Tabs.Tab name="Available" label="Available">
             <Tabs.FlatList
-              data={getFallbackPodcasts(availablePodcasts)}
+              data={effectiveAvailablePodcasts}
               keyExtractor={(item, index) =>
                 item?._id?.toString() ?? index.toString()
               }
@@ -386,7 +387,7 @@ export default function Podcast({navigation}: PodcastProps) {
 
           <Tabs.Tab name="Inprogress" label="In Progress">
             <Tabs.FlatList
-              data={getFallbackPodcasts(progressPodcasts)}
+              data={effectiveProgressPodcasts}
               keyExtractor={(item, index) =>
                 item?._id?.toString() ?? `progress-${index}`
               }

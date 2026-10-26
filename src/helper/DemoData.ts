@@ -547,3 +547,149 @@ export function getFallbackInProgressGlossary(realTerms?: GlossaryTerm[]): Gloss
   const terms = Array.isArray(realTerms) && realTerms.length > 0 ? realTerms : DEMO_GLOSSARY_TERMS;
   return terms.filter(t => t.status === 'in-progress' || t.status === 'review-pending' || t.status === 'awaiting-user');
 }
+
+export const DEMO_ADMINS: any[] = [
+  {
+    _id: '6adecf8fa082224345d5bab1',
+    user_name: 'Dr. Ananya Sharma',
+    user_handle: 'dr_ananya_cardio',
+    email: 'dr_ananya@ultimatehealth.org',
+    role: 'Moderator',
+    isSuperAdmin: false,
+    isBlocked: false,
+    status: 'active',
+    isVerified: true,
+    signature_url: 'https://images.unsplash.com/photo-1559839734-2b71ea197ec2?auto=format&fit=crop&w=250&q=80',
+    Profile_avtar: 'https://images.unsplash.com/photo-1559839734-2b71ea197ec2?auto=format&fit=crop&w=250&q=80',
+    created_at: new Date(Date.now() - 86400000 * 45).toISOString(),
+  },
+  {
+    _id: '6adecf8fa082224345d5bab2',
+    user_name: 'Dr. Rajesh Mehta',
+    user_handle: 'dr_rajesh_neuro',
+    email: 'dr_rajesh@ultimatehealth.org',
+    role: 'Moderator',
+    isSuperAdmin: false,
+    isBlocked: false,
+    status: 'active',
+    isVerified: true,
+    signature_url: 'https://images.unsplash.com/photo-1622253692010-333f2da6031d?auto=format&fit=crop&w=250&q=80',
+    Profile_avtar: 'https://images.unsplash.com/photo-1622253692010-333f2da6031d?auto=format&fit=crop&w=250&q=80',
+    created_at: new Date(Date.now() - 86400000 * 30).toISOString(),
+  },
+  {
+    _id: '6adecf8fa082224345d5bab3',
+    user_name: 'Dr. Priya Patel',
+    user_handle: 'dr_priya_derma',
+    email: 'dr_priya@ultimatehealth.org',
+    role: 'Reviewer',
+    isSuperAdmin: false,
+    isBlocked: false,
+    status: 'active',
+    isVerified: true,
+    signature_url: 'https://images.unsplash.com/photo-1594824813633-46c52a36d9cf?auto=format&fit=crop&w=250&q=80',
+    Profile_avtar: 'https://images.unsplash.com/photo-1594824813633-46c52a36d9cf?auto=format&fit=crop&w=250&q=80',
+    created_at: new Date(Date.now() - 86400000 * 20).toISOString(),
+  },
+  {
+    _id: '6adecf8fa082224345d5bab0',
+    user_name: 'Super Admin Executive',
+    user_handle: 'superadmin_console',
+    email: 'sb2318@it.jgec.ac.in',
+    role: 'Super Admin',
+    isSuperAdmin: true,
+    isBlocked: false,
+    status: 'active',
+    isVerified: true,
+    signature_url: '',
+    Profile_avtar: '',
+    created_at: new Date(Date.now() - 86400000 * 120).toISOString(),
+  },
+];
+
+export const DEMO_PLATFORM_ANALYTICS = {
+  staffMetrics: {
+    totalAdmins: 4,
+    activeAdmins: 4,
+    suspendedAdmins: 0,
+    pendingApplicants: 3,
+    totalApplicants: 5,
+  },
+  contentMetrics: {
+    unassignedArticles: 2,
+    inProgressArticles: 1,
+    publishedArticles: 4,
+    totalArticles: 7,
+    reviewQueueCount: 3,
+  },
+  moderationMetrics: {
+    pendingReports: 2,
+    resolvedReports: 5,
+    totalReports: 7,
+  },
+  masterDataMetrics: {
+    totalSpecializations: 15,
+    totalLanguages: 8,
+  },
+};
+
+export const DEMO_REASONS_METRICS = [
+  {
+    _id: 'rsn_metric_1',
+    reason: 'Misleading health advice / Medical disinformation',
+    status: 'Active',
+    activeReportsCount: 2,
+    resolvedReportsCount: 4,
+    totalReportsCount: 6,
+  },
+  {
+    _id: 'rsn_metric_2',
+    reason: 'Unverified drug claims or dangerous pharmaceutical dosages',
+    status: 'Active',
+    activeReportsCount: 1,
+    resolvedReportsCount: 3,
+    totalReportsCount: 4,
+  },
+  {
+    _id: 'rsn_metric_3',
+    reason: 'Clinical copyright infringement or uncredited text',
+    status: 'Active',
+    activeReportsCount: 0,
+    resolvedReportsCount: 2,
+    totalReportsCount: 2,
+  },
+];
+
+export function getFallbackAdminDossier(admin: any) {
+  if (!admin) return null;
+  const isSuper = Boolean(admin.isSuperAdmin);
+  return {
+    admin: {
+      _id: admin._id || admin.id || 'admin_dossier_id',
+      user_name: admin.user_name || admin.name || 'Staff Member',
+      user_handle: admin.user_handle || 'staff_member',
+      email: admin.email || 'staff@ultimatehealth.org',
+      role: admin.role || (isSuper ? 'Super Admin' : 'Moderator'),
+      isSuperAdmin: isSuper,
+      isBlocked: Boolean(admin.isBlocked || admin.is_blocked || admin.status === 'suspended'),
+      status: admin.status || 'active',
+      isVerified: admin.isVerified !== false,
+      signature_url: admin.signature_url || '',
+      Profile_avtar: admin.Profile_avtar || admin.Profile_image || '',
+      created_at: admin.created_at || new Date().toISOString(),
+    },
+    permissions: {
+      canReviewArticles: true,
+      canInspectDiffs: true,
+      canManageReports: true,
+      canManageGlossary: true,
+      canAuditGlobal: isSuper,
+      canManageAdmins: isSuper,
+    },
+    metrics: {
+      articlesReviewed: isSuper ? 12 : 5,
+      improvementsReviewed: isSuper ? 8 : 3,
+      reportsHandled: isSuper ? 6 : 2,
+    },
+  };
+}

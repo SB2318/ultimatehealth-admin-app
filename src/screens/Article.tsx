@@ -69,12 +69,15 @@ import {
 } from '../helper/DemoData';
 
 export default function HomeScreen({navigation, route}: ArticleProps) {
-  const {user_id, user_token, isSuperAdmin} = useSelector((state: any) => state.user);
+  const {user_id, user_token, isSuperAdmin, isGuest} = useSelector((state: any) => state.user);
   const {isConnected} = useSelector((state: any) => state.network);
   const tabContainerRef = useRef<any>(null);
 
   useEffect(() => {
-    const requestedTab = route?.params?.initialTab;
+    let requestedTab = route?.params?.initialTab;
+    if (requestedTab === 'Revisions') {
+      requestedTab = 'Revision';
+    }
     if (requestedTab && tabContainerRef.current) {
       try {
         tabContainerRef.current.jumpToTab(requestedTab);
@@ -163,15 +166,42 @@ export default function HomeScreen({navigation, route}: ArticleProps) {
   });
 
   // STRICT RULE: Published glossary ko maat dikhao, sirf under review and unassign
-  const effectiveUnassigned = (localUnassignedTerms || getFallbackUnassignedGlossary(rawUnassignedGlossary))
+  const effectiveUnassigned = (localUnassignedTerms || (isGuest ? getFallbackUnassignedGlossary(rawUnassignedGlossary) : rawUnassignedGlossary))
     .filter(t => t.status !== 'published');
-  const effectiveInProgress = (localInProgressTerms || getFallbackInProgressGlossary(rawInProgressGlossary))
+  const effectiveInProgress = (localInProgressTerms || (isGuest ? getFallbackInProgressGlossary(rawInProgressGlossary) : rawInProgressGlossary))
     .filter(t => t.status !== 'published');
 
   const unassignedCount = effectiveUnassigned.length;
   const inProgressCount = effectiveInProgress.length;
 
   const currentGlossaryList = glossaryTab === 'unassigned' ? effectiveUnassigned : effectiveInProgress;
+
+  // Medical Term Moderation State: { [termId]: { state: 'publish' | 'reject', reason: string } }
+  const [glossaryDecisions, setGlossaryDecisions] = useState<Record<string, {state: 'publish' | 'reject'; reason: string}>>({});
+
+  const getDecision = (termId: string) => {
+    return glossaryDecisions[termId] || {state: 'publish', reason: ''};
+  };
+
+  const setDecisionState = (termId: string, state: 'publish' | 'reject') => {
+    setGlossaryDecisions(prev => ({
+      ...prev,
+      [termId]: {
+        reason: prev[termId]?.reason || '',
+        state,
+      },
+    }));
+  };
+
+  const setDecisionReason = (termId: string, reason: string) => {
+    setGlossaryDecisions(prev => ({
+      ...prev,
+      [termId]: {
+        state: prev[termId]?.state || 'reject',
+        reason,
+      },
+    }));
+  };
 
   // Pick Term Mutation
   const pickGlossaryMutation = useMutation({
@@ -201,19 +231,23 @@ export default function HomeScreen({navigation, route}: ArticleProps) {
   // Approve Term Mutation
   const approveGlossaryMutation = useMutation({
     mutationKey: ['approve-glossary-term'],
-    mutationFn: async (id: string) => {
+    mutationFn: async (vars: string | {id: string}) => {
+      const id = typeof vars === 'string' ? vars : vars.id;
       const res = await axios.post(APPROVE_GLOSSARY_API(id), {});
       return res.data;
     },
-    onSuccess: (data, id) => {
-      // Remove from in-progress since it is now published (and published items are excluded!)
+    onSuccess: (data, vars) => {
+      const id = typeof vars === 'string' ? vars : vars.id;
+      // Remove from in-progress since it is now published
       setLocalInProgressTerms(effectiveInProgress.filter(t => t._id !== id));
+      setLocalUnassignedTerms(effectiveUnassigned.filter(t => t._id !== id));
       refetchInProgressGlossary();
-      Snackbar.show({text: 'Term approved & published', duration: Snackbar.LENGTH_SHORT});
+      refetchUnassignedGlossary();
+      Snackbar.show({text: 'Term published successfully', duration: Snackbar.LENGTH_SHORT});
     },
     onError: (err: any) => {
       Snackbar.show({
-        text: err?.response?.data?.message || 'Error approving term',
+        text: err?.response?.data?.message || 'Error publishing term',
         duration: Snackbar.LENGTH_SHORT,
       });
     },
@@ -240,6 +274,32 @@ export default function HomeScreen({navigation, route}: ArticleProps) {
       });
     },
   });
+
+  const handleSubmitGlossaryDecision = (term: GlossaryTerm) => {
+    const decision = getDecision(term._id);
+    if (decision.state === 'reject') {
+      if (!decision.reason.trim()) {
+        Alert.alert('Rejection Reason Required', 'Please enter a reason for rejecting this medical term.');
+        return;
+      }
+      if (isConnected) {
+        rejectGlossaryMutation.mutate({id: term._id, reason: decision.reason.trim()});
+      } else {
+        setLocalInProgressTerms(effectiveInProgress.filter(t => t._id !== term._id));
+        setLocalUnassignedTerms(effectiveUnassigned.filter(t => t._id !== term._id));
+        Snackbar.show({text: 'Term rejected (Offline simulation)', duration: Snackbar.LENGTH_SHORT});
+      }
+    } else {
+      // Publish
+      if (isConnected) {
+        approveGlossaryMutation.mutate(term._id);
+      } else {
+        setLocalInProgressTerms(effectiveInProgress.filter(t => t._id !== term._id));
+        setLocalUnassignedTerms(effectiveUnassigned.filter(t => t._id !== term._id));
+        Snackbar.show({text: 'Term published (Offline simulation)', duration: Snackbar.LENGTH_SHORT});
+      }
+    }
+  };
 
   const handleOpenAddGlossary = () => {
     setEditingGlossaryId(null);
@@ -543,7 +603,7 @@ export default function HomeScreen({navigation, route}: ArticleProps) {
 
     if (selectedTags.length > 0) {
       filtered = filtered.filter(article =>
-        selectedTags.some(tag =>
+        selectedTags.some((tag: string) =>
           article.tags.some(category => category.name === tag),
         ),
       );
@@ -575,7 +635,7 @@ export default function HomeScreen({navigation, route}: ArticleProps) {
 
     if (selectedTags.length > 0) {
       filtered = filtered.filter(article =>
-        selectedTags.some(tag =>
+        selectedTags.some((tag: string) =>
           article.tags.some(category => category.name === tag),
         ),
       );
@@ -610,13 +670,13 @@ export default function HomeScreen({navigation, route}: ArticleProps) {
 
     if (selectedTags.length > 0) {
       filterdAvailable = filterdAvailable.filter(article =>
-        selectedTags.some(tag =>
+        selectedTags.some((tag: string) =>
           article.tags.some(category => category.name === tag),
         ),
       );
 
       filterProgress = filterProgress.filter(article =>
-        selectedTags.some(tag =>
+        selectedTags.some((tag: string) =>
           article.tags.some(category => category.name === tag),
         ),
       );
@@ -882,7 +942,11 @@ export default function HomeScreen({navigation, route}: ArticleProps) {
       <View style={[styles.innerContainer]}>
         <Tabs.Container
           ref={tabContainerRef}
-          initialTabName={route?.params?.initialTab || 'Articles'}
+          initialTabName={
+            route?.params?.initialTab === 'Revisions'
+              ? 'Revision'
+              : (route?.params?.initialTab || 'Articles')
+          }
           renderTabBar={renderTabBar}
           containerStyle={styles.tabsContainer}>
           <Tabs.Tab name="Articles">
@@ -898,77 +962,13 @@ export default function HomeScreen({navigation, route}: ArticleProps) {
           </Tabs.Tab>
 
           {/* Available Improvements articles */}
-          <Tabs.Tab name="Revisions">
+          <Tabs.Tab name="Revision" label="Revision">
             {Improvement ? (
               <Improvement handleNav={handleImprovementReviewNav} />
             ) : null}
           </Tabs.Tab>
 
-          <Tabs.Tab name="Tags" label="Tags">
-            <Tabs.FlatList
-              data={articleCategories ? articleCategories : []}
-              keyExtractor={item => item._id}
-              refreshing={tagRefresh}
-              onRefresh={onTagRefresh}
-              ListHeaderComponent={
-                <View style={styles.actionHeaderContainer}>
-                  <TouchableOpacity
-                    style={styles.addButton}
-                    onPress={() => {
-                      setSelectedCategory(null);
-                      setAddTagModalVisible(true);
-                    }}>
-                    <Text style={styles.addButtonText}>+ Add New Tag</Text>
-                  </TouchableOpacity>
-                </View>
-              }
-              renderItem={({item}: {item: Category}) => (
-                <TagItemCard
-                  reason={item}
-                  onEditAction={(item: Category) => {
-                    setSelectedCategory(item);
-                    setAddTagModalVisible(true);
-                  }}
-                  onDeleteAction={(item: Category) => {
-                    Alert.alert(
-                      'Alert!',
-                      'Are you sure you want to delete this category?',
-                      [
-                        {
-                          text: 'Cancel',
-                          style: 'cancel',
-                        },
-                        {
-                          text: 'Confirm',
-                          onPress: () => {
-                            if (isConnected) {
-                              deleteTagMutation.mutate(item._id);
-                            } else {
-                              Snackbar.show({
-                                text: 'You are currently offline',
-                                duration: Snackbar.LENGTH_SHORT,
-                              });
-                            }
-                          },
-                          style: 'destructive',
-                        },
-                      ],
-                    );
-                  }}
-                />
-              )}
-              contentContainerStyle={styles.list}
-              showsVerticalScrollIndicator={false}
-              ListEmptyComponent={
-                <EmptyState
-                  icon="tag"
-                  title="No Tags Configured"
-                  subtitle="Configure clinical categories and tags to organize articles and specialties."
-                />
-              }
-            />
-          </Tabs.Tab>
-
+          {/* Glossary Tab (Comes before Tags) */}
           <Tabs.Tab name="Glossary" label="Glossary">
             <Tabs.FlatList
               data={filteredGlossary}
@@ -1075,7 +1075,8 @@ export default function HomeScreen({navigation, route}: ArticleProps) {
                   <TouchableOpacity
                     style={styles.addButton}
                     onPress={handleOpenAddGlossary}>
-                    <Text style={styles.addButtonText}>+ Submit Medical Term</Text>
+                    <Ionicons name="add" size={19} color="#FFFFFF" />
+                    <Text style={styles.addButtonText}>Submit Medical Term</Text>
                   </TouchableOpacity>
                 </View>
               }
@@ -1151,18 +1152,88 @@ export default function HomeScreen({navigation, route}: ArticleProps) {
                         <Text style={styles.claimGlossaryBtnText}>Claim for Review</Text>
                       </TouchableOpacity>
                     ) : (
-                      <View style={{flexDirection: 'row', gap: 10, flex: 1, justifyContent: 'flex-end'}}>
+                      /* Medical term has two states: Publish or Reject with reason, and submit */
+                      <View style={styles.termDecisionContainer}>
+                        <Text style={styles.termDecisionTitle}>Clinical Moderation Decision</Text>
+                        <View style={styles.termStateRow}>
+                          {/* Option 1: Publish */}
+                          <TouchableOpacity
+                            style={[
+                              styles.termStateOption,
+                              getDecision(item._id).state === 'publish' && styles.termStateOptionActivePublish,
+                            ]}
+                            onPress={() => setDecisionState(item._id, 'publish')}
+                            activeOpacity={0.8}>
+                            <Ionicons
+                              name={getDecision(item._id).state === 'publish' ? 'radio-button-on' : 'radio-button-off'}
+                              size={18}
+                              color={getDecision(item._id).state === 'publish' ? '#10B981' : '#64748B'}
+                            />
+                            <Text
+                              style={[
+                                styles.termStateOptionText,
+                                getDecision(item._id).state === 'publish' && styles.termStateTextActivePublish,
+                              ]}>
+                              Publish
+                            </Text>
+                          </TouchableOpacity>
+
+                          {/* Option 2: Reject with reason */}
+                          <TouchableOpacity
+                            style={[
+                              styles.termStateOption,
+                              getDecision(item._id).state === 'reject' && styles.termStateOptionActiveReject,
+                            ]}
+                            onPress={() => setDecisionState(item._id, 'reject')}
+                            activeOpacity={0.8}>
+                            <Ionicons
+                              name={getDecision(item._id).state === 'reject' ? 'radio-button-on' : 'radio-button-off'}
+                              size={18}
+                              color={getDecision(item._id).state === 'reject' ? '#EF4444' : '#64748B'}
+                            />
+                            <Text
+                              style={[
+                                styles.termStateOptionText,
+                                getDecision(item._id).state === 'reject' && styles.termStateTextActiveReject,
+                              ]}>
+                              Reject with reason
+                            </Text>
+                          </TouchableOpacity>
+                        </View>
+
+                        {/* Reason input when Reject is chosen */}
+                        {getDecision(item._id).state === 'reject' && (
+                          <View style={styles.termReasonInputWrapper}>
+                            <TextInput
+                              style={styles.termReasonInput}
+                              placeholder="Enter rejection reason (e.g., incorrect definition, duplicate, obsolete nomenclature)..."
+                              placeholderTextColor="#94A3B8"
+                              value={getDecision(item._id).reason}
+                              onChangeText={val => setDecisionReason(item._id, val)}
+                              multiline
+                            />
+                          </View>
+                        )}
+
+                        {/* Submit Button */}
                         <TouchableOpacity
-                          style={styles.approveGlossaryBtn}
-                          onPress={() => {
-                            if (isConnected) {
-                              approveGlossaryMutation.mutate({id: item._id});
-                            } else {
-                              Snackbar.show({text: 'Offline mode', duration: Snackbar.LENGTH_SHORT});
-                            }
-                          }}>
-                          <Ionicons name="checkmark-circle-outline" size={16} color="#FFFFFF" style={{marginRight: 6}} />
-                          <Text style={styles.approveGlossaryBtnText}>Approve & Publish</Text>
+                          style={[
+                            styles.termSubmitBtn,
+                            getDecision(item._id).state === 'reject'
+                              ? styles.termSubmitBtnReject
+                              : styles.termSubmitBtnPublish,
+                          ]}
+                          onPress={() => handleSubmitGlossaryDecision(item)}
+                          activeOpacity={0.85}>
+                          <Ionicons
+                            name={getDecision(item._id).state === 'reject' ? 'close-circle-outline' : 'checkmark-circle-outline'}
+                            size={17}
+                            color="#FFFFFF"
+                            style={{marginRight: 6}}
+                          />
+                          <Text style={styles.termSubmitBtnText}>
+                            {getDecision(item._id).state === 'reject' ? 'Submit (Reject)' : 'Submit (Publish)'}
+                          </Text>
                         </TouchableOpacity>
                       </View>
                     )}
@@ -1173,7 +1244,9 @@ export default function HomeScreen({navigation, route}: ArticleProps) {
               showsVerticalScrollIndicator={false}
               ListEmptyComponent={
                 <EmptyState
-                  icon="bookmark-outline"
+                  icon="book-outline"
+                  iconType="ionicons"
+                  badge={glossaryTab === 'unassigned' ? 'Unassigned Queue' : 'Review Queue'}
                   title={
                     glossaryTab === 'unassigned'
                       ? 'No Unassigned Terms'
@@ -1184,6 +1257,73 @@ export default function HomeScreen({navigation, route}: ArticleProps) {
                       ? 'Queue is clear! All medical submissions have been claimed or reviewed.'
                       : 'You do not have any terms currently in review. Claim terms from the Unassigned queue.'
                   }
+                />
+              }
+            />
+          </Tabs.Tab>
+
+          {/* Tags Tab (Positioned after Glossary) */}
+          <Tabs.Tab name="Tags" label="Tags">
+            <Tabs.FlatList
+              data={articleCategories ? articleCategories : []}
+              keyExtractor={item => item._id}
+              refreshing={tagRefresh}
+              onRefresh={onTagRefresh}
+              ListHeaderComponent={
+                <View style={styles.actionHeaderContainer}>
+                  <TouchableOpacity
+                    style={styles.addButton}
+                    onPress={() => {
+                      setSelectedCategory(null);
+                      setAddTagModalVisible(true);
+                    }}>
+                    <Ionicons name="add" size={19} color="#FFFFFF" />
+                    <Text style={styles.addButtonText}>Add New Tag</Text>
+                  </TouchableOpacity>
+                </View>
+              }
+              renderItem={({item}: {item: Category}) => (
+                <TagItemCard
+                  reason={item}
+                  onEditAction={(item: Category) => {
+                    setSelectedCategory(item);
+                    setAddTagModalVisible(true);
+                  }}
+                  onDeleteAction={(item: Category) => {
+                    Alert.alert(
+                      'Alert!',
+                      'Are you sure you want to delete this category?',
+                      [
+                        {
+                          text: 'Cancel',
+                          style: 'cancel',
+                        },
+                        {
+                          text: 'Confirm',
+                          onPress: () => {
+                            if (isConnected) {
+                              deleteTagMutation.mutate(item._id);
+                            } else {
+                              Snackbar.show({
+                                text: 'You are currently offline',
+                                duration: Snackbar.LENGTH_SHORT,
+                              });
+                            }
+                          },
+                          style: 'destructive',
+                        },
+                      ],
+                    );
+                  }}
+                />
+              )}
+              contentContainerStyle={styles.list}
+              showsVerticalScrollIndicator={false}
+              ListEmptyComponent={
+                <EmptyState
+                  icon="tag"
+                  title="No Tags Configured"
+                  subtitle="Configure clinical categories and tags to organize articles and specialties."
                 />
               }
             />
@@ -1452,8 +1592,8 @@ const styles = StyleSheet.create({
 
   actionHeaderContainer: {
     paddingHorizontal: 16,
-    paddingTop: 24,
-    paddingBottom: 14,
+    paddingTop: 12,
+    paddingBottom: 8,
   },
 
   addButton: {
@@ -1462,6 +1602,8 @@ const styles = StyleSheet.create({
     borderRadius: 14,
     alignItems: 'center',
     justifyContent: 'center',
+    flexDirection: 'row',
+    gap: 6,
     shadowColor: PRIMARY_COLOR,
     shadowOffset: {width: 0, height: 2},
     shadowOpacity: 0.15,
@@ -1602,6 +1744,98 @@ const styles = StyleSheet.create({
     color: '#FFFFFF',
     fontSize: 12.5,
     fontWeight: '700',
+  },
+  termDecisionContainer: {
+    marginTop: 12,
+    paddingTop: 12,
+    borderTopWidth: 1,
+    borderTopColor: '#F1F5F9',
+  },
+  termDecisionTitle: {
+    fontSize: 11,
+    fontWeight: '700',
+    color: '#475569',
+    marginBottom: 8,
+    textTransform: 'uppercase',
+    letterSpacing: 0.5,
+  },
+  termStateRow: {
+    flexDirection: 'row',
+    gap: 10,
+    marginBottom: 10,
+  },
+  termStateOption: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    paddingVertical: 9,
+    paddingHorizontal: 10,
+    borderRadius: 10,
+    borderWidth: 1.5,
+    borderColor: '#E2E8F0',
+    backgroundColor: '#F8FAFC',
+  },
+  termStateOptionActivePublish: {
+    borderColor: '#10B981',
+    backgroundColor: '#ECFDF5',
+  },
+  termStateOptionActiveReject: {
+    borderColor: '#EF4444',
+    backgroundColor: '#FEF2F2',
+  },
+  termStateOptionText: {
+    fontSize: 12.5,
+    fontWeight: '600',
+    color: '#64748B',
+  },
+  termStateTextActivePublish: {
+    color: '#065F46',
+    fontWeight: '700',
+  },
+  termStateTextActiveReject: {
+    color: '#991B1B',
+    fontWeight: '700',
+  },
+  termReasonInputWrapper: {
+    marginBottom: 10,
+  },
+  termReasonInput: {
+    borderWidth: 1,
+    borderColor: '#CBD5E1',
+    borderRadius: 10,
+    padding: 10,
+    fontSize: 13,
+    color: '#0F172A',
+    backgroundColor: '#FFFFFF',
+    minHeight: 60,
+    textAlignVertical: 'top',
+  },
+  termSubmitBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 10,
+    paddingHorizontal: 16,
+    borderRadius: 10,
+    shadowOffset: {width: 0, height: 1},
+    shadowOpacity: 0.1,
+    shadowRadius: 2,
+    elevation: 2,
+  },
+  termSubmitBtnPublish: {
+    backgroundColor: '#16A34A',
+    shadowColor: '#16A34A',
+  },
+  termSubmitBtnReject: {
+    backgroundColor: '#DC2626',
+    shadowColor: '#DC2626',
+  },
+  termSubmitBtnText: {
+    color: '#FFFFFF',
+    fontSize: 13,
+    fontWeight: '700',
+    letterSpacing: 0.2,
   },
   glossarySearchRow: {
     flexDirection: 'row',

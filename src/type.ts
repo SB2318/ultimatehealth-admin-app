@@ -88,16 +88,87 @@ export type Admin = {
   user_name: string;
   user_handle: string;
   email: string;
-  password: string;
+  password?: string;
   role: string;
   created_at: string;
-  updated_at: string;
+  updated_at?: string;
   Profile_avtar: string;
   isVerified: boolean;
-  verificationToken: string | null;
-  refreshToken: string | null;
-  fcmToken: string | null;
+  verificationToken?: string | null;
+  refreshToken?: string | null;
+  fcmToken?: string | null;
   isSuperAdmin?: boolean;
+  isBlocked?: boolean;
+  is_blocked?: boolean;
+  status?: string;
+  signature_url?: string;
+  phone?: string;
+};
+
+export type AdminDossier = {
+  admin: {
+    _id: string;
+    user_name: string;
+    user_handle: string;
+    email: string;
+    role: string;
+    isSuperAdmin: boolean;
+    isBlocked: boolean;
+    status: string;
+    isVerified: boolean;
+    signature_url?: string;
+    Profile_avtar?: string;
+    created_at?: string;
+    phone?: string;
+  };
+  permissions: {
+    canReviewArticles: boolean;
+    canInspectDiffs: boolean;
+    canManageReports: boolean;
+    canManageGlossary: boolean;
+    canAuditGlobal: boolean;
+    canManageAdmins: boolean;
+  };
+  metrics: {
+    articlesReviewed: number;
+    improvementsReviewed: number;
+    reportsHandled: number;
+  };
+};
+
+export type AbuseReasonMetric = {
+  _id: string;
+  reason: string;
+  status: string;
+  activeReportsCount: number;
+  resolvedReportsCount: number;
+  totalReportsCount: number;
+};
+
+export type PlatformAnalyticsData = {
+  staffMetrics: {
+    totalAdmins: number;
+    activeAdmins: number;
+    suspendedAdmins: number;
+    pendingApplicants: number;
+    totalApplicants: number;
+  };
+  contentMetrics: {
+    unassignedArticles: number;
+    inProgressArticles: number;
+    publishedArticles: number;
+    totalArticles: number;
+    reviewQueueCount: number;
+  };
+  moderationMetrics: {
+    pendingReports: number;
+    resolvedReports: number;
+    totalReports: number;
+  };
+  masterDataMetrics: {
+    totalSpecializations: number;
+    totalLanguages: number;
+  };
 };
 
 export type AuthData = {

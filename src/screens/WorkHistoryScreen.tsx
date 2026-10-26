@@ -59,7 +59,7 @@ const COLORS = {
 
 export default function WorkHistoryScreen({navigation}: WorkHistoryProps) {
   //const bottomBarHeight = useBottomTabBarHeight();
-  const {user_token, user_id} = useSelector((state: any) => state.user);
+  const {user_token, user_id, isGuest} = useSelector((state: any) => state.user);
   const {isConnected} = useSelector((state: any) => state.network);
   const isDarkMode = useColorScheme() === 'dark';
   const colors = isDarkMode ? COLORS.dark : COLORS.light;
@@ -316,22 +316,36 @@ export default function WorkHistoryScreen({navigation}: WorkHistoryProps) {
       padding="$10"
       gap="$4">
       {icon}
-      <Text fontSize={17} color={colors.secondaryText} textAlign="center">
+      <Text style={{fontSize: 17, color: colors.secondaryText, textAlign: 'center'}}>
         {message}
       </Text>
     </YStack>
   );
 
-  const renderTabBar = props => {
+  const effectiveArticles = isGuest ? getFallbackArticles(completedArticles) : completedArticles;
+  const effectiveImprovements = isGuest ? getFallbackImprovements(completedImprovements) : completedImprovements;
+  const effectivePodcasts = isGuest ? getFallbackPodcasts(completedPodcasts) : completedPodcasts;
+  const effectiveReports = isGuest ? getFallbackReports(assignedReports) : assignedReports;
+
+  const renderTabBar = (props: any) => {
     return (
       <MaterialTabBar
         {...props}
-        indicatorStyle={styles.indicatorStyle}
-        style={styles.tabBarStyle}
+        indicatorStyle={{
+          backgroundColor: PRIMARY_COLOR,
+          height: 3,
+          borderRadius: 2,
+        }}
+        style={{
+          backgroundColor: colors.surface,
+          borderBottomWidth: 1,
+          borderBottomColor: colors.border,
+          elevation: 0,
+          shadowOpacity: 0,
+        }}
         activeColor={PRIMARY_COLOR}
         inactiveColor="#9098A3"
         labelStyle={styles.labelStyle}
-        contentContainerStyle={styles.contentContainerStyle}
       />
     );
   };
@@ -363,10 +377,10 @@ export default function WorkHistoryScreen({navigation}: WorkHistoryProps) {
         {/* Articles Tab */}
         <Tabs.Tab name="Articles">
           <Tabs.FlatList
-            data={getFallbackArticles(completedArticles)}
+            data={effectiveArticles}
             renderItem={renderItem}
             keyExtractor={item => item._id}
-            contentContainerStyle={styles.listContent}
+            contentContainerStyle={styles.cardListContent}
             ListEmptyComponent={
               <EmptyState
                 icon="file-text"
@@ -394,9 +408,9 @@ export default function WorkHistoryScreen({navigation}: WorkHistoryProps) {
         {/* Revision Tab */}
         <Tabs.Tab name="Revision">
           <Tabs.FlatList
-            data={getFallbackImprovements(completedImprovements)}
+            data={effectiveImprovements}
             renderItem={renderRevisionItem}
-            contentContainerStyle={styles.listContent}
+            contentContainerStyle={styles.cardListContent}
             ListEmptyComponent={
               <EmptyState
                 icon="edit-3"
@@ -423,9 +437,9 @@ export default function WorkHistoryScreen({navigation}: WorkHistoryProps) {
         {/* Podcast Tab */}
         <Tabs.Tab name="Podcast">
           <Tabs.FlatList
-            data={getFallbackPodcasts(completedPodcasts)}
+            data={effectivePodcasts}
             renderItem={renderPodcastItem}
-            contentContainerStyle={styles.listContent}
+            contentContainerStyle={styles.cardListContent}
             ListEmptyComponent={
               <EmptyState
                 icon="headphones"
@@ -452,7 +466,7 @@ export default function WorkHistoryScreen({navigation}: WorkHistoryProps) {
         {/* Reports Tab */}
         <Tabs.Tab name="Reports">
           <Tabs.FlatList
-            data={getFallbackReports(assignedReports)}
+            data={effectiveReports}
             renderItem={({item}) => (
               <ReportCard
                 report={item}
@@ -462,7 +476,7 @@ export default function WorkHistoryScreen({navigation}: WorkHistoryProps) {
                 onTakeActionReport={onTakeActionReport}
               />
             )}
-            contentContainerStyle={styles.listContent}
+            contentContainerStyle={styles.cardListContent}
             ListEmptyComponent={
               <EmptyState
                 icon="shield-checkmark"
@@ -757,6 +771,11 @@ const styles = StyleSheet.create({
   listContent: {
     paddingHorizontal: 14,
     paddingTop: 12,
+    paddingBottom: 110,
+  },
+  cardListContent: {
+    paddingHorizontal: 0,
+    paddingTop: 16,
     paddingBottom: 110,
   },
   floatingBackButton: {

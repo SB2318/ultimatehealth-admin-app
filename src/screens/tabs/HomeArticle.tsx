@@ -22,6 +22,7 @@ import {ArticleData} from '../../type';
 import {getFallbackArticles, getFallbackProgressArticles} from '../../helper/DemoData';
 import {Feather, MaterialCommunityIcons} from '@expo/vector-icons';
 import EmptyState from '../../components/EmptyState';
+import {useSelector} from 'react-redux';
 
 type Props = {
   inProgressArticle: ArticleData[];
@@ -42,11 +43,12 @@ export default function HomeArticle({
   onAvailablePageEnd,
   onProgressPageEnd,
 }: Props) {
+  const {isGuest} = useSelector((state: any) => state.user);
   const [selectedCategory, setSelectedCategory] = useState<'Available' | 'Inprogress'>('Available');
 
-  // Wrap with realistic clinical demo articles if backend queue is empty
-  const effectiveAvailable = getFallbackArticles(availableArticle);
-  const effectiveInProgress = getFallbackProgressArticles(inProgressArticle);
+  // Wrap with realistic clinical demo articles only in guest mode; real data when authenticated
+  const effectiveAvailable = isGuest ? getFallbackArticles(availableArticle) : availableArticle;
+  const effectiveInProgress = isGuest ? getFallbackProgressArticles(inProgressArticle) : inProgressArticle;
 
   const availableCount = effectiveAvailable.length;
   const inProgressCount = effectiveInProgress.length;

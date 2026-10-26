@@ -209,26 +209,7 @@ const NotificationScreen = ({navigation}: NotificationProps) => {
   }
 
   return (
-    <SafeAreaView style={styles.container}>
-      {/* Top Header */}
-      <View style={styles.headerBar}>
-        <TouchableOpacity
-          onPress={() => navigation.goBack()}
-          style={styles.backBtn}
-          activeOpacity={0.7}>
-          <Ionicons name="arrow-back" size={22} color={PRIMARY_DARK} />
-        </TouchableOpacity>
-        <View style={styles.headerTitleContainer}>
-          <Text style={styles.headerTitle}>Reviewer Notifications</Text>
-          <Text style={styles.headerSub}>Editorial & Governance Alerts</Text>
-        </View>
-        <View style={styles.badgeCount}>
-          <Text style={styles.badgeCountText}>
-            {notificationsData?.length || 0}
-          </Text>
-        </View>
-      </View>
-
+    <SafeAreaView style={styles.container} edges={['bottom', 'left', 'right']}>
       {/* Guest Mode Indicator */}
       {isGuest && (
         <View style={styles.guestBanner}>
@@ -251,10 +232,10 @@ const NotificationScreen = ({navigation}: NotificationProps) => {
           <View style={styles.emptyWrap}>
             <EmptyState
               icon="notifications-off-outline"
-              badgeText="Inbox Clean"
+              badge="Inbox Clean"
               title="No Notifications"
               subtitle="All clinical submissions and peer-review updates have been addressed."
-              actionLabel={isGuest ? 'Reset Demo Notifications' : undefined}
+              actionText={isGuest ? 'Reset Demo Notifications' : undefined}
               onAction={
                 isGuest ? () => setNotificationsData(DEMO_NOTIFICATIONS) : undefined
               }
@@ -278,50 +259,6 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: SCREEN_BG,
-  },
-  headerBar: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingHorizontal: 16,
-    paddingVertical: 12,
-    backgroundColor: CARD_BG,
-    borderBottomWidth: 1,
-    borderBottomColor: BORDER_COLOR,
-    gap: 12,
-  },
-  backBtn: {
-    width: 38,
-    height: 38,
-    borderRadius: 19,
-    backgroundColor: '#F1F5F9',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  headerTitleContainer: {
-    flex: 1,
-  },
-  headerTitle: {
-    fontSize: 18,
-    fontWeight: '700',
-    color: TEXT_PRIMARY,
-  },
-  headerSub: {
-    fontSize: 12,
-    color: TEXT_SECONDARY,
-    marginTop: 1,
-  },
-  badgeCount: {
-    backgroundColor: '#E0F2FE',
-    paddingHorizontal: 10,
-    paddingVertical: 4,
-    borderRadius: 12,
-    borderWidth: 1,
-    borderColor: '#BAE6FD',
-  },
-  badgeCountText: {
-    fontSize: 12,
-    fontWeight: '700',
-    color: '#0284C7',
   },
   guestBanner: {
     flexDirection: 'row',

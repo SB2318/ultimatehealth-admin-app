@@ -238,8 +238,10 @@ const styles = StyleSheet.create({
     letterSpacing: 1.2,
   },
   centerContainer: {
+    flex: 1,
     width: '100%',
     paddingHorizontal: 24,
+    justifyContent: 'center',
     alignItems: 'center',
   },
   portalCard: {
@@ -322,6 +324,7 @@ const styles = StyleSheet.create({
   indicatorRow: {
     flexDirection: 'row',
     alignItems: 'center',
+    justifyContent: 'center',
     gap: 10,
     backgroundColor: '#F8FAFC',
     borderColor: '#E2E8F0',
@@ -336,6 +339,8 @@ const styles = StyleSheet.create({
     color: PORTAL_COLORS.textSecondary,
   },
   footer: {
+    position: 'absolute',
+    bottom: 18,
     alignItems: 'center',
     gap: 4,
     paddingBottom: 6,

@@ -595,7 +595,7 @@ export const DEMO_ADMINS: any[] = [
     _id: '6adecf8fa082224345d5bab0',
     user_name: 'Super Admin Executive',
     user_handle: 'superadmin_console',
-    email: 'sb2318@it.jgec.ac.in',
+    email: 'superadmin@ultimatehealth.org',
     role: 'Super Admin',
     isSuperAdmin: true,
     isBlocked: false,

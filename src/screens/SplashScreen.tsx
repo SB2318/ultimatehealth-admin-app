@@ -190,7 +190,7 @@ export default function SplashScreen({navigation}: SplashScreenProp) {
       {/* Bottom Compliance Footer */}
       <View style={styles.footer}>
         <Text style={styles.footerVersion}>
-          v{currentVersion} • Certified Healthcare Management System
+          v{currentVersion} •  Content Management System
         </Text>
         <Text style={styles.footerSub}>
           Authorized Reviewer Portal

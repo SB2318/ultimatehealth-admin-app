@@ -4,45 +4,49 @@
 **Version:** 1.1.2 (Version Code: 18)  
 **Target Environment:** Android (Play Store / APK) & iOS (App Store / TestFlight)  
 **App Identifier:** `com.ultimatehealth.admin`  
+**Developer:** Susmita Bhattacharya (`@SB2318`)  
+**Project:** UltimateHealth (Open Source Initiative)  
 **Metro Bundler Status:** Verified (4,505 modules compiled successfully)
 
 ---
 
-## 🌟 Executive Summary
+## 🌟 Overview
 
-UltimateHealth Admin App v1.1.2 brings complete feature parity with backend release **v3.5.0**, introducing an **Executive Governance Console** for Super Admins, verified **Staff Profile Dossiers** with credential auditing, real-time **Abuse Reason Metrics**, an in-app **Doctor Candidate CV & Document Inspector**, and an upgraded, interactive **Guest Mode & Governance Sandbox**.
+UltimateHealth Admin App v1.1.2 brings complete feature parity with backend release **v3.5.0**, introducing an **Executive Governance Console** for Super Admins, verified **Staff Profile Dossiers** with activity tracking, real-time **Abuse Reason Metrics**, an in-app **Doctor Candidate CV & Document Inspector**, and an upgraded, interactive **Guest Mode & Sandbox**.
+
+As part of the UltimateHealth open-source initiative, this release focuses on giving maintainers, moderators, and community reviewers reliable tools to review health articles, manage team access, and audit content efficiently.
 
 ---
 
 ## 🚀 Key Features & Highlights
 
-### 1. 🛡️ Super Admin Executive Governance Console
+### 1. 🛡️ Super Admin Executive Console
 - **Platform Analytics Overview (`GET /api/admin/platform-analytics`)**:
-  - Live workforce indicators (Active, Suspended, Total Staff, and Doctor Applicants).
+  - Workforce indicators (Active, Suspended, Total Staff, and Doctor Applicants).
   - Editorial pipeline velocity (Unassigned, In-Review, and Published clinical articles).
-  - Moderation triage metrics (Pending vs. Resolved incidents).
-  - Master data coverage (Specializations & Localized languages).
+  - Moderation triage metrics (Pending vs. Resolved incident reports).
+  - Master data coverage (Specializations & Localized languages count).
 - **Interactive Sandbox & Empty Queue Guard**:
-  - Automatically activates demo benchmarks in Guest Mode or when live databases return zero records, ensuring zero UI breakage.
+  - Automatically loads fallback benchmarks in Guest Mode or when database collections have 0 records, preventing broken screens.
 
 ### 2. 👨‍⚕️ Doctor Applicants Queue & In-App CV Inspector
 - **Authentication & Pagination Fix**:
   - Passed Super Admin Bearer authorization token headers to `GET /api/admin/applicants`.
-  - Upgraded parser to unpack `{ success: true, data: { applicants: [...] } }`.
+  - Upgraded parser to unpack backend pagination structure `{ success: true, data: { applicants: [...] } }`.
 - **In-App Document Viewer (`openApplicantDocument`)**:
-  - Resolves both relative S3 keys (`applicant-resumes/...`) and absolute URLs via `/api/getFile`.
-  - Utilizes **Expo WebBrowser** with Google Docs PDF preview wrapper (`https://docs.google.com/viewer?url=...`), eliminating failures on Android devices lacking dedicated PDF reader apps.
-  - Added direct **"CV Document"** quick-action button on candidate cards and an enhanced document inspection block in the applicant detail modal.
+  - Resolves both relative S3 keys (`applicant-resumes/...`) and direct URLs via `/api/getFile`.
+  - Uses **Expo WebBrowser** with Google Docs PDF preview wrapper (`https://docs.google.com/viewer?url=...`), opening PDFs directly inside the app without requiring an external PDF reader.
+  - Added direct **"CV Document"** button on applicant cards and an inspection block in the candidate modal.
 
 ### 3. 👥 Staff Directory, Status Toggling & Profile Dossiers
 - **Staff Status Toggling (`PUT /api/admin/:id/status`)**:
-  - Super Admins can immediately suspend or reactivate staff accounts.
+  - Super Admins can immediately suspend or reactivate moderator accounts.
   - Built-in guardrails prevent self-blocking and Super Admin suspension.
   - Optimistic UI updates with instant haptic and snackbar feedback.
 - **Staff Profile Dossier (`GET /api/admin/profile/:id`)**:
   - Modal dossier with reviewer metrics (Articles reviewed, Improvements evaluated, Reports handled).
-  - Permissions matrix visualization (`canReviewArticles`, `canInspectDiffs`, `canManageReports`, `canAuditGlobal`, etc.).
-  - Clinical credentials verification badge and verified digital signature inspection.
+  - Permissions matrix visualization (`canReviewArticles`, `canInspectDiffs`, `canManageReports`, `canAuditGlobal`).
+  - Digital signature preview and verified contributor badges.
 
 ### 4. ⚖️ Abuse Report Categories with Metric Breakdown
 - **Abuse Metrics (`GET /api/report/reasons/metrics`)**:
@@ -51,10 +55,10 @@ UltimateHealth Admin App v1.1.2 brings complete feature parity with backend rele
 
 ### 5. 🧭 Enhanced Guest Explorer & Governance Sandbox
 - **Revamped Login Entry Point**:
-  - Redesigned "Explore in Guest Mode" card with capability chips (`Governance Console`, `Applicant CVs`, `AI & Plagiarism`, `Reviewer Queue`).
+  - Redesigned "Explore in Guest Mode" card with capability chips (`Governance Console`, `Applicant CVs`, `AI & Plagiarism`).
 - **Interactive Governance Sandbox**:
-  - Guest users receive an isolated sandbox environment with full mock datasets across Articles, Improvements, Podcasts, Staff Members, and Applicants.
-  - Distinctive **"Guest Governance Sandbox"** banner informs evaluators that actions are safely simulated.
+  - Evaluators get an isolated sandbox environment with full mock datasets across Articles, Improvements, Podcasts, Staff Members, and Applicants.
+  - Blue **"Guest Governance Sandbox"** banner indicates simulated actions.
 
 ---
 
@@ -78,13 +82,13 @@ UltimateHealth Admin App v1.1.2 brings complete feature parity with backend rele
 
 - **TypeScript Typecheck:** 0 errors in all modified files (`SuperAdminDashboard.tsx`, `LoginScreen.tsx`, `APIUtils.ts`, `DemoData.ts`, `type.ts`).
 - **Expo / Metro Bundler:** 4,505 modules compiled successfully for both Android and iOS targets.
-- **Asset Integrity:** Verified adaptive foreground/background launcher icons and splash assets.
-- **Firebase SDK:** Registered and configured (`google-services.json` & `GoogleService-Info.plist`).
+- **Asset Integrity:** Verified adaptive launcher icons and splash assets.
+- **Firebase SDK:** Configured with `google-services.json` (Android) and `GoogleService-Info.plist` (iOS).
 - **EAS Profile:** Ready for `eas build --platform android --profile production` and preview APK generation.
 
 ---
 
-## 👥 Contributors & Release Sign-off
+## 👥 Contributors & Open Source Sign-off
 
-- **Platform Architect & Lead Developer:** Subham Bhattacharya (`@SB2318`)
-- **Review Board:** UltimateHealth Medical Editorial & Quality Assurance Council
+- **Lead Developer & Maintainer:** Susmita Bhattacharya (`@SB2318`)
+- **Initiative:** UltimateHealth Open Source Project

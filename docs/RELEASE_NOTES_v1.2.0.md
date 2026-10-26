@@ -1,7 +1,7 @@
 # UltimateHealth Admin App - Release Notes v1.1.2
 
 **Release Date:** October 26, 2026  
-**Version:** 1.1.2 (Version Code: 18)  
+**Version:** 1.2.0 (Version Code: 18)  
 **Target Environment:** Android (Play Store / APK) & iOS (App Store / TestFlight)  
 **App Identifier:** `com.ultimatehealth.admin`  
 **Developer:** Susmita Bhattacharya (`@SB2318`)  
